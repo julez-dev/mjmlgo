@@ -9,10 +9,13 @@ import (
 )
 
 func TestRender(t *testing.T) {
-	input, err := os.ReadFile("input_s.mjml")
+	input, err := os.ReadFile("input_big.mjml")
 	require.NoError(t, err)
 
 	out, err := RenderMJML(bytes.NewReader(input))
 	require.NoError(t, err)
-	t.Log(out)
+
+	os.WriteFile("out.html", []byte(out), 0644)
+	_ = out
+	//t.Log(out)
 }
