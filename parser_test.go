@@ -5,7 +5,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/stretchr/testify/require"
 )
 
@@ -16,5 +15,6 @@ func TestParse(t *testing.T) {
 	node, err := parse(bytes.NewReader(input))
 	require.NoError(t, err)
 
-	spew.Dump(node)
+	_ = node
+	// spew.Dump(node)
 }

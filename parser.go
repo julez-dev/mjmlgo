@@ -7,9 +7,11 @@ import (
 	"fmt"
 	"io"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 
+	"github.com/julez-dev/mjmlgo/component"
 	"github.com/julez-dev/mjmlgo/node"
 )
 
@@ -43,6 +45,7 @@ func parse(input io.Reader) (*node.Node, error) {
 	})
 
 	dec := xml.NewDecoder(strings.NewReader(processedMJML))
+	dec.Strict = false
 
 	var (
 		stack []*node.Node
@@ -66,8 +69,29 @@ func parse(input io.Reader) (*node.Node, error) {
 				Attributes: t.Attr,
 			}
 
+			if mjmlTagsWithRawContent[node.Type] {
+				s, err := streamInnerRawContent(dec, t)
+				if err != nil {
+					return nil, err
+				}
+
+				node.Content = s
+				// Attach to parent
+				if len(stack) > 0 {
+					parent := stack[len(stack)-1]
+					node.Parent = parent
+					parent.Children = append(parent.Children, node)
+				} else {
+					root = node
+				}
+
+				// Do NOT push to stack, since streamInnerRawContent already consumes the end tag
+				continue
+			}
+
 			if len(stack) > 0 {
 				parent := stack[len(stack)-1]
+				node.Parent = parent
 				parent.Children = append(parent.Children, node)
 			} else {
 				root = node
@@ -78,28 +102,28 @@ func parse(input io.Reader) (*node.Node, error) {
 			if len(stack) > 0 {
 				parent := stack[len(stack)-1]
 				content := string(bytes.TrimSpace(t))
-				parent.Content = content
+				parent.Content += content
 			}
 		case xml.Comment:
-			// Check if this comment is one of our placeholders.
+			// Check if this comment is one of our placeholders
 			comment := string(t)
 			if after, ok := strings.CutPrefix(comment, "RAW_PLACEHOLDER_"); ok {
 				// Parse the index from the placeholder string.
 				indexStr := strings.TrimSpace(after)
 				index, err := strconv.Atoi(indexStr)
 				if err != nil || index >= len(rawContents) {
-					// This shouldn't happen if the regex is correct.
+					// This shouldn't happen
 					continue
 				}
 
-				// Create a node for the raw content.
 				node := &node.Node{
 					Type:    "mj-raw",
-					Content: rawContents[index], // Substitute the original content back.
+					Content: rawContents[index], // the original content
 				}
 
 				if len(stack) > 0 {
 					parent := stack[len(stack)-1]
+					node.Parent = parent // Set parent node for raw content
 					parent.Children = append(parent.Children, node)
 				}
 			}
@@ -115,5 +139,71 @@ func parse(input io.Reader) (*node.Node, error) {
 		return nil, fmt.Errorf("%w: no root element specified", ErrParsingFailed)
 	}
 
+	if !slices.ContainsFunc(root.Children, func(e *node.Node) bool {
+		return e.Type == component.HeadTagName
+	}) {
+		root.Children = slices.Insert(root.Children, 0, &node.Node{
+			Type:   component.HeadTagName,
+			Parent: root,
+		})
+	}
+
 	return root, nil
+}
+
+// mjmlTagsWithRawContent is a map of MJML tags whose inner content should be
+// treated as a single raw string, not parsed into child nodes.
+var mjmlTagsWithRawContent = map[string]bool{
+	"mj-text":            true,
+	"mj-button":          true,
+	"mj-table":           true,
+	"mj-navbar-link":     true,
+	"mj-accordion-text":  true,
+	"mj-accordion-title": true,
+	"mj-social-element":  true,
+}
+
+// streamInnerRawContent captures the inner content of an element as a raw string.
+// It starts after the initial start tag and stops before the final end tag.
+func streamInnerRawContent(decoder *xml.Decoder, startElement xml.StartElement) (string, error) {
+	var builder strings.Builder
+	depth := 1
+
+	for {
+		token, err := decoder.Token()
+		if err != nil {
+			if errors.Is(err, io.EOF) {
+				return "", fmt.Errorf("unexpected EOF while streaming raw content for <%s>", startElement.Name.Local)
+			}
+
+			return "", err
+		}
+
+		// Check for the final EndElement before writing, so we don't include it
+		if end, ok := token.(xml.EndElement); ok && end.Name.Local == startElement.Name.Local {
+			depth--
+			if depth == 0 {
+				return builder.String(), nil // We're done
+			}
+		}
+
+		// Re-serialize the token back to a string.
+		switch se := token.(type) {
+		case xml.StartElement:
+			if se.Name.Local == startElement.Name.Local {
+				depth++
+			}
+			builder.WriteString("<" + se.Name.Local)
+			for _, attr := range se.Attr {
+				builder.WriteString(fmt.Sprintf(` %s="%s"`, attr.Name.Local, attr.Value))
+			}
+			builder.WriteString(">")
+		case xml.EndElement:
+			builder.WriteString("</" + se.Name.Local + ">")
+		case xml.CharData:
+			builder.Write(se)
+		case xml.Comment:
+			builder.WriteString(fmt.Sprintf("<!--%s-->", string(se)))
+		}
+	}
 }
