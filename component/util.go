@@ -2,6 +2,7 @@ package component
 
 import (
 	"fmt"
+	"maps"
 	"math"
 	"regexp"
 	"slices"
@@ -44,15 +45,19 @@ func (ia inlineAttributes) InlineString() string {
 		return ""
 	}
 
-	var result string
-	for key, value := range ia {
+	// Collect keys and sort them for predictable order
+	keys := slices.Collect(maps.Keys(ia))
+	slices.Sort(keys)
+
+	var b strings.Builder
+	for _, key := range keys {
+		value := ia[key]
 		if value == "" {
 			continue
 		}
-
-		result += fmt.Sprintf("%s=\"%s\" ", key, value)
+		b.WriteString(fmt.Sprintf("%s=\"%s\" ", key, value))
 	}
-	return strings.TrimSpace(result)
+	return strings.TrimSpace(b.String())
 }
 
 var isPercentageRegex = regexp.MustCompile(`^\d+(\.\d+)?%$`)
