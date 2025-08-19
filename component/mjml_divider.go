@@ -72,7 +72,7 @@ func (d MJMLDivider) renderAfter(ctx *RenderContext, w io.Writer, n *node.Node) 
 		"border":      "0",
 		"cellpadding": "0",
 		"cellspacing": "0",
-		"style":       styles["outloook"].InlineString(),
+		"style":       styles["outlook"].InlineString(),
 		"role":        "presentation",
 		"width":       outlookWidth,
 	}
@@ -100,6 +100,7 @@ func (d MJMLDivider) getStyles(ctx *RenderContext, n *node.Node) (map[string]inl
 		{Property: "border-top", Value: strings.Join(borderTopParts, " ")},
 		{Property: "margin", Value: computeAlign},
 		{Property: "width", Value: n.GetAttributeValueDefault("width")},
+		{Property: "font-size", Value: "1px"},
 	}
 
 	outlookWidth, err := d.getOutlookWidth(ctx, n)
@@ -111,6 +112,7 @@ func (d MJMLDivider) getStyles(ctx *RenderContext, n *node.Node) (map[string]inl
 		{Property: "border-top", Value: strings.Join(borderTopParts, " ")},
 		{Property: "margin", Value: computeAlign},
 		{Property: "width", Value: outlookWidth},
+		{Property: "font-size", Value: "1px"},
 	}
 
 	return map[string]inlineStyle{

@@ -39,7 +39,7 @@ func TestInlineAttribute(t *testing.T) {
 			"class":       "my-class",
 			"cellpadding": "10",
 		}
-		require.Equal(t, `class="my-class" cellpadding="10"`, s.InlineString())
+		require.Equal(t, `cellpadding="10" class="my-class"`, s.InlineString())
 	})
 }
 
