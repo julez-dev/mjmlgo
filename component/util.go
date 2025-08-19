@@ -82,6 +82,10 @@ func getBackgroundPosition(n *node.Node) (string, string) {
 }
 
 func parseBackgroundPosition(position string) (string, string) {
+	if position == "" {
+		return "center", "center"
+	}
+
 	posSplit := strings.Split(position, " ")
 
 	if len(posSplit) == 1 {
@@ -104,7 +108,8 @@ func parseBackgroundPosition(position string) (string, string) {
 		return val1, val2
 	}
 
-	return "center", "center"
+	// more than 2 values is not supported, let's treat as default value
+	return "center", "top"
 }
 
 func addSuffixToClasses(classes string, suffix string) string {
@@ -114,13 +119,11 @@ func addSuffixToClasses(classes string, suffix string) string {
 
 	classSlice := strings.Split(classes, " ")
 
-	newClassSlice := make([]string, 0, len(classSlice))
-
-	for _, c := range classSlice {
-		newClassSlice = append(newClassSlice, c+"-"+suffix)
+	for i, c := range classSlice {
+		classSlice[i] = c + "-" + suffix
 	}
 
-	return strings.Join(newClassSlice, " ")
+	return strings.Join(classSlice, " ")
 }
 
 // valueAndUnitRegex is a compiled regular expression to extract the numeric
@@ -133,6 +136,7 @@ var valueAndUnitRegex = regexp.MustCompile(`^([\d.,]*)(\D*)$`)
 func parseWidth(width string) (float64, string, error) {
 	// extract the numeric string and unit using the regex
 	matches := valueAndUnitRegex.FindStringSubmatch(width)
+
 	if len(matches) < 3 {
 		return 0, "", fmt.Errorf("invalid width format: %s", width)
 	}
@@ -149,13 +153,7 @@ func parseWidth(width string) (float64, string, error) {
 		}
 	}
 
-	// Conditionally truncate the float to an integer.
-	// This logic matches the mjmls JS version where '%' is a special case.
-	// All other units ('px', 'rem', etc.) or '%' with the default option
-	// result in an integer-like value (by truncation).
-	if unit != "%" {
-		parsedValue = math.Trunc(parsedValue)
-	}
+	parsedValue = math.Trunc(parsedValue)
 
 	// default the unit to "px" if it was not present.
 	if unit == "" {
@@ -243,11 +241,11 @@ func getShorthandBorderValue(n *node.Node, direction, attribute string) int {
 	if borderDirection != "" {
 		return borderParser(borderDirection)
 	}
-	if border == "" {
+	if border != "" {
 		return borderParser(border)
 	}
 
-	return borderParser("0")
+	return 0
 }
 
 func getShorthandAttrValue(n *node.Node, attr string, direction string) (int, error) {
@@ -333,6 +331,10 @@ func borderParser(border string) int {
 }
 
 func nonRawSiblings(n *node.Node) []*node.Node {
+	if n.Parent == nil {
+		return nil
+	}
+
 	var sibs []*node.Node
 	for _, child := range n.Parent.Children {
 		if child.Type != RawTagName /* && child != n*/ {
@@ -411,7 +413,7 @@ func getWidthAsPixel(ctx *RenderContext, n *node.Node) (string, error) {
 }
 
 func getMobileWidth(ctx *RenderContext, n *node.Node) (string, error) {
-	containerWidth := strings.TrimSuffix(ctx.ContainerWidth, "px")
+	containerWidth := removeNonNumeric(ctx.ContainerWidth)
 	numberSiblings := len(nonRawSiblings(n))
 	width, hasWidth := n.GetAttributeValue("width")
 	mobileWidth := n.GetAttributeValueDefault("mobileWidth")

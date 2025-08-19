@@ -10,23 +10,24 @@ import (
 
 type MJMLHead struct{}
 
+func (h MJMLHead) Name() string {
+	return "mj-image"
+}
+
+func (h MJMLHead) AllowedAttributes() map[string]validateAttributeFunc {
+	return make(map[string]validateAttributeFunc)
+}
+
+func (h MJMLHead) DefaultAttributes(_ *RenderContext) map[string]string {
+	return make(map[string]string)
+}
+
 func (h MJMLHead) Render(ctx *RenderContext, w io.Writer, n *node.Node) error {
 	var headStylesheets []Stylesheet
 
 	_, _ = io.WriteString(w, `<head>`)
 	for _, child := range n.Children {
 		switch child.Type {
-		case AttributesTagName:
-			var attr MJMLAttributes
-			if err := attr.Render(ctx, w, child); err != nil {
-				return err
-			}
-		case BreakpointTagName:
-			if p, found := child.GetAttributeValue("width"); found {
-				ctx.Breakpoint = p
-			}
-		case PreviewTagName:
-			ctx.PreviewText = child.Content
 		case StyleTagName:
 			sheet, err := h.parseCSS(child.Content)
 			if err != nil {

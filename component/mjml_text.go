@@ -9,20 +9,42 @@ import (
 
 type MJMLText struct{}
 
-func (t MJMLText) applyDefaults(n *node.Node) {
-	defaults := map[string]string{
+func (t MJMLText) Name() string {
+	return "mj-text"
+}
+
+func (t MJMLText) AllowedAttributes() map[string]validateAttributeFunc {
+	return map[string]validateAttributeFunc{
+		"align":                      validateEnum([]string{"left", "right", "center", "justify"}),
+		"background-color":           validateColor(),
+		"color":                      validateColor(),
+		"container-background-color": validateColor(),
+		"font-family":                validateType("string"),
+		"font-size":                  validateUnit([]string{"px"}, false),
+		"font-style":                 validateType("string"),
+		"font-weight":                validateType("string"),
+		"height":                     validateUnit([]string{"px", "%"}, false),
+		"letter-spacing":             validateUnit([]string{"px", "em"}, false), //TODO:unitWithNegative
+		"line-height":                validateUnit([]string{"px", "%"}, false),
+		"padding-bottom":             validateUnit([]string{"px", "%"}, false),
+		"padding-left":               validateUnit([]string{"px", "%"}, false),
+		"padding-right":              validateUnit([]string{"px", "%"}, false),
+		"padding-top":                validateUnit([]string{"px", "%"}, false),
+		"padding":                    validateUnit([]string{"px", "%"}, true),
+		"text-decoration":            validateType("string"),
+		"text-transform":             validateType("string"),
+		"vertical-align":             validateEnum([]string{"top", "bottom", "middle"}),
+	}
+}
+
+func (t MJMLText) DefaultAttributes(ctx *RenderContext) map[string]string {
+	return map[string]string{
 		"align":       "left",
 		"color":       "#000000",
 		"font-family": "Ubuntu, Helvetica, Arial, sans-serif",
 		"font-size":   "13px",
 		"line-height": "1",
 		"padding":     "10px 25px",
-	}
-
-	for key, value := range defaults {
-		if _, ok := n.GetAttributeValue(key); !ok {
-			n.SetAttribute(key, value)
-		}
 	}
 }
 

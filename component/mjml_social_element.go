@@ -122,8 +122,48 @@ func getSocialNetworks() map[string]socialNetwork {
 
 type MJMLSocialElement struct{}
 
-func (s MJMLSocialElement) applyDefaults(n *node.Node) {
-	defaults := map[string]string{
+func (s MJMLSocialElement) Name() string {
+	return "mj-social-element"
+}
+
+func (s MJMLSocialElement) AllowedAttributes() map[string]validateAttributeFunc {
+	return map[string]validateAttributeFunc{
+		"align":            validateEnum([]string{"left", "right", "center"}),
+		"icon-position":    validateEnum([]string{"left", "right"}),
+		"background-color": validateColor(),
+		"color":            validateColor(),
+		"border-radius":    validateUnit([]string{"px"}, false),
+		"font-family":      validateType("string"),
+		"font-size":        validateUnit([]string{"px"}, false),
+		"font-style":       validateType("string"),
+		"font-weight":      validateType("string"),
+		"href":             validateType("string"),
+		"icon-size":        validateUnit([]string{"px", "%"}, false),
+		"icon-height":      validateUnit([]string{"px", "%"}, false),
+		"icon-padding":     validateUnit([]string{"px", "%"}, true),
+		"inner-padding":    validateUnit([]string{"px", "%"}, true),
+		"line-height":      validateUnit([]string{"px", "%"}, false),
+		"name":             validateType("string"),
+		"padding-bottom":   validateUnit([]string{"px", "%"}, false),
+		"padding-left":     validateUnit([]string{"px", "%"}, false),
+		"padding-right":    validateUnit([]string{"px", "%"}, false),
+		"padding-top":      validateUnit([]string{"px", "%"}, false),
+		"padding":          validateUnit([]string{"px", "%"}, true),
+		"text-padding":     validateUnit([]string{"px", "%"}, true),
+		"rel":              validateType("string"),
+		"src":              validateType("string"),
+		"srcset":           validateType("string"),
+		"sizes":            validateType("string"),
+		"alt":              validateType("string"),
+		"title":            validateType("string"),
+		"target":           validateType("string"),
+		"text-decoration":  validateType("string"),
+		"vertical-align":   validateEnum([]string{"top", "middle", "bottom"}),
+	}
+}
+
+func (s MJMLSocialElement) DefaultAttributes(_ *RenderContext) map[string]string {
+	return map[string]string{
 		"alt":             "",
 		"align":           "left",
 		"icon-position":   "left",
@@ -138,17 +178,9 @@ func (s MJMLSocialElement) applyDefaults(n *node.Node) {
 		"text-decoration": "none",
 		"vertical-align":  "middle",
 	}
-
-	for key, value := range defaults {
-		if _, ok := n.GetAttributeValue(key); !ok {
-			n.SetAttribute(key, value)
-		}
-	}
 }
 
 func (s MJMLSocialElement) Render(ctx *RenderContext, w io.Writer, n *node.Node) error {
-	s.applyDefaults(n)
-
 	attrs := s.getSocialAttributes(n)
 	styles := s.getStyles(n)
 	var (

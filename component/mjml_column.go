@@ -10,33 +10,45 @@ import (
 
 type MJMLColumn struct{}
 
-func (c MJMLColumn) allowedChildren() []string {
-	return []string{
-		SpacerTagName,
-		ImageTagName,
-		TextTagName,
-		SocialTagName,
-		DividerTagName,
-		TableTagName,
+func (c MJMLColumn) Name() string {
+	return "mj-column"
+}
+
+func (c MJMLColumn) AllowedAttributes() map[string]validateAttributeFunc {
+	return map[string]validateAttributeFunc{
+		"background-color":       validateColor(),
+		"border":                 validateType("string"),
+		"border-bottom":          validateType("string"),
+		"border-left":            validateType("string"),
+		"border-radius":          validateUnit([]string{"px", "%"}, true),
+		"border-right":           validateType("string"),
+		"border-top":             validateType("string"),
+		"direction":              validateEnum([]string{"ltr", "rtl"}),
+		"inner-background-color": validateColor(),
+		"padding-bottom":         validateUnit([]string{"px", "%"}, false),
+		"padding-left":           validateUnit([]string{"px", "%"}, false),
+		"padding-right":          validateUnit([]string{"px", "%"}, false),
+		"padding-top":            validateUnit([]string{"px", "%"}, false),
+		"padding":                validateUnit([]string{"px", "%"}, true),
+		"inner-border":           validateType("string"),
+		"inner-border-bottom":    validateType("string"),
+		"inner-border-left":      validateType("string"),
+		"inner-border-radius":    validateUnit([]string{"px", "%"}, true),
+		"inner-border-right":     validateType("string"),
+		"inner-border-top":       validateType("string"),
+		"vertical-align":         validateEnum([]string{"top", "bottom", "middle"}),
+		"width":                  validateUnit([]string{"px", "%"}, false),
 	}
 }
 
-func (c MJMLColumn) applyDefaults(ctx *RenderContext, n *node.Node) {
-	defaults := map[string]string{
-		"vertical-align": "top",
-		"direction":      ctx.Direction,
-	}
-
-	for key, value := range defaults {
-		if _, ok := n.GetAttributeValue(key); !ok {
-			n.SetAttribute(key, value)
-		}
+func (c MJMLColumn) DefaultAttributes(_ *RenderContext) map[string]string {
+	return map[string]string{
+		"direction":    "ltr",
+		"vertical-top": "top",
 	}
 }
 
 func (c MJMLColumn) Render(ctx *RenderContext, w io.Writer, n *node.Node) error {
-	c.applyDefaults(ctx, n)
-
 	className, err := getColumnClass(ctx, n)
 	if err != nil {
 		return fmt.Errorf("failed to get column class: %w", err)
@@ -102,15 +114,18 @@ func (c MJMLColumn) renderColumn(ctx *RenderContext, w io.Writer, n *node.Node) 
 		switch child.Type {
 		case DividerTagName:
 			var divider MJMLDivider
-			divider.applyDefaults(child)
-
+			if err := InitComponent(ctx, divider, child); err != nil {
+				return err
+			}
 			_, _ = io.WriteString(w, "<td "+c.tdAttribute(child).InlineString()+">\n")
 			if err := divider.Render(ctx, w, child); err != nil {
 				return fmt.Errorf("failed to render divider: %w", err)
 			}
 		case SpacerTagName:
 			var spacer MJMLSpacer
-			spacer.applyDefaults(child)
+			if err := InitComponent(ctx, spacer, child); err != nil {
+				return err
+			}
 
 			_, _ = io.WriteString(w, "<td "+c.tdAttribute(child).InlineString()+">\n")
 			if err := spacer.Render(ctx, w, child); err != nil {
@@ -118,7 +133,9 @@ func (c MJMLColumn) renderColumn(ctx *RenderContext, w io.Writer, n *node.Node) 
 			}
 		case ImageTagName:
 			var image MJMLImage
-			image.applyDefaults(child)
+			if err := InitComponent(ctx, image, child); err != nil {
+				return err
+			}
 
 			_, _ = io.WriteString(w, "<td "+c.tdAttribute(child).InlineString()+">\n")
 			if err := image.Render(ctx, w, child); err != nil {
@@ -126,7 +143,9 @@ func (c MJMLColumn) renderColumn(ctx *RenderContext, w io.Writer, n *node.Node) 
 			}
 		case TextTagName:
 			var text MJMLText
-			text.applyDefaults(child)
+			if err := InitComponent(ctx, text, child); err != nil {
+				return err
+			}
 
 			_, _ = io.WriteString(w, "<td "+c.tdAttribute(child).InlineString()+">\n")
 			if err := text.Render(ctx, w, child); err != nil {
@@ -134,7 +153,9 @@ func (c MJMLColumn) renderColumn(ctx *RenderContext, w io.Writer, n *node.Node) 
 			}
 		case SocialTagName:
 			var social MJMLSocial
-			social.applyDefaults(child)
+			if err := InitComponent(ctx, social, child); err != nil {
+				return err
+			}
 
 			_, _ = io.WriteString(w, "<td "+c.tdAttribute(child).InlineString()+">\n")
 			if err := social.Render(ctx, w, child); err != nil {
@@ -142,7 +163,9 @@ func (c MJMLColumn) renderColumn(ctx *RenderContext, w io.Writer, n *node.Node) 
 			}
 		case TableTagName:
 			var table MJMLTable
-			table.applyDefaults(child)
+			if err := InitComponent(ctx, table, child); err != nil {
+				return err
+			}
 
 			_, _ = io.WriteString(w, "<td "+c.tdAttribute(child).InlineString()+">\n")
 			if err := table.Render(ctx, w, child); err != nil {
@@ -258,4 +281,10 @@ func (c MJMLColumn) hasGutter(n *node.Node) bool {
 	}
 
 	return false
+}
+
+func (c MJMLColumn) allowedChildren() []string {
+	return []string{DividerTagName, SpacerTagName, ImageTagName,
+		TextTagName, SocialTagName, TableTagName,
+	}
 }

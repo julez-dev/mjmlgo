@@ -25,12 +25,13 @@ func RenderMJML(input io.Reader) (string, error) {
 
 	var buff strings.Builder
 	mjml := component.MJML{}
+
 	ctx := &component.RenderContext{
 		MJMLStylesheet: make(map[string][]string),
 	}
-	ctx.Breakpoint = "320px"
-	ctx.ContainerWidth = "600px"
-	ctx.Direction = "ltr"
+	if err := component.InitComponent(ctx, mjml, node); err != nil {
+		return "", err
+	}
 
 	if err := mjml.Render(ctx, &buff, node); err != nil {
 		return "", err
@@ -71,15 +72,31 @@ func inlineCSS(ctx *component.RenderContext, r io.Reader, w io.Writer) error {
 					}
 				}
 
+				var addToStyle string
 				for _, dec := range rule.Declarations {
 					var decAsText string
+					if len(styleAttr.Val) > 0 && !strings.HasSuffix(styleAttr.Val, ";") {
+						styleAttr.Val += ";"
+					}
+
 					if dec.Important {
 						decAsText += fmt.Sprintf("%s: %s !important;", dec.Property, dec.Value)
 					} else {
-						decAsText += fmt.Sprintf("%s: %s;", dec.Property, dec.Value)
+						styles, err := parseStyleAttribute(styleAttr)
+						if err != nil {
+							return fmt.Errorf("failed to parse style attribute: %w", err)
+						}
+
+						if _, exists := styles[dec.Property]; exists {
+							continue
+						}
+
+						addToStyle += fmt.Sprintf("%s: %s;", dec.Property, dec.Value)
 					}
-					styleAttr.Val += decAsText
+					addToStyle += decAsText
 				}
+
+				styleAttr.Val = strings.TrimSpace(addToStyle + styleAttr.Val)
 
 				if styleIndex < 0 {
 					n.Attr = append(n.Attr, html.Attribute{Key: "style", Val: styleAttr.Val})
@@ -95,4 +112,27 @@ func inlineCSS(ctx *component.RenderContext, r io.Reader, w io.Writer) error {
 	}
 
 	return nil
+}
+
+func parseStyleAttribute(attr html.Attribute) (map[string]string, error) {
+	styles := make(map[string]string)
+
+	for _, style := range strings.Split(attr.Val, ";") {
+		style = strings.TrimSpace(style)
+		if style == "" {
+			continue
+		}
+		parts := strings.SplitN(style, ":", 2)
+		if len(parts) != 2 {
+			return nil, fmt.Errorf("invalid style declaration: %s", style)
+		}
+		key := strings.TrimSpace(parts[0])
+		value := strings.TrimSpace(parts[1])
+		if key == "" || value == "" {
+			return nil, fmt.Errorf("invalid style declaration: %s", style)
+		}
+		styles[key] = value
+	}
+
+	return styles, nil
 }

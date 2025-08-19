@@ -9,8 +9,36 @@ import (
 
 type MJMLTable struct{}
 
-func (t MJMLTable) applyDefaults(n *node.Node) {
-	defaults := map[string]string{
+func (t MJMLTable) Name() string {
+	return "mj-table"
+}
+
+func (t MJMLTable) AllowedAttributes() map[string]validateAttributeFunc {
+	return map[string]validateAttributeFunc{
+		"align":                      validateEnum([]string{"left", "right", "center"}),
+		"border":                     validateType("string"),
+		"cellpadding":                validateType("number"),
+		"cellspacing":                validateType("number"),
+		"container-background-color": validateColor(),
+		"color":                      validateColor(),
+		"font-family":                validateType("string"),
+		"font-size":                  validateUnit([]string{"px"}, false),
+		"font-weight":                validateType("string"),
+		"line-height":                validateUnit([]string{"px", "%"}, false),
+		"padding-bottom":             validateUnit([]string{"px", "%"}, false),
+		"padding-left":               validateUnit([]string{"px", "%"}, false),
+		"padding-right":              validateUnit([]string{"px", "%"}, false),
+		"padding-top":                validateUnit([]string{"px", "%"}, false),
+		"padding":                    validateUnit([]string{"px", "%"}, true),
+		"role":                       validateEnum([]string{"none", "presentation"}),
+		"table-layout":               validateEnum([]string{"auto", "fixed", "initial", "inherit"}),
+		"vertical-align":             validateEnum([]string{"top", "bottom", "middle"}),
+		"width":                      validateUnit([]string{"px", "%"}, false),
+	}
+}
+
+func (t MJMLTable) DefaultAttributes(ctx *RenderContext) map[string]string {
+	return map[string]string{
 		"align":        "left",
 		"border":       "none",
 		"cellpadding":  "0",
@@ -22,12 +50,6 @@ func (t MJMLTable) applyDefaults(n *node.Node) {
 		"padding":      "10px 25px",
 		"table-layout": "auto",
 		"width":        "100%",
-	}
-
-	for key, value := range defaults {
-		if _, ok := n.GetAttributeValue(key); !ok {
-			n.SetAttribute(key, value)
-		}
 	}
 }
 

@@ -10,8 +10,45 @@ import (
 
 type MJMLImage struct{}
 
-func (i MJMLImage) applyDefaults(n *node.Node) {
-	defaults := map[string]string{
+func (i MJMLImage) Name() string {
+	return "mj-image"
+}
+
+func (i MJMLImage) AllowedAttributes() map[string]validateAttributeFunc {
+	return map[string]validateAttributeFunc{
+		"alt":                        validateType("string"),
+		"href":                       validateType("string"),
+		"name":                       validateType("string"),
+		"src":                        validateType("string"),
+		"srcset":                     validateType("string"),
+		"sizes":                      validateType("string"),
+		"title":                      validateType("string"),
+		"rel":                        validateType("string"),
+		"align":                      validateEnum([]string{"left", "center", "right"}),
+		"border":                     validateType("string"),
+		"border-bottom":              validateType("string"),
+		"border-left":                validateType("string"),
+		"border-right":               validateType("string"),
+		"border-top":                 validateType("string"),
+		"border-radius":              validateUnit([]string{"px", "%"}, true),
+		"container-background-color": validateColor(),
+		"fluid-on-mobile":            validateType("boolean"),
+		"padding":                    validateUnit([]string{"px", "%"}, true),
+		"padding-bottom":             validateUnit([]string{"px", "%"}, false),
+		"padding-left":               validateUnit([]string{"px", "%"}, false),
+		"padding-right":              validateUnit([]string{"px", "%"}, false),
+		"padding-top":                validateUnit([]string{"px", "%"}, false),
+		"target":                     validateType("string"),
+		"width":                      validateUnit([]string{"px"}, false),
+		"height":                     validateUnit([]string{"px", "auto"}, false),
+		"max-height":                 validateUnit([]string{"px", "%"}, false),
+		"font-size":                  validateUnit([]string{"px"}, false),
+		"usemap":                     validateType("string"),
+	}
+}
+
+func (i MJMLImage) DefaultAttributes(_ *RenderContext) map[string]string {
+	return map[string]string{
 		"alt":       "",
 		"align":     "center",
 		"border":    "0",
@@ -20,17 +57,9 @@ func (i MJMLImage) applyDefaults(n *node.Node) {
 		"target":    "_blank",
 		"font-size": "13px",
 	}
-
-	for key, value := range defaults {
-		if _, ok := n.GetAttributeValue(key); !ok {
-			n.SetAttribute(key, value)
-		}
-	}
 }
 
 func (i MJMLImage) Render(ctx *RenderContext, w io.Writer, n *node.Node) error {
-	i.applyDefaults(n)
-
 	styles, err := i.getStyles(ctx, n)
 	if err != nil {
 		return fmt.Errorf("failed to get styles: %w", err)

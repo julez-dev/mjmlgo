@@ -9,6 +9,23 @@ import (
 
 type MJMLBody struct{}
 
+func (b MJMLBody) Name() string {
+	return "mj-body"
+}
+
+func (b MJMLBody) AllowedAttributes() map[string]validateAttributeFunc {
+	return map[string]validateAttributeFunc{
+		"background-color": validateColor(),
+		"width":            validateUnit([]string{"px"}, false),
+	}
+}
+
+func (b MJMLBody) DefaultAttributes(_ *RenderContext) map[string]string {
+	return map[string]string{
+		"width": "600px",
+	}
+}
+
 func (b MJMLBody) Render(ctx *RenderContext, w io.Writer, n *node.Node) error {
 	bodyInlineStyles := inlineStyle{
 		{Property: "word-spacing", Value: "normal"},
@@ -39,17 +56,26 @@ func (b MJMLBody) Render(ctx *RenderContext, w io.Writer, n *node.Node) error {
 		switch child.Type {
 		case RawTagName:
 			var raw MJMLRaw
+			if err := InitComponent(ctx, raw, child); err != nil {
+				return err
+			}
 			if err := raw.Render(ctx, w, child); err != nil {
 				return err
 			}
 		case SectionTagName:
 			var section MJMLSection
+			if err := InitComponent(ctx, section, child); err != nil {
+				return err
+			}
 			if err := section.Render(ctx, w, child); err != nil {
 				return err
 			}
 		case WrapperTagName:
 			var section MJMLSection
 			section.IsWrapper = true
+			if err := InitComponent(ctx, section, child); err != nil {
+				return err
+			}
 			if err := section.Render(ctx, w, child); err != nil {
 				return err
 			}
