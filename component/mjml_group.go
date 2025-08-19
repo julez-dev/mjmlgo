@@ -10,15 +10,22 @@ import (
 
 type MJMLGroup struct{}
 
-func (g MJMLGroup) applyDefaults(ctx *RenderContext, n *node.Node) {
-	defaults := map[string]string{
-		"dir": ctx.Direction,
-	}
+func (g MJMLGroup) Name() string {
+	return "mj-group"
+}
 
-	for key, value := range defaults {
-		if _, ok := n.GetAttributeValue(key); !ok {
-			n.SetAttribute(key, value)
-		}
+func (g MJMLGroup) AllowedAttributes() map[string]validateAttributeFunc {
+	return map[string]validateAttributeFunc{
+		"background-color": validateColor(),
+		"direction":        validateEnum([]string{"ltr", "rtl"}),
+		"vertical-align":   validateEnum([]string{"top", "bottom", "middle"}),
+		"width":            validateUnit([]string{"px", "%"}, false),
+	}
+}
+
+func (g MJMLGroup) DefaultAttributes(ctx *RenderContext) map[string]string {
+	return map[string]string{
+		"direction": ctx.Direction,
 	}
 }
 
@@ -153,6 +160,9 @@ func (g MJMLGroup) Render(ctx *RenderContext, w io.Writer, n *node.Node) error {
 		_, _ = io.WriteString(w, "<!--[if mso | IE]><td "+tdAttr.InlineString()+"><![endif]-->\n")
 
 		var column MJMLColumn
+		if err := InitComponent(ctx, column, child); err != nil {
+			return err
+		}
 		if err := column.Render(ctx, w, child); err != nil {
 			return err
 		}

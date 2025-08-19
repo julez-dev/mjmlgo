@@ -14,6 +14,24 @@ var ErrMJMLBadlyFormatted = errors.New("MJML badly formatted")
 
 type MJML struct{}
 
+func (m MJML) Name() string {
+	return "mjml"
+}
+
+func (m MJML) AllowedAttributes() map[string]validateAttributeFunc {
+	return map[string]validateAttributeFunc{
+		"owa":  validateEnum([]string{"desktop"}),
+		"lang": validateType("string"),
+		"dir":  validateEnum([]string{"ltr", "rtl"}),
+	}
+}
+
+func (m MJML) DefaultAttributes(_ *RenderContext) map[string]string {
+	return map[string]string{
+		"dir": "ltr",
+	}
+}
+
 func (m MJML) Render(ctx *RenderContext, w io.Writer, n *node.Node) error {
 	if len(n.Children) < 1 {
 		return fmt.Errorf("%w: no children in <mjml> tag", ErrMJMLBadlyFormatted)
@@ -29,10 +47,12 @@ func (m MJML) Render(ctx *RenderContext, w io.Writer, n *node.Node) error {
 
 	if err := templates.ExecuteTemplate(w, "html-start-tag.tmpl", map[string]string{
 		"lang": n.GetAttributeValueDefault("lang"),
-		"dir":  ctx.Direction,
+		"dir":  n.GetAttributeValueDefault("dir"),
 	}); err != nil {
 		return err
 	}
+
+	ctx.Direction = n.GetAttributeValueDefault("dir")
 
 	var headNode *node.Node
 
@@ -48,6 +68,9 @@ func (m MJML) Render(ctx *RenderContext, w io.Writer, n *node.Node) error {
 		case BodyTagName:
 			m.setAttributeDefaults(ctx, child)
 			body := MJMLBody{}
+			if err := InitComponent(ctx, body, child); err != nil {
+				return err
+			}
 			if err := body.Render(ctx, &bodyTextBuilder, child); err != nil {
 				return err
 			}

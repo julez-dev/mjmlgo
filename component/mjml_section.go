@@ -12,27 +12,50 @@ type MJMLSection struct {
 	IsWrapper bool
 }
 
-func (s MJMLSection) applyDefaults(n *node.Node) {
-	defaults := map[string]string{
+func (r MJMLSection) Name() string {
+	return "mj-section"
+}
+
+func (s MJMLSection) AllowedAttributes() map[string]validateAttributeFunc {
+	return map[string]validateAttributeFunc{
+		"background-color":      validateColor(),
+		"background-url":        validateType("string"),
+		"background-repeat":     validateEnum([]string{"repeat", "no-repeat"}),
+		"background-size":       validateType("string"),
+		"background-position":   validateType("string"),
+		"background-position-x": validateType("string"),
+		"background-position-y": validateType("string"),
+		"border":                validateType("string"),
+		"border-bottom":         validateType("string"),
+		"border-left":           validateType("string"),
+		"border-radius":         validateType("string"),
+		"border-right":          validateType("string"),
+		"border-top":            validateType("string"),
+		"direction":             validateEnum([]string{"ltr", "rtl"}),
+		"full-width":            validateEnum([]string{"full-width", "false"}),
+		"padding-bottom":        validateUnit([]string{"px", "%"}, false),
+		"padding-left":          validateUnit([]string{"px", "%"}, false),
+		"padding-right":         validateUnit([]string{"px", "%"}, false),
+		"padding-top":           validateUnit([]string{"px", "%"}, false),
+		"padding":               validateUnit([]string{"px", "%"}, true),
+		"text-align":            validateEnum([]string{"left", "center", "right"}),
+		"text-padding":          validateUnit([]string{"px", "%"}, true),
+	}
+}
+
+func (s MJMLSection) DefaultAttributes(_ *RenderContext) map[string]string {
+	return map[string]string{
 		"background-repeat":   "repeat",
 		"background-size":     "auto",
 		"background-position": "top center",
 		"direction":           "ltr",
 		"padding":             "20px 0",
 		"text-align":          "center",
-		"text-padding":        "4px 4px 4px 0'",
-	}
-
-	for key, value := range defaults {
-		if _, ok := n.GetAttributeValue(key); !ok {
-			n.SetAttribute(key, value)
-		}
+		"text-padding":        "4px 4px 4px 0",
 	}
 }
 
 func (s MJMLSection) Render(ctx *RenderContext, w io.Writer, n *node.Node) error {
-	s.applyDefaults(n)
-
 	if v, ok := n.GetAttributeValue("full-width"); ok && v == "full-width" {
 		return s.renderFullWidth(ctx, w, n)
 	}
@@ -274,6 +297,9 @@ func (s MJMLSection) renderWrappedChildren(ctx *RenderContext, w io.Writer, n *n
 			switch child.Type {
 			case ColumnTagName:
 				var column MJMLColumn
+				if err := InitComponent(ctx, column, child); err != nil {
+					return err
+				}
 
 				tdStyle := inlineStyle{
 					{Property: "vertical-align", Value: child.GetAttributeValueDefault("vertical-align")},
@@ -298,6 +324,9 @@ func (s MJMLSection) renderWrappedChildren(ctx *RenderContext, w io.Writer, n *n
 				_, _ = io.WriteString(w, "<!--[if mso | IE]></td><![endif]-->\n")
 			case GroupTagName:
 				var group MJMLGroup
+				if err := InitComponent(ctx, group, child); err != nil {
+					return err
+				}
 				if err := group.Render(ctx, w, child); err != nil {
 					return err
 				}
@@ -323,6 +352,9 @@ func (s MJMLSection) renderWrappedChildren(ctx *RenderContext, w io.Writer, n *n
 		_, _ = io.WriteString(w, "<![endif]-->")
 
 		var sec MJMLSection
+		if err := InitComponent(ctx, sec, child); err != nil {
+			return err
+		}
 		if err := sec.Render(ctx, w, child); err != nil {
 			return err
 		}

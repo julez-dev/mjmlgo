@@ -11,8 +11,28 @@ import (
 
 type MJMLDivider struct{}
 
-func (d MJMLDivider) applyDefaults(n *node.Node) {
-	defaults := map[string]string{
+func (d MJMLDivider) Name() string {
+	return "mj-divider"
+}
+
+func (d MJMLDivider) AllowedAttributes() map[string]validateAttributeFunc {
+	return map[string]validateAttributeFunc{
+		"border-color":               validateColor(),
+		"border-style":               validateType("string"),
+		"border-width":               validateUnit([]string{"px"}, false),
+		"container-background-color": validateColor(),
+		"padding":                    validateUnit([]string{"px", "%"}, true),
+		"padding-bottom":             validateUnit([]string{"px", "%"}, false),
+		"padding-left":               validateUnit([]string{"px", "%"}, false),
+		"padding-right":              validateUnit([]string{"px", "%"}, false),
+		"padding-top":                validateUnit([]string{"px", "%"}, false),
+		"width":                      validateUnit([]string{"px", "%"}, false),
+		"align":                      validateEnum([]string{"left", "center", "right"}),
+	}
+}
+
+func (d MJMLDivider) DefaultAttributes(_ *RenderContext) map[string]string {
+	return map[string]string{
 		"border-color": "#000000",
 		"border-style": "solid",
 		"border-width": "4px",
@@ -20,17 +40,9 @@ func (d MJMLDivider) applyDefaults(n *node.Node) {
 		"width":        "100%",
 		"align":        "center",
 	}
-
-	for key, value := range defaults {
-		if _, ok := n.GetAttributeValue(key); !ok {
-			n.SetAttribute(key, value)
-		}
-	}
 }
 
 func (d MJMLDivider) Render(ctx *RenderContext, w io.Writer, n *node.Node) error {
-	d.applyDefaults(n)
-
 	styles, err := d.getStyles(ctx, n)
 	if err != nil {
 		return fmt.Errorf("failed to get styles: %w", err)

@@ -8,8 +8,40 @@ import (
 
 type MJMLSocial struct{}
 
-func (s MJMLSocial) applyDefaults(n *node.Node) {
-	defaults := map[string]string{
+func (s MJMLSocial) Name() string {
+	return "mj-social"
+}
+
+func (s MJMLSocial) AllowedAttributes() map[string]validateAttributeFunc {
+	return map[string]validateAttributeFunc{
+		"align":                      validateEnum([]string{"left", "right", "center"}),
+		"border-radius":              validateUnit([]string{"px", "%"}, false),
+		"container-background-color": validateColor(),
+		"color":                      validateColor(),
+		"font-family":                validateType("string"),
+		"font-size":                  validateUnit([]string{"px"}, false),
+		"font-style":                 validateType("string"),
+		"font-weight":                validateType("string"),
+		"icon-size":                  validateUnit([]string{"px", "%"}, false),
+		"icon-height":                validateUnit([]string{"px", "%"}, false),
+		"icon-padding":               validateUnit([]string{"px", "%"}, true),
+		"inner-padding":              validateUnit([]string{"px", "%"}, true),
+		"line-height":                validateUnit([]string{"px", "%"}, false),
+		"mode":                       validateEnum([]string{"horizontal", "vertical"}),
+		"padding-bottom":             validateUnit([]string{"px", "%"}, false),
+		"padding-left":               validateUnit([]string{"px", "%"}, false),
+		"padding-right":              validateUnit([]string{"px", "%"}, false),
+		"padding-top":                validateUnit([]string{"px", "%"}, false),
+		"padding":                    validateUnit([]string{"px", "%"}, true),
+		"table-layout":               validateEnum([]string{"auto", "fixed"}),
+		"text-padding":               validateUnit([]string{"px", "%"}, true),
+		"text-decoration":            validateType("string"),
+		"vertical-align":             validateEnum([]string{"top", "bottom", "middle"}),
+	}
+}
+
+func (s MJMLSocial) DefaultAttributes(_ *RenderContext) map[string]string {
+	return map[string]string{
 		"align":           "center",
 		"border-radius":   "3px",
 		"color:":          "#333333",
@@ -21,17 +53,9 @@ func (s MJMLSocial) applyDefaults(n *node.Node) {
 		"padding":         "10px 25px",
 		"text-decoration": "none",
 	}
-
-	for key, value := range defaults {
-		if _, ok := n.GetAttributeValue(key); !ok {
-			n.SetAttribute(key, value)
-		}
-	}
 }
 
 func (s MJMLSocial) Render(ctx *RenderContext, w io.Writer, n *node.Node) error {
-	s.applyDefaults(n)
-
 	if n.GetAttributeValueDefault("mode") == "horizontal" {
 		if err := s.renderHorizontal(ctx, w, n); err != nil {
 			return err
@@ -84,6 +108,9 @@ func (s MJMLSocial) renderHorizontal(ctx *RenderContext, w io.Writer, n *node.No
 		_, _ = io.WriteString(w, "<tbody>\n")
 
 		var socialElement MJMLSocialElement
+		if err := InitComponent(ctx, socialElement, child); err != nil {
+			return err
+		}
 		if err := socialElement.Render(ctx, w, child); err != nil {
 			return err
 		}
@@ -130,6 +157,9 @@ func (s MJMLSocial) renderVertical(ctx *RenderContext, w io.Writer, n *node.Node
 		}
 
 		var socialElement MJMLSocialElement
+		if err := InitComponent(ctx, socialElement, child); err != nil {
+			return err
+		}
 		if err := socialElement.Render(ctx, w, child); err != nil {
 			return err
 		}
