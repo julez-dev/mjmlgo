@@ -14,6 +14,7 @@ const (
 	TextTagName       MJMLComponentName = "mj-text"
 	ClassTagName      MJMLComponentName = "mj-class"
 	AllTagName        MJMLComponentName = "mj-all"
+	FontTagName       MJMLComponentName = "mj-font"
 	TitleTagName      MJMLComponentName = "mj-title"
 	PreviewTagName    MJMLComponentName = "mj-preview"
 	StyleTagName      MJMLComponentName = "mj-style"

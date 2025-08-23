@@ -25,6 +25,15 @@
   .mj-outlook-group-fix { width:100% !important; }
 </style>
 <![endif]-->
+{{range $font, $href := .Fonts}}
+<!--[if !mso]><!-->
+<link href="{{$href}}" rel="stylesheet" type="text/css">
+<style type="text/css">
+    @import url({{$href}});
+</style>
+<!--<![endif]-->
+}
+{{end}}
 {{ if .MJMLStyles }}
     <style type="text/css">
       @media only screen and (min-width:{{.Breakpoint}}) {

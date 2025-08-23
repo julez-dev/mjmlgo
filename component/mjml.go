@@ -120,7 +120,7 @@ func (m MJML) setAttributeDefaults(ctx *RenderContext, n *node.Node) {
 	}
 }
 
-func (m MJML) preparseHeadMetaValues(ctx *RenderContext, n *node.Node) {
+func (m MJML) preparseHeadMetaValues(ctx *RenderContext, n *node.Node) error {
 	for _, child := range n.Children {
 		switch child.Type {
 		case AttributesTagName:
@@ -138,8 +138,17 @@ func (m MJML) preparseHeadMetaValues(ctx *RenderContext, n *node.Node) {
 			}
 		case PreviewTagName:
 			ctx.PreviewText = child.Content
+		case FontTagName:
+			n, has := child.GetAttributeValue("name")
+			if !has {
+				return fmt.Errorf("%w: missing name in mj-font element", ErrValidation)
+			}
+
+			ctx.Fonts[n] = child.GetAttributeValueDefault("href")
 		}
 	}
+
+	return nil
 }
 
 func hasNodeType(n *node.Node, t string) bool {
