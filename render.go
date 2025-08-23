@@ -30,6 +30,7 @@ func RenderMJML(input io.Reader) (string, error) {
 
 	ctx := &component.RenderContext{
 		MJMLStylesheet: make(map[string][]string),
+		Fonts:          make(map[string]string),
 	}
 	if err := component.InitComponent(ctx, mjml, node); err != nil {
 		return "", err

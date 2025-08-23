@@ -56,6 +56,7 @@ func (h MJMLHead) Render(ctx *RenderContext, w io.Writer, n *node.Node) error {
 		"UserStyles":                  headStylesheets,
 		"IncludeMobileFullWidthStyle": ctx.IncludeMobileFullWidthStyle,
 		"LowerBreakpoint":             ctx.makeLowerBreakpoint(),
+		"Fonts":                       ctx.Fonts,
 	}
 
 	_, _ = io.WriteString(w, fmt.Sprintf("<title>%s</title>\n", title))

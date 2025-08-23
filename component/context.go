@@ -10,6 +10,7 @@ type RenderContext struct {
 	GlobalTextAttributes []xml.Attr
 	GlobalAllAttributes  []xml.Attr
 	InlineStyles         []Stylesheet
+	Fonts                map[string]string
 
 	MJMLStylesheet              map[string][]string
 	IncludeMobileFullWidthStyle bool
