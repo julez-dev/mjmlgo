@@ -22,13 +22,14 @@ func (m MJML) AllowedAttributes() map[string]validateAttributeFunc {
 	return map[string]validateAttributeFunc{
 		"owa":  validateEnum([]string{"desktop"}),
 		"lang": validateType("string"),
-		"dir":  validateEnum([]string{"ltr", "rtl"}),
+		"dir":  validateEnum([]string{"ltr", "rtl", "auto"}),
 	}
 }
 
 func (m MJML) DefaultAttributes(_ *RenderContext) map[string]string {
 	return map[string]string{
-		"dir": "ltr",
+		"dir":  "auto",
+		"lang": "und",
 	}
 }
 
@@ -45,6 +46,8 @@ func (m MJML) Render(ctx *RenderContext, w io.Writer, n *node.Node) error {
 		return fmt.Errorf("%w: no <mj-body> in <mjml> tag", ErrMJMLBadlyFormatted)
 	}
 
+	ctx.Language = n.GetAttributeValueDefault("lang")
+
 	if err := templates.ExecuteTemplate(w, "html-start-tag.tmpl", map[string]string{
 		"lang": n.GetAttributeValueDefault("lang"),
 		"dir":  n.GetAttributeValueDefault("dir"),
@@ -53,6 +56,8 @@ func (m MJML) Render(ctx *RenderContext, w io.Writer, n *node.Node) error {
 	}
 
 	ctx.Direction = n.GetAttributeValueDefault("dir")
+	ctx.Breakpoint = "480px"
+	ctx.IncludeMobileFullWidthStyle = hasNodeType(n, "mj-image")
 
 	var headNode *node.Node
 
@@ -109,18 +114,6 @@ func (m MJML) setAttributeDefaults(ctx *RenderContext, n *node.Node) {
 			}
 		}
 
-		if n.Type == "mj-image" {
-			if _, has := n.GetAttributeValue("fluid-on-mobile"); has {
-				ctx.MJMLStylesheet["table.mj-full-width-mobile"] = []string{
-					"width:100% !important",
-				}
-
-				ctx.MJMLStylesheet["td.mj-full-width-mobile"] = []string{
-					"width: auto !important",
-				}
-			}
-		}
-
 		for _, child := range n.Children {
 			m.setAttributeDefaults(ctx, child)
 		}
@@ -147,4 +140,16 @@ func (m MJML) preparseHeadMetaValues(ctx *RenderContext, n *node.Node) {
 			ctx.PreviewText = child.Content
 		}
 	}
+}
+
+func hasNodeType(n *node.Node, t string) bool {
+	if n.Type == t {
+		return true
+	}
+	for _, child := range n.Children {
+		if hasNodeType(child, t) {
+			return true
+		}
+	}
+	return false
 }

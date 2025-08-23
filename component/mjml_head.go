@@ -24,7 +24,7 @@ func (h MJMLHead) DefaultAttributes(_ *RenderContext) map[string]string {
 
 func (h MJMLHead) Render(ctx *RenderContext, w io.Writer, n *node.Node) error {
 	var headStylesheets []Stylesheet
-
+	var title string
 	_, _ = io.WriteString(w, `<head>`)
 	for _, child := range n.Children {
 		switch child.Type {
@@ -41,7 +41,7 @@ func (h MJMLHead) Render(ctx *RenderContext, w io.Writer, n *node.Node) error {
 
 			headStylesheets = append(headStylesheets, sheet)
 		case TitleTagName:
-			_, _ = io.WriteString(w, fmt.Sprintf("<title>%s</title>", child.Content))
+			title = child.Content
 		case RawTagName:
 			var raw MJMLRaw
 			if err := raw.Render(ctx, w, child); err != nil {
@@ -51,11 +51,14 @@ func (h MJMLHead) Render(ctx *RenderContext, w io.Writer, n *node.Node) error {
 	}
 
 	data := map[string]any{
-		"Breakpoint": ctx.Breakpoint,
-		"MJMLStyles": ctx.MJMLStylesheet,
-		"UserStyles": headStylesheets,
+		"Breakpoint":                  ctx.Breakpoint,
+		"MJMLStyles":                  ctx.MJMLStylesheet,
+		"UserStyles":                  headStylesheets,
+		"IncludeMobileFullWidthStyle": ctx.IncludeMobileFullWidthStyle,
+		"LowerBreakpoint":             ctx.makeLowerBreakpoint(),
 	}
 
+	_, _ = io.WriteString(w, fmt.Sprintf("<title>%s</title>\n", title))
 	if err := templates.ExecuteTemplate(w, "head-style-section.tmpl", data); err != nil {
 		return fmt.Errorf("error executing head-style-section template: %w", err)
 	}
