@@ -117,7 +117,7 @@ func inlineCSS(ctx *component.RenderContext, r io.Reader, w io.Writer) error {
 func parseStyleAttribute(attr html.Attribute) (map[string]string, error) {
 	styles := make(map[string]string)
 
-	for _, style := range strings.Split(attr.Val, ";") {
+	for style := range strings.SplitSeq(attr.Val, ";") {
 		style = strings.TrimSpace(style)
 		if style == "" {
 			continue
