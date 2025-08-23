@@ -8,6 +8,8 @@ import (
 )
 
 func TestParse(t *testing.T) {
+	t.Parallel()
+
 	t.Run("mj-raw", func(t *testing.T) {
 		const input = `<mjml>
 			<mj-body>

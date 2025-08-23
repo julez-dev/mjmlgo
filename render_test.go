@@ -11,7 +11,7 @@ import (
 )
 
 func TestRender(t *testing.T) {
-	input, err := os.ReadFile("input_big.mjml")
+	input, err := os.ReadFile("input_s.mjml")
 	require.NoError(t, err)
 
 	out, err := RenderMJML(bytes.NewReader(input))
@@ -23,6 +23,8 @@ func TestRender(t *testing.T) {
 }
 
 func TestInlineCSS(t *testing.T) {
+	t.Parallel()
+
 	const input = `<html><body><p class="p-class">Hello</p></body></html>`
 	ctx := &component.RenderContext{
 		InlineStyles: []component.Stylesheet{

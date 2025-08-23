@@ -2,6 +2,8 @@ package component
 
 import (
 	"encoding/xml"
+	"fmt"
+	"strconv"
 )
 
 type RenderContext struct {
@@ -9,12 +11,23 @@ type RenderContext struct {
 	GlobalAllAttributes  []xml.Attr
 	InlineStyles         []Stylesheet
 
-	MJMLStylesheet map[string][]string
-	ContainerWidth string
-	PreviewText    string
-	Breakpoint     string
+	MJMLStylesheet              map[string][]string
+	IncludeMobileFullWidthStyle bool
+	ContainerWidth              string
+	PreviewText                 string
+	Breakpoint                  string
 
+	Language  string
 	Direction string
+}
+
+func (c RenderContext) makeLowerBreakpoint() string {
+	parsed, err := strconv.Atoi(removeNonNumeric(c.Breakpoint))
+	if err != nil {
+		return c.Breakpoint
+	}
+
+	return fmt.Sprintf("%dpx", parsed-1)
 }
 
 // Stylesheet is the top-level structure for our parsed CSS.

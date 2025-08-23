@@ -35,14 +35,12 @@
             {{end}}
       }
     </style>
-    <style type="text/css">
-      @media only screen and (min-width:{{.Breakpoint}}) {
-            {{range $className, $rules := .MJMLStyles}}.moz-text-html .{{$className}} {
-                  {{range $rules}}{{.}};
-                  {{end}}
-            }
-            {{end}}
-      }
+    <style media="screen and (min-width:{{.Breakpoint}})">
+        {{range $className, $rules := .MJMLStyles}}.moz-text-html .{{$className}} {
+                {{range $rules}}{{.}};
+                {{end}}
+        }
+        {{end}}
     </style>
     {{ if .PrinterSupport }}
     <style type="text/css">
@@ -67,6 +65,14 @@
     </style>
     {{end}}
 {{end}}
+{{ if .IncludeMobileFullWidthStyle }}
+<style type="text/css">
+    @media only screen and (max-width:{{.LowerBreakpoint}}) {
+        table.mj-full-width-mobile { width: 100% !important; }
+        td.mj-full-width-mobile { width: auto !important; }
+    }
+    {{ end }}
+</style>
 {{ if .UserStyles }}
 <style type="text/css">
 {{ range .UserStyles }}
