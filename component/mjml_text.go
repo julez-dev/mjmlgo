@@ -25,7 +25,7 @@ func (t MJMLText) AllowedAttributes() map[string]validateAttributeFunc {
 		"font-weight":                validateType("string"),
 		"height":                     validateUnit([]string{"px", "%"}, false),
 		"letter-spacing":             validateUnit([]string{"px", "em"}, false), //TODO:unitWithNegative
-		"line-height":                validateUnit([]string{"px", "%"}, false),
+		"line-height":                validateUnit([]string{"px", "%", ""}, false),
 		"padding-bottom":             validateUnit([]string{"px", "%"}, false),
 		"padding-left":               validateUnit([]string{"px", "%"}, false),
 		"padding-right":              validateUnit([]string{"px", "%"}, false),

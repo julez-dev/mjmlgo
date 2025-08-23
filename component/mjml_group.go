@@ -26,6 +26,7 @@ func (g MJMLGroup) AllowedAttributes() map[string]validateAttributeFunc {
 func (g MJMLGroup) DefaultAttributes(ctx *RenderContext) map[string]string {
 	return map[string]string{
 		"direction": ctx.Direction,
+		//"vertical-align": "top",
 	}
 }
 
@@ -137,6 +138,11 @@ func (g MJMLGroup) Render(ctx *RenderContext, w io.Writer, n *node.Node) error {
 
 		child.SetAttribute("mobileWidth", "mobileWidth")
 
+		var column MJMLColumn
+		if err := InitComponent(ctx, column, child); err != nil {
+			return err
+		}
+
 		childWidthAsPixel, err := getWidthAsPixel(ctx, child)
 		if err != nil {
 			return err
@@ -159,10 +165,6 @@ func (g MJMLGroup) Render(ctx *RenderContext, w io.Writer, n *node.Node) error {
 
 		_, _ = io.WriteString(w, "<!--[if mso | IE]><td "+tdAttr.InlineString()+"><![endif]-->\n")
 
-		var column MJMLColumn
-		if err := InitComponent(ctx, column, child); err != nil {
-			return err
-		}
 		if err := column.Render(ctx, w, child); err != nil {
 			return err
 		}
