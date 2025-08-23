@@ -109,6 +109,18 @@ func (m MJML) setAttributeDefaults(ctx *RenderContext, n *node.Node) {
 			}
 		}
 
+		if n.Type == "mj-image" {
+			if _, has := n.GetAttributeValue("fluid-on-mobile"); has {
+				ctx.MJMLStylesheet["table.mj-full-width-mobile"] = []string{
+					"width:100% !important",
+				}
+
+				ctx.MJMLStylesheet["td.mj-full-width-mobile"] = []string{
+					"width: auto !important",
+				}
+			}
+		}
+
 		for _, child := range n.Children {
 			m.setAttributeDefaults(ctx, child)
 		}

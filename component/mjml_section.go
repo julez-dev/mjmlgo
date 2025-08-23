@@ -12,7 +12,7 @@ type MJMLSection struct {
 	IsWrapper bool
 }
 
-func (r MJMLSection) Name() string {
+func (s MJMLSection) Name() string {
 	return "mj-section"
 }
 

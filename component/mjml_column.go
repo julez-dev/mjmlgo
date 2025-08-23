@@ -43,8 +43,8 @@ func (c MJMLColumn) AllowedAttributes() map[string]validateAttributeFunc {
 
 func (c MJMLColumn) DefaultAttributes(_ *RenderContext) map[string]string {
 	return map[string]string{
-		"direction":    "ltr",
-		"vertical-top": "top",
+		"direction":      "ltr",
+		"vertical-align": "top",
 	}
 }
 
@@ -198,6 +198,7 @@ func (c MJMLColumn) renderGutter(ctx *RenderContext, w io.Writer, n *node.Node) 
 		{Property: "padding-right", Value: n.GetAttributeValueDefault("padding-right")},
 		{Property: "padding-bottom", Value: n.GetAttributeValueDefault("padding-bottom")},
 		{Property: "padding-left", Value: n.GetAttributeValueDefault("padding-left")},
+		{Property: "vertical-align", Value: n.GetAttributeValueDefault("vertical-align")},
 	}
 
 	tdStyle = append(tdStyle, c.tableStyle(n)...)

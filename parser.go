@@ -69,7 +69,7 @@ func parse(input io.Reader) (*node.Node, error) {
 				Attributes: t.Attr,
 			}
 
-			if mjmlTagsWithRawContent[node.Type] {
+			if _, has := mjmlEndTags[node.Type]; has {
 				s, err := streamInnerRawContent(dec, t)
 				if err != nil {
 					return nil, err
@@ -151,16 +151,16 @@ func parse(input io.Reader) (*node.Node, error) {
 	return root, nil
 }
 
-// mjmlTagsWithRawContent is a map of MJML tags whose inner content should be
+// mjmlEndTags is a map of MJML tags whose inner content should be
 // treated as a single raw string, not parsed into child nodes.
-var mjmlTagsWithRawContent = map[string]bool{
-	"mj-text":            true,
-	"mj-button":          true,
-	"mj-table":           true,
-	"mj-navbar-link":     true,
-	"mj-accordion-text":  true,
-	"mj-accordion-title": true,
-	"mj-social-element":  true,
+var mjmlEndTags = map[string]struct{}{
+	"mj-text":            struct{}{},
+	"mj-button":          struct{}{},
+	"mj-table":           struct{}{},
+	"mj-navbar-link":     struct{}{},
+	"mj-accordion-text":  struct{}{},
+	"mj-accordion-title": struct{}{},
+	"mj-social-element":  struct{}{},
 }
 
 // streamInnerRawContent captures the inner content of an element as a raw string.
