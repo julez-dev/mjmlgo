@@ -8,6 +8,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"regexp"
 	"slices"
 	"strings"
 	"testing"
@@ -17,6 +18,12 @@ import (
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/html"
 )
+
+var htmlCommentRegex = regexp.MustCompile(`(?s)<!--.*?-->`)
+
+func removeHTMLComments(html string) string {
+	return htmlCommentRegex.ReplaceAllString(html, "")
+}
 
 func TestMJMLFiles(t *testing.T) {
 	t.Parallel()
@@ -38,9 +45,11 @@ func TestMJMLFiles(t *testing.T) {
 		t.Run(fpath, func(t *testing.T) {
 			html1, err := RenderMJML(bytes.NewReader(f))
 			require.NoError(t, err)
+			html1 = removeHTMLComments(html1)
 
 			html2, err := mjml.ToHTML(context.Background(), string(f))
 			require.NoError(t, err)
+			html2 = removeHTMLComments(html2)
 
 			n1, err := html.Parse(strings.NewReader(html1))
 			require.NoError(t, err)
@@ -48,8 +57,8 @@ func TestMJMLFiles(t *testing.T) {
 			n2, err := html.Parse(strings.NewReader(html2))
 			require.NoError(t, err)
 
-			t.Log(html1)
-			t.Log(html2)
+			// os.WriteFile(fpath+"1.html", []byte(html1), 0644)
+			// os.WriteFile(fpath+"2.html", []byte(html2), 0644)
 			// var o bytes.Buffer
 			// PrettyPrint(&o, n1)
 			// fmt.Println(o.String())
@@ -65,7 +74,6 @@ func TestMJMLFiles(t *testing.T) {
 	})
 
 	require.NoError(t, err)
-
 }
 
 func matchStyle(s1, s2 string) bool {
@@ -118,7 +126,7 @@ func compareNodes(n1, n2 *html.Node) error {
 
 	// Compare node type and data (e.g., tag name or text content).
 	if n1.Type != n2.Type {
-		return fmt.Errorf("n1 %+v, n2 %+v", n1, n2)
+		return fmt.Errorf("type mismatch n1 %+v, n2 %+v", n1.Type, n2.Type)
 	}
 
 	if n1.Data == "style" {
@@ -135,7 +143,7 @@ func compareNodes(n1, n2 *html.Node) error {
 		n2.Attr = removeEmptyAttr(n2.Attr)
 
 		if len(n1.Attr) != len(n2.Attr) {
-			return fmt.Errorf("n1 (%s) attr len %d different from n2 (%s) attr len %d", n1.Data, len(n1.Attr), n2.Data, len(n2.Attr))
+			return fmt.Errorf("n1 (%s) attr (%+v) len %d different from n2 (%s) attr (%+v) len %d", n1.Data, n1.Attr, len(n1.Attr), n2.Data, n2.Attr, len(n2.Attr))
 		}
 		// Create a map of attributes for n2 for easy lookup.
 		attrs2 := make(map[string]string)
@@ -157,7 +165,7 @@ func compareNodes(n1, n2 *html.Node) error {
 				}
 			} else {
 				if attr1.Val != val2 {
-					return fmt.Errorf("n1 (%s) val %s different in n2 (%s) %s", n1.Data, attr1.Key, n2.Data, val2)
+					return fmt.Errorf("n1 (%s) val %s different in n2 (%s) %s", n1.Data, attr1.Val, n2.Data, val2)
 				}
 			}
 		}

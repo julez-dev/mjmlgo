@@ -1,6 +1,7 @@
 package component
 
 import (
+	"fmt"
 	"io"
 	"strconv"
 	"strings"
@@ -148,6 +149,7 @@ func (s MJMLSection) renderSimple(ctx *RenderContext, w io.Writer, n *node.Node)
 func (s MJMLSection) renderBefore(ctx *RenderContext, w io.Writer, n *node.Node) error {
 	bgcolor, hasBackgroundColor := n.GetAttributeValue("background-color")
 
+	// wrong width
 	attr := inlineAttributes{
 		"align":       "center",
 		"border":      "0",
@@ -155,8 +157,23 @@ func (s MJMLSection) renderBefore(ctx *RenderContext, w io.Writer, n *node.Node)
 		"cellspacing": "0",
 		"class":       addSuffixToClasses(n.GetAttributeValueDefault("css-class"), "outlook"),
 		"role":        "presentation",
-		"style":       inlineStyle{{Property: "width", Value: ctx.ContainerWidth}}.InlineString(),
-		"width":       strings.TrimSuffix(ctx.ContainerWidth, "px"),
+	}
+
+	if s.IsWrapper {
+		attr["width"] = RemoveNonNumeric(ctx.ContainerWidth)
+		attr["style"] = inlineStyle{{Property: "width", Value: ctx.ContainerWidth}}.InlineString()
+	} else {
+		if n.Parent.Type == WrapperTagName {
+			box, err := getBoxWidths(ctx, n.Parent)
+			if err != nil {
+				return err
+			}
+			attr["width"] = fmt.Sprintf("%d", box["box"])
+			attr["style"] = inlineStyle{{Property: "width", Value: fmt.Sprintf("%dpx", box["box"])}}.InlineString()
+		} else {
+			attr["width"] = RemoveNonNumeric(ctx.ContainerWidth)
+			attr["style"] = inlineStyle{{Property: "width", Value: ctx.ContainerWidth}}.InlineString()
+		}
 	}
 
 	if hasBackgroundColor {
@@ -206,7 +223,26 @@ func (s MJMLSection) renderSection(ctx *RenderContext, w io.Writer, n *node.Node
 	divStyle := inlineStyle{
 		{Property: "margin", Value: "0px auto"},
 		{Property: "border-radius", Value: n.GetAttributeValueDefault("border-radius")},
-		{Property: "max-width", Value: ctx.ContainerWidth},
+	}
+
+	if s.IsWrapper {
+		divStyle = append(divStyle, Style{Property: "max-width", Value: ctx.ContainerWidth})
+	} else {
+		if n.Parent.Type == WrapperTagName {
+			box, err := getBoxWidths(ctx, n.Parent)
+			if err != nil {
+				return err
+			}
+
+			defer func(val string) {
+				ctx.ContainerWidth = val
+			}(ctx.ContainerWidth)
+
+			ctx.ContainerWidth = fmt.Sprintf("%dpx", box["box"])
+			divStyle = append(divStyle, Style{Property: "max-width", Value: fmt.Sprintf("%dpx", box["box"])})
+		} else {
+			divStyle = append(divStyle, Style{Property: "max-width", Value: ctx.ContainerWidth})
+		}
 	}
 
 	innerDivStyle := inlineStyle{
@@ -305,12 +341,12 @@ func (s MJMLSection) renderWrappedChildren(ctx *RenderContext, w io.Writer, n *n
 					{Property: "vertical-align", Value: child.GetAttributeValueDefault("vertical-align")},
 				}
 
-				width, err := getWidthAsPixel(ctx, child)
+				width, err := getBoxWidths(ctx, n)
 				if err != nil {
 					return err
 				}
 
-				tdStyle = append(tdStyle, Style{Property: "width", Value: width})
+				tdStyle = append(tdStyle, Style{Property: "width", Value: fmt.Sprintf("%dpx", width["box"])})
 
 				tdAttr := inlineAttributes{
 					"align": child.GetAttributeValueDefault("align"),
@@ -423,9 +459,7 @@ func (s MJMLSection) renderWithBackground(ctx *RenderContext, w io.Writer, n *no
 			isBgRepeat = true
 		}
 
-		var (
-			pos string
-		)
+		var pos string
 
 		if isX {
 			pos = bgPosX

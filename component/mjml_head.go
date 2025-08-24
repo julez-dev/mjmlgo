@@ -42,11 +42,6 @@ func (h MJMLHead) Render(ctx *RenderContext, w io.Writer, n *node.Node) error {
 			headStylesheets = append(headStylesheets, sheet)
 		case TitleTagName:
 			title = child.Content
-		case RawTagName:
-			var raw MJMLRaw
-			if err := raw.Render(ctx, w, child); err != nil {
-				return err
-			}
 		}
 	}
 
@@ -62,6 +57,17 @@ func (h MJMLHead) Render(ctx *RenderContext, w io.Writer, n *node.Node) error {
 	_, _ = io.WriteString(w, fmt.Sprintf("<title>%s</title>\n", title))
 	if err := templates.ExecuteTemplate(w, "head-style-section.tmpl", data); err != nil {
 		return fmt.Errorf("error executing head-style-section template: %w", err)
+	}
+
+	for _, child := range n.Children {
+		if child.Type != RawTagName {
+			continue
+		}
+		var raw MJMLRaw
+		if err := raw.Render(ctx, w, child); err != nil {
+			return err
+		}
+
 	}
 
 	_, _ = io.WriteString(w, "</head>\n")

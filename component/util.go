@@ -26,6 +26,13 @@ func (s inlineStyle) InlineString() string {
 			continue // Skip empty styles
 		}
 
+		if strings.HasPrefix(style.Value, "#") {
+			r, err := expandHexShortcut(style.Value)
+			if err == nil {
+				style.Value = r
+			}
+		}
+
 		b.WriteString(style.Property)
 		b.WriteString(":")
 		b.WriteString(style.Value)
@@ -36,6 +43,42 @@ func (s inlineStyle) InlineString() string {
 	}
 
 	return b.String()
+}
+func expandHexShortcut(hexCode string) (string, error) {
+	// 1. Ensure the code starts with '#'
+	if !strings.HasPrefix(hexCode, "#") {
+		return "", fmt.Errorf("invalid format: hex code must start with '#'")
+	}
+
+	// 2. Get the characters after '#'
+	chars := hexCode[1:]
+	length := len(chars)
+
+	// 3. Validate that all characters are valid hex digits
+	for _, r := range chars {
+		if !unicode.Is(unicode.Hex_Digit, r) {
+			return "", fmt.Errorf("invalid character: '%c' is not a hexadecimal digit", r)
+		}
+	}
+
+	// 4. Expand based on length
+	switch length {
+	case 3, 4: // This is a shortcut (#RGB or #RGBA)
+		var builder strings.Builder
+		builder.WriteString("#")
+		// Double each character (e.g., F -> FF)
+		for _, char := range chars {
+			builder.WriteRune(char)
+			builder.WriteRune(char)
+		}
+		// Return the expanded code in uppercase for consistency
+		return strings.ToUpper(builder.String()), nil
+	case 6, 8: // This is already a full-length code (#RRGGBB or #RRGGBBAA)
+		// Just return it in a consistent case
+		return strings.ToUpper(hexCode), nil
+	default: // Any other length is invalid
+		return "", fmt.Errorf("invalid length: must have 3, 4, 6, or 8 characters after '#'")
+	}
 }
 
 type inlineAttributes map[string]string
@@ -168,7 +211,7 @@ func parseWidth(width string) (float64, string, error) {
 	return parsedValue, unit, nil
 }
 
-func removeNonNumeric(s string) string {
+func RemoveNonNumeric(s string) string {
 	var builder strings.Builder
 
 	builder.Grow(len(s))
@@ -190,7 +233,7 @@ func getContentWidth(ctx *RenderContext, n *node.Node) (int, error) {
 	if !ok {
 		width = math.MaxInt
 	} else {
-		p, err := strconv.Atoi(removeNonNumeric(widthStr))
+		p, err := strconv.Atoi(RemoveNonNumeric(widthStr))
 		if err != nil {
 			width = math.MaxInt
 		} else {
@@ -207,7 +250,7 @@ func getContentWidth(ctx *RenderContext, n *node.Node) (int, error) {
 }
 
 func getBoxWidths(ctx *RenderContext, n *node.Node) (map[string]int, error) {
-	parsedWidth, err := strconv.Atoi(removeNonNumeric(ctx.ContainerWidth))
+	parsedWidth, err := strconv.Atoi(RemoveNonNumeric(ctx.ContainerWidth))
 	if err != nil {
 		return nil, fmt.Errorf("invalid container width: %w", err)
 	}
@@ -258,7 +301,7 @@ func getShorthandAttrValue(n *node.Node, attr string, direction string) (int, er
 	attribute := n.GetAttributeValueDefault(attr)
 
 	if attributeDirection != "" {
-		p, err := strconv.Atoi(removeNonNumeric(attributeDirection))
+		p, err := strconv.Atoi(RemoveNonNumeric(attributeDirection))
 		if err != nil {
 			return 0, err
 		}
@@ -301,14 +344,14 @@ func shorthandParser(cssValue, direction string) (int, error) {
 		dirs["bottom"] = 2
 		dirs["left"] = 3
 	case 1:
-		p, err := strconv.Atoi(removeNonNumeric(cssValue))
+		p, err := strconv.Atoi(RemoveNonNumeric(cssValue))
 		if err != nil {
 			return 0, err
 		}
 		return p, nil
 	}
 
-	p, err := strconv.Atoi(removeNonNumeric(splitCSSValue[dirs[direction]]))
+	p, err := strconv.Atoi(RemoveNonNumeric(splitCSSValue[dirs[direction]]))
 	if err != nil {
 		return 0, err
 	}
@@ -327,7 +370,7 @@ func borderParser(border string) int {
 		return 0
 	}
 
-	width, err := strconv.Atoi(removeNonNumeric(matches[1]))
+	width, err := strconv.Atoi(RemoveNonNumeric(matches[1]))
 	if err != nil {
 		return 0
 	}
@@ -418,7 +461,7 @@ func getWidthAsPixel(ctx *RenderContext, n *node.Node) (string, error) {
 }
 
 func getMobileWidth(ctx *RenderContext, n *node.Node) (string, error) {
-	containerWidth := removeNonNumeric(ctx.ContainerWidth)
+	containerWidth := RemoveNonNumeric(ctx.ContainerWidth)
 	numberSiblings := len(nonRawSiblings(n))
 	width, hasWidth := n.GetAttributeValue("width")
 	mobileWidth := n.GetAttributeValueDefault("mobileWidth")

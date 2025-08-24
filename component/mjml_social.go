@@ -44,7 +44,7 @@ func (s MJMLSocial) DefaultAttributes(_ *RenderContext) map[string]string {
 	return map[string]string{
 		"align":           "center",
 		"border-radius":   "3px",
-		"color:":          "#333333",
+		"color":           "#333333",
 		"font-family":     "Ubuntu, Helvetica, Arial, sans-serif",
 		"font-size":       "13px",
 		"icon-size":       "20px",
@@ -160,6 +160,7 @@ func (s MJMLSocial) renderVertical(ctx *RenderContext, w io.Writer, n *node.Node
 		if err := InitComponent(ctx, socialElement, child); err != nil {
 			return err
 		}
+
 		if err := socialElement.Render(ctx, w, child); err != nil {
 			return err
 		}

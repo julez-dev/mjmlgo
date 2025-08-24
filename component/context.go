@@ -23,7 +23,7 @@ type RenderContext struct {
 }
 
 func (c RenderContext) makeLowerBreakpoint() string {
-	parsed, err := strconv.Atoi(removeNonNumeric(c.Breakpoint))
+	parsed, err := strconv.Atoi(RemoveNonNumeric(c.Breakpoint))
 	if err != nil {
 		return c.Breakpoint
 	}

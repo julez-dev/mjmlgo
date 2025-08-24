@@ -75,31 +75,81 @@ func inlineCSS(ctx *component.RenderContext, r io.Reader, w io.Writer) error {
 					}
 				}
 
-				var addToStyle string
-				for _, dec := range rule.Declarations {
-					var decAsText string
-					if len(styleAttr.Val) > 0 && !strings.HasSuffix(styleAttr.Val, ";") {
-						styleAttr.Val += ";"
-					}
-
-					if dec.Important {
-						decAsText += fmt.Sprintf("%s: %s !important;", dec.Property, dec.Value)
-					} else {
-						styles, err := parseStyleAttribute(styleAttr)
-						if err != nil {
-							return fmt.Errorf("failed to parse style attribute: %w", err)
-						}
-
-						if _, exists := styles[dec.Property]; exists {
-							continue
-						}
-
-						addToStyle += fmt.Sprintf("%s: %s;", dec.Property, dec.Value)
-					}
-					addToStyle += decAsText
+				styles, err := parseStyleAttribute(styleAttr)
+				if err != nil {
+					return fmt.Errorf("failed to parse style attribute: %w", err)
 				}
 
-				styleAttr.Val = strings.TrimSpace(addToStyle + styleAttr.Val)
+				for _, dec := range rule.Declarations {
+					if _, has := styles[dec.Property]; !has || dec.Important {
+						styles[dec.Property] = dec.Value
+					}
+				}
+
+				var styleText string
+				for k, v := range styles {
+					styleText += strings.TrimSpace(fmt.Sprintf("%s:%s;", k, v))
+				}
+
+				styleAttr.Val = styleText
+
+				if n.Data == "table" || n.Data == "td" || n.Data == "div" {
+					if v := styles["width"]; v != "" {
+						var alreadyHasWidth bool
+						for _, a := range n.Attr {
+							if a.Key == "width" {
+								alreadyHasWidth = true
+								break
+							}
+						}
+						if !alreadyHasWidth {
+							if strings.HasSuffix(v, "px") {
+								n.Attr = append(n.Attr, html.Attribute{Key: "width", Val: component.RemoveNonNumeric(v)})
+							} else {
+								n.Attr = append(n.Attr, html.Attribute{Key: "width", Val: v})
+							}
+						}
+					}
+				}
+
+				if v := styles["text-align"]; v != "" {
+					var alreadyHasAlign bool
+					for _, a := range n.Attr {
+						if a.Key == "align" {
+							alreadyHasAlign = true
+							break
+						}
+					}
+					if !alreadyHasAlign {
+						n.Attr = append(n.Attr, html.Attribute{Key: "align", Val: v})
+					}
+				}
+
+				if v := styles["vertical-align"]; v != "" {
+					var alreadyHasAlign bool
+					for _, a := range n.Attr {
+						if a.Key == "valign" {
+							alreadyHasAlign = true
+							break
+						}
+					}
+					if !alreadyHasAlign {
+						n.Attr = append(n.Attr, html.Attribute{Key: "valign", Val: v})
+					}
+				}
+
+				if v := styles["background-color"]; v != "" {
+					var alreadyHasBgColor bool
+					for _, a := range n.Attr {
+						if a.Key == "bgcolor" {
+							alreadyHasBgColor = true
+							break
+						}
+					}
+					if !alreadyHasBgColor {
+						n.Attr = append(n.Attr, html.Attribute{Key: "bgcolor", Val: styles["background-color"]})
+					}
+				}
 
 				if styleIndex < 0 {
 					n.Attr = append(n.Attr, html.Attribute{Key: "style", Val: styleAttr.Val})
