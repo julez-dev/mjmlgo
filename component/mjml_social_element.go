@@ -192,6 +192,10 @@ func (s MJMLSocialElement) Render(ctx *RenderContext, w io.Writer, n *node.Node)
 		iconHeight = attrs["icon-height"]
 	)
 
+	if iconHeight == "" {
+		iconHeight = iconSize
+	}
+
 	_, hasLink := n.GetAttributeValue("href")
 	iconPosition := n.GetAttributeValueDefault("icon-position")
 
@@ -219,12 +223,8 @@ func (s MJMLSocialElement) Render(ctx *RenderContext, w io.Writer, n *node.Node)
 			"srcset": srcset,
 			"sizes":  sizes,
 			"style":  styles["img"].InlineString(),
-			"width":  removeNonNumeric(iconSize),
-		}
-		if iconHeight != "" {
-			imgAttr["height"] = removeNonNumeric(iconHeight)
-		} else {
-			imgAttr["height"] = removeNonNumeric(iconHeight)
+			"width":  RemoveNonNumeric(iconSize),
+			"height": RemoveNonNumeric(iconHeight),
 		}
 
 		_, _ = b.WriteString("<img " + imgAttr.InlineString() + " />")
@@ -332,7 +332,6 @@ func (s MJMLSocialElement) getSocialAttributes(n *node.Node) inlineAttributes {
 
 func (s MJMLSocialElement) getStyles(n *node.Node) map[string]inlineStyle {
 	socialAttr := s.getSocialAttributes(n)
-
 	var (
 		iconSize        = socialAttr["icon-size"]
 		iconHeight      = socialAttr["icon-height"]
@@ -357,7 +356,7 @@ func (s MJMLSocialElement) getStyles(n *node.Node) map[string]inlineStyle {
 	iconStyle := inlineStyle{
 		{Property: "padding", Value: n.GetAttributeValueDefault("icon-padding")},
 		{Property: "font-size", Value: "0"},
-		{Property: "vertical-align", Value: n.GetAttributeValueDefault("vertical-align")},
+		{Property: "vertical-align", Value: "middle"},
 		{Property: "width", Value: iconSize},
 	}
 

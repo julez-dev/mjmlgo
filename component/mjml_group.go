@@ -17,7 +17,7 @@ func (g MJMLGroup) Name() string {
 func (g MJMLGroup) AllowedAttributes() map[string]validateAttributeFunc {
 	return map[string]validateAttributeFunc{
 		"background-color": validateColor(),
-		"direction":        validateEnum([]string{"ltr", "rtl"}),
+		"direction":        validateEnum([]string{"ltr", "rtl", "auto"}),
 		"vertical-align":   validateEnum([]string{"top", "bottom", "middle"}),
 		"width":            validateUnit([]string{"px", "%"}, false),
 	}
@@ -25,14 +25,14 @@ func (g MJMLGroup) AllowedAttributes() map[string]validateAttributeFunc {
 
 func (g MJMLGroup) DefaultAttributes(ctx *RenderContext) map[string]string {
 	return map[string]string{
-		"direction": ctx.Direction,
+		"direction": "ltr",
 		//"vertical-align": "top",
 	}
 }
 
 func (g MJMLGroup) Render(ctx *RenderContext, w io.Writer, n *node.Node) error {
 	sibs := nonRawSiblings(n)
-	parentWidth, err := strconv.Atoi(removeNonNumeric(ctx.ContainerWidth))
+	parentWidth, err := strconv.Atoi(RemoveNonNumeric(ctx.ContainerWidth))
 	if err != nil {
 		return err
 	}
@@ -72,7 +72,7 @@ func (g MJMLGroup) Render(ctx *RenderContext, w io.Writer, n *node.Node) error {
 
 	getElementWidth := func(width string) (string, error) {
 		if width == "" {
-			parsedContainerWidth, err := strconv.Atoi(removeNonNumeric(containerWidth))
+			parsedContainerWidth, err := strconv.Atoi(RemoveNonNumeric(containerWidth))
 			if err != nil {
 				return "", err
 			}
@@ -86,7 +86,7 @@ func (g MJMLGroup) Render(ctx *RenderContext, w io.Writer, n *node.Node) error {
 		}
 
 		if unit == "%" {
-			parsedGroupWidth, err := strconv.Atoi(removeNonNumeric(groupWidth))
+			parsedGroupWidth, err := strconv.Atoi(RemoveNonNumeric(groupWidth))
 			if err != nil {
 				return "", err
 			}

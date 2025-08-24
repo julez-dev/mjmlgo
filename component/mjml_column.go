@@ -56,6 +56,10 @@ func (c MJMLColumn) Render(ctx *RenderContext, w io.Writer, n *node.Node) error 
 
 	className = className + " mj-outlook-group-fix"
 
+	if v := n.GetAttributeValueDefault("css-class"); v != "" {
+		className += " " + v
+	}
+
 	divAttr := inlineAttributes{
 		"class": className,
 	}

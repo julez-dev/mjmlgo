@@ -197,7 +197,7 @@ func TestParseWidth(t *testing.T) {
 func TestRemoveNonNumeric(t *testing.T) {
 	t.Parallel()
 
-	v := removeNonNumeric("100px")
+	v := RemoveNonNumeric("100px")
 	require.Equal(t, "100", v)
 }
 

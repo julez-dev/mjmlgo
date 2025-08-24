@@ -118,7 +118,7 @@ func (i MJMLImage) renderImage(ctx *RenderContext, w io.Writer, n *node.Node, im
 	if height == "auto" {
 		imgAttr["height"] = "auto"
 	} else {
-		heightAsInt, err := strconv.Atoi(removeNonNumeric(height))
+		heightAsInt, err := strconv.Atoi(RemoveNonNumeric(height))
 		if err != nil {
 			return fmt.Errorf("invalid height value: %w", err)
 		}

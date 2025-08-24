@@ -122,7 +122,7 @@ func (d MJMLDivider) getStyles(ctx *RenderContext, n *node.Node) (map[string]inl
 }
 
 func (d MJMLDivider) getOutlookWidth(ctx *RenderContext, n *node.Node) (string, error) {
-	parsedContainerWidth, err := strconv.Atoi(removeNonNumeric(ctx.ContainerWidth))
+	parsedContainerWidth, err := strconv.Atoi(RemoveNonNumeric(ctx.ContainerWidth))
 	if err != nil {
 		return "", err
 	}
