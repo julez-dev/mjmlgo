@@ -30,4 +30,5 @@ const (
 	DividerTagName       MJMLComponentName = "mj-divider"
 	TableTagName         MJMLComponentName = "mj-table"
 	ButtonTagName        MJMLComponentName = "mj-button"
+	HeroTagName          MJMLComponentName = "mj-hero"
 )

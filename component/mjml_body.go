@@ -82,6 +82,14 @@ func (b MJMLBody) Render(ctx *RenderContext, w io.Writer, n *node.Node) error {
 			if err := section.Render(ctx, w, child); err != nil {
 				return err
 			}
+		case HeroTagName:
+			var hero MJMLHero
+			if err := InitComponent(ctx, hero, child); err != nil {
+				return err
+			}
+			if err := hero.Render(ctx, w, child); err != nil {
+				return err
+			}
 		}
 	}
 
