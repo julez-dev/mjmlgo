@@ -29,4 +29,5 @@ const (
 	SocialElementTagName MJMLComponentName = "mj-social-element"
 	DividerTagName       MJMLComponentName = "mj-divider"
 	TableTagName         MJMLComponentName = "mj-table"
+	ButtonTagName        MJMLComponentName = "mj-button"
 )

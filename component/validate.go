@@ -3,12 +3,46 @@ package component
 import (
 	"errors"
 	"fmt"
+	"regexp"
 	"slices"
 	"strconv"
 	"strings"
 )
 
 var ErrValidation = errors.New("failed validation")
+
+var (
+	// Regex for different color formats
+	rgbaRegex = regexp.MustCompile(`(?i)^rgba\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d(\.\d+)?\s*\)$`)
+	rgbRegex  = regexp.MustCompile(`(?i)^rgb\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}\s*\)$`)
+	hexRegex  = regexp.MustCompile(`^#([0-9a-fA-F]{3}){1,2}$`)
+
+	// Regex for expanding shorthand hex values
+	shorthandHexRegex = regexp.MustCompile(`^#([0-9a-fA-F])([0-9a-fA-F])([0-9a-fA-F])$`)
+)
+
+var cssColorNames = map[string]struct{}{
+	"aliceblue": {}, "antiquewhite": {}, "aqua": {}, "aquamarine": {}, "azure": {}, "beige": {}, "bisque": {}, "black": {},
+	"blanchedalmond": {}, "blue": {}, "blueviolet": {}, "brown": {}, "burlywood": {}, "cadetblue": {}, "chartreuse": {},
+	"chocolate": {}, "coral": {}, "cornflowerblue": {}, "cornsilk": {}, "crimson": {}, "cyan": {}, "darkblue": {}, "darkcyan": {},
+	"darkgoldenrod": {}, "darkgray": {}, "darkgreen": {}, "darkgrey": {}, "darkkhaki": {}, "darkmagenta": {}, "darkolivegreen": {},
+	"darkorange": {}, "darkorchid": {}, "darkred": {}, "darksalmon": {}, "darkseagreen": {}, "darkslateblue": {}, "darkslategray": {},
+	"darkslategrey": {}, "darkturquoise": {}, "darkviolet": {}, "deeppink": {}, "deepskyblue": {}, "dimgray": {}, "dimgrey": {},
+	"dodgerblue": {}, "firebrick": {}, "floralwhite": {}, "forestgreen": {}, "fuchsia": {}, "gainsboro": {}, "ghostwhite": {},
+	"gold": {}, "goldenrod": {}, "gray": {}, "green": {}, "greenyellow": {}, "grey": {}, "honeydew": {}, "hotpink": {}, "indianred": {},
+	"indigo": {}, "ivory": {}, "khaki": {}, "lavender": {}, "lavenderblush": {}, "lawngreen": {}, "lemonchiffon": {}, "lightblue": {},
+	"lightcoral": {}, "lightcyan": {}, "lightgoldenrodyellow": {}, "lightgray": {}, "lightgreen": {}, "lightgrey": {}, "lightpink": {},
+	"lightsalmon": {}, "lightseagreen": {}, "lightskyblue": {}, "lightslategray": {}, "lightslategrey": {}, "lightsteelblue": {},
+	"lightyellow": {}, "lime": {}, "limegreen": {}, "linen": {}, "magenta": {}, "maroon": {}, "mediumaquamarine": {}, "mediumblue": {},
+	"mediumorchid": {}, "mediumpurple": {}, "mediumseagreen": {}, "mediumslateblue": {}, "mediumspringgreen": {}, "mediumturquoise": {},
+	"mediumvioletred": {}, "midnightblue": {}, "mintcream": {}, "mistyrose": {}, "moccasin": {}, "navajowhite": {}, "navy": {},
+	"oldlace": {}, "olive": {}, "olivedrab": {}, "orange": {}, "orangered": {}, "orchid": {}, "palegoldenrod": {}, "palegreen": {},
+	"paleturquoise": {}, "palevioletred": {}, "papayawhip": {}, "peachpuff": {}, "peru": {}, "pink": {}, "plum": {}, "powderblue": {},
+	"purple": {}, "rebeccapurple": {}, "red": {}, "rosybrown": {}, "royalblue": {}, "saddlebrown": {}, "salmon": {}, "sandybrown": {},
+	"seagreen": {}, "seashell": {}, "sienna": {}, "silver": {}, "skyblue": {}, "slateblue": {}, "slategray": {}, "slategrey": {},
+	"snow": {}, "springgreen": {}, "steelblue": {}, "tan": {}, "teal": {}, "thistle": {}, "tomato": {}, "turquoise": {}, "violet": {},
+	"wheat": {}, "white": {}, "whitesmoke": {}, "yellow": {}, "yellowgreen": {},
+}
 
 type validateAttributeFunc func(value string) error
 
@@ -29,12 +63,15 @@ func validateColor() validateAttributeFunc {
 		if value == "" {
 			return nil
 		}
-
-		if !strings.HasPrefix(value, "#") || (len(value) != 4 && len(value) != 7) {
-			return fmt.Errorf("%w: %s not a valid color string", ErrValidation, value)
+		if rgbaRegex.MatchString(value) || rgbRegex.MatchString(value) || hexRegex.MatchString(value) {
+			return nil
 		}
 
-		return nil
+		if _, ok := cssColorNames[strings.ToLower(value)]; ok {
+			return nil
+		}
+
+		return fmt.Errorf("%w: %s not a valid color string", ErrValidation, value)
 	}
 }
 

@@ -1,0 +1,172 @@
+<mjml>
+  <mj-head>
+    <mj-title>MJML Button Test Document</mj-title>
+    <mj-style>
+      .wrapper-style {
+      border: 2px dashed #cccccc;
+      background-color: #f0f0f0;
+      }
+    </mj-style>
+  </mj-head>
+  <mj-body background-color="#ffffff">
+
+    <mj-section>
+      <mj-column>
+        <mj-text font-size="24px" font-weight="bold" align="center">MJML Button Property Test</mj-text>
+      </mj-column>
+    </mj-section>
+
+    <mj-section>
+      <mj-column>
+        <mj-text font-weight="bold">1. Default and Basic Buttons</mj-text>
+        <mj-button>
+          Default Button
+        </mj-button>
+        <mj-button href="https://mjml.io/" background-color="#f45e43">
+          Basic Button with Link
+        </mj-button>
+      </mj-column>
+    </mj-section>
+
+    <mj-section>
+      <mj-column>
+        <mj-divider />
+        <mj-text font-weight="bold">2. Sizing and Alignment</mj-text>
+
+        <mj-text>align="left"</mj-text>
+        <mj-button align="left" width="200px">
+          Width 200px
+        </mj-button>
+
+        <mj-text>align="center"</mj-text>
+        <mj-button align="center" width="50%">
+          Width 50%
+        </mj-button>
+
+        <mj-text>align="right"</mj-text>
+        <mj-button align="right" width="300px" height="60px">
+          Height 60px
+        </mj-button>
+      </mj-column>
+    </mj-section>
+
+    <mj-section>
+      <mj-column>
+        <mj-divider />
+        <mj-text font-weight="bold">3. Colors</mj-text>
+        <mj-button background-color="#556270" color="#C7F464">
+          Custom Colors
+        </mj-button>
+        <mj-button container-background-color="#eeeeee" background-color="#FF6B6B">
+          With Container Color
+        </mj-button>
+      </mj-column>
+    </mj-section>
+
+
+    <mj-section>
+      <mj-column>
+        <mj-divider />
+        <mj-text font-weight="bold">4. Borders and Radius</mj-text>
+        <mj-button border="4px solid #4A4A4A" background-color="#A7226E">
+          Solid Border
+        </mj-button>
+        <mj-button border-radius="20px" background-color="#EC96A4">
+          Border Radius
+        </mj-button>
+        <mj-button border-left="5px solid #F26B38" border-right="5px solid #F26B38" background-color="#2F9599">
+          Side Borders
+        </mj-button>
+      </mj-column>
+    </mj-section>
+
+    <mj-section>
+      <mj-column>
+        <mj-divider />
+        <mj-text font-weight="bold">5. Padding</mj-text>
+        <mj-button padding="30px 10px" background-color="#99B898">
+          Outer Padding
+        </mj-button>
+        <mj-button inner-padding="20px 40px" background-color="#FECEA8">
+          Inner Padding
+        </mj-button>
+        <mj-button padding="0" inner-padding="5px">
+          Minimal Padding
+        </mj-button>
+      </mj-column>
+    </mj-section>
+
+    <mj-section>
+      <mj-column>
+        <mj-text font-weight="bold">6. Vertical Align (in a middle-aligned section)</mj-text>
+        <mj-button vertical-align="top" width="45%" background-color="#E84A5F">
+          Vertical Align Top
+        </mj-button>
+      </mj-column>
+      <mj-column>
+        <mj-text>Some text here to demonstrate the vertical alignment of the button next to it.</mj-text>
+      </mj-column>
+    </mj-section>
+
+    <mj-section>
+      <mj-column>
+        <mj-divider />
+        <mj-text font-weight="bold">7. Typography</mj-text>
+        <mj-button font-size="20px" background-color="#2A363B">
+          Font Family & Size
+        </mj-button>
+        <mj-button font-style="italic" font-weight="bold" background-color="#FF847C">
+          Style & Weight
+        </mj-button>
+        <mj-button text-decoration="underline" text-transform="uppercase" letter-spacing="2px" line-height="150%" background-color="#99B898">
+          Decoration, Transform, Spacing
+        </mj-button>
+      </mj-column>
+    </mj-section>
+
+    <mj-section>
+      <mj-column>
+        <mj-divider />
+        <mj-text font-weight="bold">8. Link Attributes</mj-text>
+        <mj-button href="https://mjml.io" target="_self" rel="nofollow" title="MJML Link" name="button-link">
+          Full Link Attributes
+        </mj-button>
+      </mj-column>
+    </mj-section>
+
+
+    <mj-wrapper css-class="wrapper-style" padding="20px 0">
+      <mj-section>
+        <mj-column>
+          <mj-text font-size="20px" font-weight="bold" align="center">Tests Inside a Wrapper</mj-text>
+          <mj-text>The following buttons are nested inside an `mj-wrapper` with a dashed border and light grey background.</mj-text>
+        </mj-column>
+      </mj-section>
+
+      <mj-section>
+        <mj-column>
+          <mj-text font-weight="bold">A. Default Button in Wrapper</mj-text>
+          <mj-button>
+            Default in Wrapper
+          </mj-button>
+        </mj-column>
+        <mj-column>
+          <mj-text font-weight="bold">B. Sizing in Wrapper</mj-text>
+          <mj-button width="100%">
+            Width 100% in Wrapper
+          </mj-button>
+        </mj-column>
+      </mj-section>
+
+      <mj-section>
+        <mj-column>
+          <mj-text font-weight="bold">C. Padding and Color in Wrapper</mj-text>
+          <mj-button padding="25px" inner-padding="15px 30px" background-color="#00A0B0" color="#ffffff">
+            Padded Button
+          </mj-button>
+        </mj-column>
+      </mj-section>
+    </mj-wrapper>
+
+  </mj-body>
+</mjml>

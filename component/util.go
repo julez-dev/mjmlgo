@@ -75,7 +75,7 @@ func expandHexShortcut(hexCode string) (string, error) {
 		return strings.ToUpper(builder.String()), nil
 	case 6, 8: // This is already a full-length code (#RRGGBB or #RRGGBBAA)
 		// Just return it in a consistent case
-		return strings.ToUpper(hexCode), nil
+		return hexCode, nil
 	default: // Any other length is invalid
 		return "", fmt.Errorf("invalid length: must have 3, 4, 6, or 8 characters after '#'")
 	}
