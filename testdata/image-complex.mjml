@@ -1,0 +1,109 @@
+<mjml>
+  <mj-head>
+    <mj-title>MJML Image Property Test</mj-title>
+    <mj-style>
+      .wrapper-style {
+      border: 2px dotted #ff5733;
+      background-color: #fff5e1;
+      }
+    </mj-style>
+  </mj-head>
+  <mj-body background-color="#f3f3f3">
+
+    <mj-section>
+      <mj-column>
+        <mj-text font-size="24px" font-weight="bold" align="center">MJML Image Property Test</mj-text>
+      </mj-column>
+    </mj-section>
+
+    <mj-section>
+      <mj-column>
+        <mj-text font-weight="bold">1. Default and Basic Image</mj-text>
+        <mj-image src="https://placehold.co/600x150/7e57c2/ffffff?text=Default+Image" alt="Default Image" />
+      </mj-column>
+    </mj-section>
+
+    <mj-section>
+      <mj-column>
+        <mj-divider />
+        <mj-text font-weight="bold">2. Sizing (width and height)</mj-text>
+
+        <mj-text>width="200px"</mj-text>
+        <mj-image width="200px" src="https://placehold.co/200x100/4caf50/ffffff?text=200px+Wide" alt="200px wide image" />
+
+        <mj-text>height="50px" (width is auto)</mj-text>
+        <mj-image height="50px" src="https://placehold.co/400x50/ff9800/ffffff?text=50px+High" alt="50px high image" />
+      </mj-column>
+    </mj-section>
+
+    <mj-section>
+      <mj-column>
+        <mj-divider />
+        <mj-text font-weight="bold">3. Alignment</mj-text>
+
+        <mj-text>align="left"</mj-text>
+        <mj-image width="300px" align="left" src="https://placehold.co/300x100/2196f3/ffffff?text=Aligned+Left" alt="Left aligned" />
+
+        <mj-text>align="right"</mj-text>
+        <mj-image width="300px" align="right" src="https://placehold.co/300x100/2196f3/ffffff?text=Aligned+Right" alt="Right aligned" />
+
+        <mj-text>align="center" (default)</mj-text>
+        <mj-image width="300px" align="center" src="https://placehold.co/300x100/2196f3/ffffff?text=Aligned+Center" alt="Center aligned" />
+      </mj-column>
+    </mj-section>
+
+    <mj-section>
+      <mj-column>
+        <mj-divider />
+        <mj-text font-weight="bold">4. Linking and Accessibility</mj-text>
+        <mj-image width="400px" src="https://placehold.co/400x120/f44336/ffffff?text=Clickable+Image" href="https://mjml.io" target="_blank" rel="noopener" alt="Link to MJML" title="MJML Website Link" name="mjml-link-image" />
+      </mj-column>
+    </mj-section>
+
+    <mj-section>
+      <mj-column>
+        <mj-divider />
+        <mj-text font-weight="bold">5. Styling (Border, Padding, Background)</mj-text>
+        <mj-image width="350px" src="https://placehold.co/350x100/607d8b/ffffff?text=Styled+Image" alt="Styled" border="5px solid #424242" padding="20px" container-background-color="#e0e0e0" />
+        <mj-text>border-radius="25px"</mj-text>
+        <mj-image width="350px" src="https://placehold.co/350x100/009688/ffffff?text=Rounded+Corners" alt="Rounded" border-radius="25px" />
+      </mj-column>
+    </mj-section>
+
+    <mj-section>
+      <mj-column>
+        <mj-divider />
+        <mj-text font-weight="bold">6. Responsive Behavior</mj-text>
+        <mj-text>fluid-on-mobile="true" (Image will take full width on mobile)</mj-text>
+        <mj-image width="300px" fluid-on-mobile="true" src="https://placehold.co/300x150/795548/ffffff?text=Fluid+on+Mobile" alt="Fluid on mobile" />
+      </mj-column>
+    </mj-section>
+
+    <mj-section>
+      <mj-column>
+        <mj-divider />
+        <mj-text font-weight="bold">7. Srcset (for responsive images)</mj-text>
+        <mj-text>Provides different images for different screen densities.</mj-text>
+        <mj-image width="400px" src="https://placehold.co/400x150/3f51b5/ffffff?text=Default+Image" srcset="https://placehold.co/800x300/3f51b5/ffffff?text=Large+(2x)+Image 800w,
+                                                                                                            https://placehold.co/600x225/3f51b5/ffffff?text=Medium+(1.5x)+Image 600w" alt="Srcset example" />
+      </mj-column>
+    </mj-section>
+
+    <mj-wrapper css-class="wrapper-style" padding="20px 0">
+      <mj-section>
+        <mj-column>
+          <mj-text font-size="20px" font-weight="bold" align="center">Tests Inside a Wrapper</mj-text>
+          <mj-text>The following image is inside an `mj-wrapper` with a dotted border and light orange background.</mj-text>
+        </mj-column>
+      </mj-section>
+
+      <mj-section>
+        <mj-column>
+          <mj-text font-weight="bold">A. Image with padding in a wrapper</mj-text>
+          <mj-image src="https://placehold.co/500x120/9c27b0/ffffff?text=Image+in+Wrapper" alt="Image in wrapper" padding="10px 25px" border="3px solid #673ab7" />
+        </mj-column>
+      </mj-section>
+    </mj-wrapper>
+
+  </mj-body>
+</mjml>

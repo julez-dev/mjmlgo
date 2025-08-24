@@ -175,6 +175,16 @@ func (c MJMLColumn) renderColumn(ctx *RenderContext, w io.Writer, n *node.Node) 
 			if err := table.Render(ctx, w, child); err != nil {
 				return fmt.Errorf("failed to render table: %w", err)
 			}
+		case ButtonTagName:
+			var button MJMLButton
+			if err := InitComponent(ctx, button, child); err != nil {
+				return err
+			}
+
+			_, _ = io.WriteString(w, "<td "+c.tdAttribute(child).InlineString()+">\n")
+			if err := button.Render(ctx, w, child); err != nil {
+				return fmt.Errorf("failed to render button: %w", err)
+			}
 		}
 
 		_, _ = io.WriteString(w, "</td>\n")
@@ -290,6 +300,6 @@ func (c MJMLColumn) hasGutter(n *node.Node) bool {
 
 func (c MJMLColumn) allowedChildren() []string {
 	return []string{DividerTagName, SpacerTagName, ImageTagName,
-		TextTagName, SocialTagName, TableTagName,
+		TextTagName, SocialTagName, TableTagName, ButtonTagName,
 	}
 }

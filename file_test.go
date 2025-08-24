@@ -57,15 +57,12 @@ func TestMJMLFiles(t *testing.T) {
 			n2, err := html.Parse(strings.NewReader(html2))
 			require.NoError(t, err)
 
-			// os.WriteFile(fpath+"1.html", []byte(html1), 0644)
-			// os.WriteFile(fpath+"2.html", []byte(html2), 0644)
-			// var o bytes.Buffer
-			// PrettyPrint(&o, n1)
-			// fmt.Println(o.String())
-
-			// var o2 bytes.Buffer
-			// PrettyPrint(&o2, n2)
-			// fmt.Println(o2.String())
+			defer func() {
+				if t.Failed() {
+					os.WriteFile(fpath+".mjmlgo.fail.html", []byte(html1), 0644)
+					os.WriteFile(fpath+".mjml.fail.html", []byte(html2), 0644)
+				}
+			}()
 
 			assert.NoError(t, compareNodes(n1, n2))
 		})
