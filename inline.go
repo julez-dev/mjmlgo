@@ -87,6 +87,13 @@ func buildEmittedDocument(source string) *emittedDocument {
 			break
 		}
 
+		// Every token advances the offset, whatever the branch below does with
+		// it: a token the tree ignores - an end tag, a stray one for a void
+		// element - still occupies bytes in the emitted markup, and the spans of
+		// the elements after it are only correct if those bytes are accounted for.
+		start := offset
+		offset += length
+
 		switch tokenType {
 		case html.StartTagToken, html.SelfClosingTagToken:
 			element := newElementNode(tokenizer)
@@ -97,7 +104,7 @@ func buildEmittedDocument(source string) *emittedDocument {
 			stack[len(stack)-1].AppendChild(element)
 
 			selfClosing := tokenType == html.SelfClosingTagToken
-			doc.spans = append(doc.spans, startTag{start: offset, end: offset + length, selfClosing: selfClosing})
+			doc.spans = append(doc.spans, startTag{start: start, end: offset, selfClosing: selfClosing})
 
 			switch {
 			case voidElements[element.Data]:
@@ -124,18 +131,14 @@ func buildEmittedDocument(source string) *emittedDocument {
 				foreign = foreign[:len(foreign)-1]
 			}
 
-			if voidElements[tag] {
-				// A stray </br> and friends have no open element to close. The
-				// reference parser materializes an empty element for them; this
-				// tree has no node for it, because there is no emitted markup to
-				// carry it (see ADR-0005).
-				continue
+			if !voidElements[tag] {
+				// A stray </br> and friends have no open element to close: the
+				// reference parser materializes an empty element for them, and
+				// this tree has no node for one, because there is no emitted
+				// markup to carry it (see ADR-0005). The bytes still count.
+				stack = closeToElement(stack, tag)
 			}
-
-			stack = closeToElement(stack, tag)
 		}
-
-		offset += length
 	}
 
 	return doc

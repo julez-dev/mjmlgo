@@ -599,3 +599,28 @@ func TestInlineCSSMatchesTheReferenceTree(t *testing.T) {
 		})
 	}
 }
+
+// TestInlineCSSStrayVoidEndTag asserts a stray end tag for a void element does
+// not shift the patch positions: the bytes it occupies belong to the emitted
+// markup, so the elements after it are still patched where they are.
+func TestInlineCSSStrayVoidEndTag(t *testing.T) {
+	t.Parallel()
+
+	const document = `<html><body><div><br></br></div><p class="t">x</p></body></html>`
+
+	ctx := inlineContext(inlineSheet(".t", component.Style{Property: "color", Value: "red"}))
+
+	var out bytes.Buffer
+	require.NoError(t, inlineCSS(ctx, strings.NewReader(document), &out))
+
+	require.Equal(t, `<html><body><div><br></br></div><p class="t" style="color:red;">x</p></body></html>`, out.String())
+
+	// The same for a stray </hr> and for a stray end tag of an element that was
+	// never opened: whatever the tree ignores, the offsets keep counting.
+	const stray = `<html><body><hr></hr><span class="t">y</span></div></body></html>`
+
+	var second bytes.Buffer
+	require.NoError(t, inlineCSS(ctx, strings.NewReader(stray), &second))
+
+	require.Equal(t, `<html><body><hr></hr><span class="t" style="color:red;">y</span></div></body></html>`, second.String())
+}

@@ -1,0 +1,17 @@
+<mjml>
+  <mj-head>
+    <mj-style inline="inline">
+      /* a stray end tag for a void element occupies bytes in the markup: the
+         elements after it still get their declarations at their own position */
+      .before { border-top: 1px solid #000000; }
+      .target { color: #ff0000; }
+    </mj-style>
+  </mj-head>
+  <mj-body>
+    <mj-section>
+      <mj-column>
+        <mj-text><div class="before">a<br></br><hr></hr><span class="target">after</span></div></mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>
