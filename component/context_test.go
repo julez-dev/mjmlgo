@@ -89,3 +89,77 @@ func TestRuleCompileSelectors(t *testing.T) {
 		require.Len(t, sel.Select(document), 1)
 	})
 }
+
+// TestAddComponentHeadStyle asserts a component-level stylesheet is registered
+// under its name: repeated registrations replace the block, keep its position
+// and leave the other components' blocks alone.
+func TestAddComponentHeadStyle(t *testing.T) {
+	t.Parallel()
+
+	ctx := &RenderContext{}
+
+	ctx.AddComponentHeadStyle("mj-notice", func(string) string { return "first" })
+	ctx.AddComponentHeadStyle("mj-panel", func(string) string { return "panel" })
+	ctx.AddComponentHeadStyle("mj-notice", func(breakpoint string) string { return "second " + breakpoint })
+
+	require.Len(t, ctx.ComponentHeadStyles, 2)
+	require.Equal(t, "mj-notice", ctx.ComponentHeadStyles[0].Name)
+	require.Equal(t, "second 480px", ctx.ComponentHeadStyles[0].Style("480px"))
+	require.Equal(t, "mj-panel", ctx.ComponentHeadStyles[1].Name)
+}
+
+// TestAddMediaQuery asserts class rules enter the breakpoint media query in
+// first-registration order and that a class registered twice keeps its first
+// position with its latest rules.
+func TestAddMediaQuery(t *testing.T) {
+	t.Parallel()
+
+	ctx := &RenderContext{}
+
+	ctx.AddMediaQuery("mj-notice-wide", []string{"width: 100% !important"})
+	ctx.AddMediaQuery("mj-notice-narrow", []string{"width: 50% !important"})
+	ctx.AddMediaQuery("mj-notice-wide", []string{"width: 600px !important"})
+
+	require.Equal(t, []string{"mj-notice-wide", "mj-notice-narrow"}, ctx.MJMLStyleOrder)
+	require.Equal(t, []string{"width: 600px !important"}, ctx.MJMLStylesheet["mj-notice-wide"])
+	require.Equal(t, []string{"width: 50% !important"}, ctx.MJMLStylesheet["mj-notice-narrow"])
+}
+
+// TestAddFluidOnMobileClass asserts the fluid-on-mobile class list is ordered and
+// de-duplicated, so repeated instances contribute one rule set.
+func TestAddFluidOnMobileClass(t *testing.T) {
+	t.Parallel()
+
+	ctx := &RenderContext{}
+
+	ctx.AddFluidOnMobileClass("mj-notice-fluid")
+	ctx.AddFluidOnMobileClass("")
+	ctx.AddFluidOnMobileClass("mj-panel-fluid")
+	ctx.AddFluidOnMobileClass("mj-notice-fluid")
+
+	require.Equal(t, []string{"mj-notice-fluid", "mj-panel-fluid"}, ctx.fluidOnMobileClasses)
+}
+
+// TestAddInstanceComponentHeadStyle asserts instance-scoped stylesheets are never
+// merged: two instances contribute two blocks, in registration order, ahead of
+// the named component styles.
+func TestAddInstanceComponentHeadStyle(t *testing.T) {
+	t.Parallel()
+
+	ctx := &RenderContext{}
+	ctx.AddComponentHeadStyle("mj-notice", func(string) string { return "notice\n" })
+	ctx.AddInstanceComponentHeadStyle("mj-carousel", func(string) string { return "first\n" })
+	ctx.AddInstanceComponentHeadStyle("mj-carousel", func(string) string { return "second\n" })
+
+	require.Len(t, ctx.InstanceComponentHeadStyles, 2)
+	require.Equal(t, "first\n", ctx.InstanceComponentHeadStyles[0].Style("480px"))
+	require.Equal(t, "second\n", ctx.InstanceComponentHeadStyles[1].Style("480px"))
+
+	head := renderHead(t, ctx)
+	first := strings.Index(head, "first\n")
+	second := strings.Index(head, "second\n")
+	named := strings.Index(head, "notice\n")
+	require.GreaterOrEqual(t, first, 0)
+	require.Greater(t, second, first, "instance blocks keep registration order")
+	require.Greater(t, named, second, "instance blocks are emitted before named ones")
+}

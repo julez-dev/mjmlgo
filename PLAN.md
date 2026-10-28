@@ -128,6 +128,23 @@ Known divergences at the start: 214 records / 15 root causes (see
   `example/customcomponent` is the documented example; `custom_test.go` pins the exact
   output, the default cascade and every failure path. Built-in output is unchanged
   (parity corpus still at zero divergences).
+- **T4 done**: custom components work as containers with head styles. A container
+  renders the children it declared through the new `component.RenderChildren` (or
+  `RenderChildrenInTableBody` when the children sit directly in a `<tbody>`, which is
+  where raw content needs the raw-block markers), which applies each child's defaults
+  and dispatches it to the built-in content component or the registered custom one, so
+  the component owns the wrapper markup around finished children; registration rejects a declared child that is neither a content component
+  (`component.IsContentTag`) nor a registered custom one. Undeclared children still fail
+  validation with the element path. `RenderContext.AddComponentHeadStyle`,
+  `AddInstanceComponentHeadStyle`, `AddMediaQuery` and `AddFluidOnMobileClass` export
+  the head mechanisms the built-ins use, all in registration order, so the head is
+  byte-deterministic across repeated renders; the named and class-level mechanisms
+  de-duplicate, the instance-level one never does, like MJML. mj-image's fluid block is
+  unchanged, and the built-in column and hero renderers now share the one dispatch
+  table in `childComponent`; their child render failures report the tag
+  (`failed to render <mj-text>: ...`), matching mj-body and `RenderChildren`.
+  `example/customcomponent` gained the `mj-notice` container. No `Component` interface
+  change; see ADR-0004 for the added methods. Parity is still at zero divergences.
 - **M3 done**: inline stylesheet selectors are compiled once per stylesheet, style
   application is allocation-light, and inline output is byte-deterministic
   (previously Go map iteration made repeated renders differ). `input_big.mjml`
@@ -183,9 +200,9 @@ Known divergences at the start: 214 records / 15 root causes (see
   and no public package imports it.
 
 Current state: full MJML 4.18 component and head coverage, zero divergences,
-`TestMJMLInvalid` covering fail-fast validation, benchmarks and fuzz targets in
-place. Remaining roadmap: T4 (custom components as containers, head-style
-contribution), T6/T7 (inliner and validation allocations) and T8 (unit-test
+`TestMJMLInvalid` covering fail-fast validation, custom components as leaves and
+containers with head styles, benchmarks and fuzz targets in
+place. Remaining roadmap: T6/T7 (inliner and validation allocations) and T8 (unit-test
 backfill) -
 the current implementation still uses the post-render HTML round-trip for inline
 CSS and rejects the full surface of MJML's attribute validation less strictly
@@ -245,13 +262,18 @@ tests. The decisions this ticket settles, without a new ADR:
 - A custom component is a leaf unless it implements `ChildComponent`. Its placement is
   the content positions - a direct child of `mj-body`, `mj-column` or `mj-hero` - not
   the layout positions whose child lists are fixed (`mj-section`, `mj-wrapper`,
-  `mj-group`). Containers and head-style contribution are T4.
+  `mj-group`). A container's own placement follows the same rule; what it may wrap is
+  its declared child list, which T4 closes to the built-in content components and the
+  registered custom ones.
 - Registration failures are structured, not plain errors: a nil component, an empty tag,
   a duplicate tag and a tag that shadows a built-in element are `*component.Error` of
   kind `KindInvalidComponent`. They describe the renderer's configuration, so
   `errors.Is(err, ErrValidation)` is false and `Path` names the tag that cannot be
-  registered (the document element when the component has no tag). The renderer reports
-  the failure for every document, not only for one that uses the tag.
+  registered (the document element when the component has no tag). T4 extends the same
+  shape to a container's declared children: a child that is neither a content component
+  nor a registered custom one is a registration failure whose `Value` names the child.
+  The renderer reports the failure for every document, not only for one that uses the
+  tag.
 
 ## Roadmap
 

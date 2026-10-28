@@ -248,11 +248,17 @@ func writeRestoredRawBlocks(w io.Writer, output string, blocks []string) error {
 // A block is parsed as a fragment rather than as part of the document, because
 // the markers deliberately keep it out of the whole-document parse so that the
 // HTML parser cannot foster-parent it. The fragment's context comes from the
-// block's own content (see rawBlockFragmentContext): a marked block always sits
-// inside a table body, and parsing its content in "in table body" mode is not
-// lossless - a <table> start tag there is treated as an end tag, which would
-// delete an author's nested layout table - while a generic context would drop
-// bare rows and cells.
+// block's own content (see rawBlockFragmentContext). A marker is only emitted for
+// content that sits directly inside a table body: the built-in containers that do
+// so, and a custom container that renders its children with
+// component.RenderChildrenInTableBody. Marking a block anywhere else would make
+// this fragment parse invent table structure (a <tr> around a bare <td>) that the
+// surrounding markup does not have - hence the two helpers, and the split
+// documented on component.RenderChildrenInTableBody.
+//
+// Parsing the content in "in table body" mode is not lossless - a <table> start
+// tag there is treated as an end tag, which would delete an author's nested
+// layout table - while a generic context would drop bare rows and cells.
 //
 // Two limits follow from the fragment scope, and both are documented rather than
 // worked around:

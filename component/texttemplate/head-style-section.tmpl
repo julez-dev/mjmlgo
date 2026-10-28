@@ -73,13 +73,13 @@
     </style>
     {{end}}
 {{end}}
-{{ if or .InstanceComponentHeadStyles .ComponentHeadStyles .IncludeMobileFullWidthStyle }}
+{{ if or .InstanceComponentHeadStyles .ComponentHeadStyles .FluidOnMobileClasses }}
 <style type="text/css">
 {{ range .InstanceComponentHeadStyles }}{{ . }}
-{{ end }}{{ if .IncludeMobileFullWidthStyle }}    @media only screen and (max-width:{{.LowerBreakpoint}}) {
-        table.mj-full-width-mobile { width: 100% !important; }
-        td.mj-full-width-mobile { width: auto !important; }
-    }
+{{ end }}{{ if .FluidOnMobileClasses }}    @media only screen and (max-width:{{.LowerBreakpoint}}) {
+{{ range .FluidOnMobileClasses }}        table.{{ . }} { width: 100% !important; }
+        td.{{ . }} { width: auto !important; }
+{{ end }}    }
 {{ end }}{{ range .ComponentHeadStyles }}{{ . }}
 {{ end }}</style>
 {{ end }}

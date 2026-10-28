@@ -34,6 +34,14 @@
 //   - IsBuiltinTag, which reports whether a tag is already implemented here
 //     (every component, the head handlers, mj-all, mj-class and mj-include) and
 //     so cannot be used by a custom component.
+//   - RenderChildren and RenderChildrenInTableBody, which render a container's
+//     children with the built-in or registered components they belong to (the
+//     second for children that sit directly in a table body, where raw content
+//     needs the raw-block markers), and IsContentTag, which reports whether a
+//     built-in tag is one of the content components a container may declare.
+//   - RenderContext.AddComponentHeadStyle, AddInstanceComponentHeadStyle,
+//     AddMediaQuery and AddFluidOnMobileClass, the head-contribution mechanisms
+//     the built-in components use.
 //   - DefaultIDGenerator and the TagName constants.
 //
 // # Custom components
@@ -64,10 +72,27 @@
 // element is expected. Registration is per renderer: there is no global
 // registry, and two renderers in one process may know different tags.
 //
-// Rendering a ChildComponent's children is that component's own job: the
-// built-in container renderers do not descend into a custom tag. Container
-// support, including head-style contribution, is ticket T4 (issue #5).
-// example/customcomponent is the in-repo example of the whole contract.
+// A ChildComponent renders the children it accepted with RenderChildren (or
+// RenderChildrenInTableBody when they sit directly in a <tbody>), which validates
+// each child's attributes, applies its defaults and dispatches it to the built-in
+// or registered component that renders it. The container owns all
+// markup around its children, so it can render them into a buffer first and write
+// its own wrapper around finished HTML. Its declared child list is closed:
+// registration rejects a container that declares a child which is neither a
+// content component (IsContentTag) nor a component registered on the same
+// renderer. The built-in container renderers still do not descend into a custom
+// tag - the component calls RenderChildren itself.
+//
+// A container contributes CSS to the head through the mechanisms the built-in
+// components use: AddComponentHeadStyle for a named block (de-duplicated by
+// name), AddInstanceComponentHeadStyle for a per-instance block that must never be
+// merged, AddMediaQuery for class rules inside the document's breakpoint media
+// query, and AddFluidOnMobileClass for MJML's fluid-on-mobile rule on a class of
+// its own. All four keep registration order, so a document's head is
+// deterministic across renders.
+//
+// example/customcomponent is the in-repo example of the whole contract: Badge is
+// a leaf, Notice a container with head styles.
 //
 // # What is not API
 //

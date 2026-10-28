@@ -60,9 +60,10 @@ passes down the tree, and what components contribute back to the head.
 | `Language` | `string` | Document language from `<mjml lang>`, emitted on the body. |
 | `Direction` | `string` | Document direction from `<mjml dir>`, emitted on the body. |
 
-The two unexported fields (`accordionFontFamily`, `elementFontFamily`) hold the
-contextual font inheritance of the accordion currently being rendered. They are
-not frozen and may change freely.
+The unexported fields (`accordionFontFamily`, `elementFontFamily` and the T4
+`fluidOnMobileClasses`) hold the contextual font inheritance of the accordion
+currently being rendered, and the fluid-on-mobile classes custom components
+registered. They are not frozen and may change freely.
 
 ## Types the frozen fields expose
 
@@ -111,7 +112,14 @@ fields too: `AttributeMap` (`map[string]string`), `Stylesheet` (`Rules`,
 - The `Component` interface is not frozen. T3 (issue #4) made it the
   custom-component contract by replacing its unexported validator type with the
   exported `AttributeValidator`, and added `ChildComponent` for declared child
-  lists; container support (T4) may extend it further.
+  lists. T4 (issue #5) did not change the interface: it added the methods
+  `RenderContext.AddComponentHeadStyle`, `AddInstanceComponentHeadStyle`,
+  `AddMediaQuery` and `AddFluidOnMobileClass`, the exported `RenderChildren` and
+  `IsContentTag`, `RenderChildrenInTableBody`, and
+  the unexported `fluidOnMobileClasses` state the fluid-on-mobile method fills.
+  Methods and unexported fields may be added freely; the frozen field list above
+  is unchanged, and `IncludeMobileFullWidthStyle` keeps its meaning (mj-image's
+  own fluid-on-mobile class), with custom classes emitted after it.
 
 ## Compatibility promise
 
@@ -142,8 +150,11 @@ down here for the next revision rather than corrected now:
   unexported without changing the shape this ADR freezes.
 - The `Component` interface is implementable outside the package since T3
   (issue #4), but a custom tag is only accepted in the content containers
-  (mj-body, mj-column, mj-hero) and children of a custom component are rendered
-  by that component itself (see above).
+  (mj-body, mj-column, mj-hero). A container's children are rendered by the
+  public `RenderChildren` helper, whose dispatch is closed to the built-in
+  content components and the registered custom ones; registration rejects a
+  declared child outside that set, so a container cannot wrap a layout component
+  (`mj-section`, `mj-column`, ...) even though those render (see above).
 - `node.Node.Content` holds raw markup for raw-content elements and plain text
   elsewhere; there is no flag that tells the two apart, so a consumer has to know
   the element's type to interpret it.

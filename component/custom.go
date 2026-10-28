@@ -5,8 +5,9 @@ import "slices"
 // customComponentParents are the built-in containers that accept a custom
 // component as a child. They are the content containers, where an author would
 // otherwise place a content component such as mj-text, mj-image or mj-button. A
-// custom component is a leaf in T3, so it does not replace a layout element:
-// mj-section, mj-wrapper and mj-group keep their fixed child lists.
+// custom component - leaf or container - occupies a content position, so it does
+// not replace a layout element: mj-section, mj-wrapper and mj-group keep their
+// fixed child lists.
 var customComponentParents = map[string]struct{}{
 	BodyTagName:   {},
 	ColumnTagName: {},

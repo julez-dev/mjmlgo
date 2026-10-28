@@ -47,10 +47,15 @@ type Component interface {
 //
 // AllowedChildren returns the child tag names the component accepts, in the
 // order they are reported in error messages. Declaring children makes the tag a
-// container for validation. Render receives the children and is responsible for
-// them: it can look each one up in RenderContext.CustomComponents and render it,
-// but the built-in container renderers do not descend into a custom tag. That
-// dispatch, together with head-style contribution, is ticket T4 (issue #5).
+// container for validation, and registration rejects a declaration no component
+// can render: every declared child must be a built-in content component (see
+// IsContentTag) or a custom component registered on the same renderer.
+//
+// The container renders its children with RenderChildren, which validates each
+// child's attributes, applies its defaults and dispatches it, and contributes
+// head CSS with RenderContext.AddComponentHeadStyle, AddMediaQuery and
+// AddFluidOnMobileClass. Render is still the render entry point: it writes the
+// wrapper markup and calls RenderChildren where the children belong.
 type ChildComponent interface {
 	Component
 	AllowedChildren() []string
@@ -297,8 +302,8 @@ func allowsChild(ctx *RenderContext, parent, child string) bool {
 	}
 
 	if _, custom := customComponent(ctx, child); custom {
-		// A custom component is a leaf, so it sits where content is placed, not
-		// where a layout element is expected.
+		// A custom component sits where content is placed, not where a layout
+		// element is expected.
 		_, contentParent := customComponentParents[parent]
 
 		return contentParent

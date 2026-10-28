@@ -4,6 +4,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/julez-dev/mjmlgo/node"
 	"github.com/stretchr/testify/require"
 )
 
@@ -123,4 +124,83 @@ func TestParseCSSToInlineStyles(t *testing.T) {
 
 	document := parseTestHTML(t, `<html><body><p class="a">x</p></body></html>`)
 	require.Len(t, sel.Select(document), 1)
+}
+
+// renderHead renders an empty mj-head with ctx, so a test can assert the style
+// blocks the head contributes for the CSS a component registered.
+func renderHead(t *testing.T, ctx *RenderContext) string {
+	t.Helper()
+
+	ctx.Breakpoint = "480px"
+
+	var output strings.Builder
+	require.NoError(t, MJMLHead{}.Render(ctx, &output, &node.Node{Type: HeadTagName}))
+
+	return output.String()
+}
+
+// TestHeadEmitsContributedCSS asserts the three contribution mechanisms a custom
+// component has all reach the head, in a stable order: named component blocks in
+// registration order, class rules inside the breakpoint media query, and the
+// fluid-on-mobile rules for the registered classes.
+func TestHeadEmitsContributedCSS(t *testing.T) {
+	t.Parallel()
+
+	ctx := &RenderContext{}
+	ctx.AddComponentHeadStyle("mj-notice", func(breakpoint string) string {
+		return "    @media only screen and (min-width:" + breakpoint + ") {\n        .mj-notice { padding: 16px !important; }\n    }\n"
+	})
+	ctx.AddMediaQuery("mj-notice-wide", []string{"width: 100% !important"})
+	ctx.AddFluidOnMobileClass("mj-notice-fluid")
+
+	head := renderHead(t, ctx)
+
+	require.Contains(t, head,
+		"    @media only screen and (min-width:480px) {\n        .mj-notice { padding: 16px !important; }\n    }\n")
+	require.Contains(t, head, "@media only screen and (min-width:480px) {\n            .mj-notice-wide {\n                  width: 100% !important;")
+	require.Contains(t, head, ".moz-text-html .mj-notice-wide {")
+	require.Contains(t, head,
+		"    @media only screen and (max-width:479px) {\n"+
+			"        table.mj-notice-fluid { width: 100% !important; }\n"+
+			"        td.mj-notice-fluid { width: auto !important; }\n"+
+			"    }")
+
+	// Rendering the same document shape twice must give the same bytes.
+	second := renderHead(t, ctx)
+	require.Equal(t, head, second)
+}
+
+// TestHeadEmitsMJMLImageFluidRulesUnchanged asserts mj-image's fluid-on-mobile
+// block keeps the exact markup it had before component-contributed classes were
+// supported, because built-in output is parity-locked.
+func TestHeadEmitsMJMLImageFluidRulesUnchanged(t *testing.T) {
+	t.Parallel()
+
+	head := renderHead(t, &RenderContext{IncludeMobileFullWidthStyle: true})
+
+	require.Contains(t, head,
+		"    @media only screen and (max-width:479px) {\n"+
+			"        table.mj-full-width-mobile { width: 100% !important; }\n"+
+			"        td.mj-full-width-mobile { width: auto !important; }\n"+
+			"    }")
+}
+
+// TestHeadOrdersMJMLImageFluidRulesBeforeCustomClasses asserts mj-image's own
+// fluid class stays first when a custom component adds one, so built-in output
+// keeps its position and the custom rule follows deterministically.
+func TestHeadOrdersMJMLImageFluidRulesBeforeCustomClasses(t *testing.T) {
+	t.Parallel()
+
+	ctx := &RenderContext{IncludeMobileFullWidthStyle: true}
+	ctx.AddFluidOnMobileClass("mj-notice-fluid")
+
+	head := renderHead(t, ctx)
+
+	require.Contains(t, head,
+		"    @media only screen and (max-width:479px) {\n"+
+			"        table.mj-full-width-mobile { width: 100% !important; }\n"+
+			"        td.mj-full-width-mobile { width: auto !important; }\n"+
+			"        table.mj-notice-fluid { width: 100% !important; }\n"+
+			"        td.mj-notice-fluid { width: auto !important; }\n"+
+			"    }")
 }
