@@ -29,8 +29,16 @@ type RenderContext struct {
 	// order. Selectors with the same path are merged in place.
 	HTMLAttributes []HTMLAttributeSelector
 
-	MJMLStylesheet              map[string][]string
-	MJMLStyleOrder              []string
+	MJMLStylesheet map[string][]string
+	MJMLStyleOrder []string
+	// ComponentHeadStyles holds the component-level <style> blocks (navbar,
+	// accordion, ...) in first-registration order. They are keyed by component
+	// name, so multiple instances of the same component register their style
+	// only once, like MJML's addHeadStyle.
+	ComponentHeadStyles []ComponentHeadStyle
+	// componentIDCounter backs deterministic ids for components that MJML gives
+	// random ids to (navbar hamburger labels).
+	componentIDCounter          uint64
 	IncludeMobileFullWidthStyle bool
 	ForceOWADesktop             bool
 	ContainerWidth              string
@@ -40,6 +48,12 @@ type RenderContext struct {
 
 	Language  string
 	Direction string
+
+	// accordionFontFamily and elementFontFamily carry the contextual font
+	// inheritance of the currently rendered accordion/element. Title and text
+	// fall back to them when they do not set font-family themselves.
+	accordionFontFamily string
+	elementFontFamily   string
 }
 
 // HTMLAttribute is one attribute set by <mj-html-attribute>.
@@ -102,6 +116,10 @@ func (c RenderContext) orderedMJMLStyles() []string {
 
 	classes := make([]string, 0, len(c.MJMLStylesheet))
 	for className := range c.MJMLStylesheet {
+		if className == componentHeadStyleKey {
+			continue
+		}
+
 		classes = append(classes, className)
 	}
 
@@ -117,6 +135,57 @@ func (c RenderContext) makeLowerBreakpoint() string {
 	}
 
 	return fmt.Sprintf("%dpx", parsed-1)
+}
+
+// ComponentHeadStyle is one component-generated stylesheet. Style is rendered
+// with the document breakpoint and emitted verbatim into the head.
+type ComponentHeadStyle struct {
+	Name  string
+	Style func(breakpoint string) string
+}
+
+// componentHeadStyleKey is reserved inside MJMLStylesheet for the rendered
+// component-level stylesheet. It is deliberately not part of MJMLStyleOrder, so
+// the per-class @media loops skip it; head-style-section.tmpl emits it verbatim
+// in its own <style> block instead.
+const componentHeadStyleKey = "@@mjmlgo-component-head-styles@@"
+
+// addComponentHeadStyle records a component stylesheet, replacing an existing
+// registration for the same component name. Registration order is preserved.
+func (c *RenderContext) addComponentHeadStyle(name string, style func(breakpoint string) string) {
+	if c.MJMLStylesheet == nil {
+		c.MJMLStylesheet = make(map[string][]string)
+	}
+
+	replaced := false
+	for i := range c.ComponentHeadStyles {
+		if c.ComponentHeadStyles[i].Name == name {
+			c.ComponentHeadStyles[i].Style = style
+			replaced = true
+			break
+		}
+	}
+
+	if !replaced {
+		c.ComponentHeadStyles = append(c.ComponentHeadStyles, ComponentHeadStyle{Name: name, Style: style})
+	}
+
+	lines := make([]string, 0, len(c.ComponentHeadStyles))
+	for _, componentStyle := range c.ComponentHeadStyles {
+		lines = append(lines, componentStyle.Style(c.Breakpoint))
+	}
+
+	c.MJMLStylesheet[componentHeadStyleKey] = lines
+}
+
+// nextComponentID returns a deterministic 16-character hex id. MJML uses a
+// random id for navbar hamburger labels; parity normalizes those ids, and a
+// counter keeps our own output stable for tests.
+func (c *RenderContext) nextComponentID() string {
+	id := fmt.Sprintf("%016x", c.componentIDCounter)
+	c.componentIDCounter++
+
+	return id
 }
 
 // Stylesheet is the top-level structure for our parsed CSS.

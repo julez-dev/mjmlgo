@@ -301,17 +301,8 @@
         }
       ]
     },
-    "testdata/parity/upstream/mjml--accordion-fontFamily--00.mjml": {
-      "error": "failed to render column: invalid child type mj-accordion in column, allowed types are: [mj-divider mj-spacer mj-image mj-text mj-social mj-table mj-button mj-raw]"
-    },
-    "testdata/parity/upstream/mjml--accordion-padding--00.mjml": {
-      "error": "failed to render column: invalid child type mj-accordion in column, allowed types are: [mj-divider mj-spacer mj-image mj-text mj-social mj-table mj-button mj-raw]"
-    },
-    "testdata/parity/upstream/mjml--accordionTitle-fontWeight--00.mjml": {
-      "error": "failed to render column: invalid child type mj-accordion in column, allowed types are: [mj-divider mj-spacer mj-image mj-text mj-social mj-table mj-button mj-raw]"
-    },
     "testdata/parity/upstream/mjml--carousel-hoverSupported--00.mjml": {
-      "error": "failed to render column: invalid child type mj-carousel in column, allowed types are: [mj-divider mj-spacer mj-image mj-text mj-social mj-table mj-button mj-raw]"
+      "error": "failed to render column: invalid child type mj-carousel in column, allowed types are: [mj-divider mj-spacer mj-image mj-text mj-social mj-table mj-button mj-navbar mj-accordion mj-raw]"
     },
     "testdata/parity/upstream/mjml--column-border-radius--00.mjml": {
       "mismatches": [
@@ -336,9 +327,6 @@
           "detail": "child count mismatch: want 3, got 5"
         }
       ]
-    },
-    "testdata/parity/upstream/mjml--navbar-ico-padding--00.mjml": {
-      "error": "failed to render column: invalid child type mj-navbar in column, allowed types are: [mj-divider mj-spacer mj-image mj-text mj-social mj-table mj-button mj-raw]"
     },
     "testdata/parity/upstream/mjml--social-align--00.mjml": {
       "mismatches": [

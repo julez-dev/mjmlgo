@@ -63,6 +63,11 @@ func TestParseHTMLNormalization(t *testing.T) {
 			b:    "<style>.a , .b { color: red; }</style>",
 		},
 		{
+			name: "generated navbar/carousel ids",
+			a:    `<html><body><input id="610029845a079c0e" type="checkbox"><label for="610029845a079c0e">menu</label></body></html>`,
+			b:    `<html><body><input id="0000000000000000" type="checkbox"><label for="0000000000000000">menu</label></body></html>`,
+		},
+		{
 			name: "downlevel reveal wrapper on both sides",
 			a:    `<!--[if !mso]><!--><meta charset="utf-8"><!--<![endif]-->`,
 			b:    `<!--[if !mso]><!--><meta charset="utf-8"><!--<![endif]-->`,

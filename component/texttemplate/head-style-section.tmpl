@@ -62,14 +62,15 @@
     </style>
     {{end}}
 {{end}}
-{{ if .IncludeMobileFullWidthStyle }}
+{{ if or (index .MJMLStyles "@@mjmlgo-component-head-styles@@") .IncludeMobileFullWidthStyle }}
 <style type="text/css">
-    @media only screen and (max-width:{{.LowerBreakpoint}}) {
+{{ if .IncludeMobileFullWidthStyle }}    @media only screen and (max-width:{{.LowerBreakpoint}}) {
         table.mj-full-width-mobile { width: 100% !important; }
         td.mj-full-width-mobile { width: auto !important; }
     }
-    {{ end }}
-</style>
+{{ end }}{{ range index .MJMLStyles "@@mjmlgo-component-head-styles@@" }}{{ . }}
+{{ end }}</style>
+{{ end }}
 {{ if .UserStyles }}
 <style type="text/css">
 {{ range .UserStyles }}

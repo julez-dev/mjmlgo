@@ -202,6 +202,26 @@ func (c MJMLColumn) renderColumn(ctx *RenderContext, w io.Writer, n *node.Node) 
 			if err := button.Render(ctx, w, child); err != nil {
 				return fmt.Errorf("failed to render button: %w", err)
 			}
+		case NavbarTagName:
+			var navbar MJMLNavbar
+			if err := InitComponent(ctx, navbar, child); err != nil {
+				return err
+			}
+
+			_, _ = io.WriteString(w, "<td "+c.tdAttribute(child).InlineString()+">\n")
+			if err := navbar.Render(ctx, w, child); err != nil {
+				return fmt.Errorf("failed to render navbar: %w", err)
+			}
+		case AccordionTagName:
+			var accordion MJMLAccordion
+			if err := InitComponent(ctx, accordion, child); err != nil {
+				return err
+			}
+
+			_, _ = io.WriteString(w, "<td "+c.tdAttribute(child).InlineString()+">\n")
+			if err := accordion.Render(ctx, w, child); err != nil {
+				return fmt.Errorf("failed to render accordion: %w", err)
+			}
 		}
 
 		_, _ = io.WriteString(w, "</td>\n")
@@ -317,6 +337,7 @@ func (c MJMLColumn) hasGutter(n *node.Node) bool {
 
 func (c MJMLColumn) allowedChildren() []string {
 	return []string{DividerTagName, SpacerTagName, ImageTagName,
-		TextTagName, SocialTagName, TableTagName, ButtonTagName, RawTagName,
+		TextTagName, SocialTagName, TableTagName, ButtonTagName,
+		NavbarTagName, AccordionTagName, RawTagName,
 	}
 }
