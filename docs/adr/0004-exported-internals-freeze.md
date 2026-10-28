@@ -60,9 +60,10 @@ passes down the tree, and what components contribute back to the head.
 | `Language` | `string` | Document language from `<mjml lang>`, emitted on the body. |
 | `Direction` | `string` | Document direction from `<mjml dir>`, emitted on the body. |
 
-The two unexported fields (`accordionFontFamily`, `elementFontFamily`) hold the
-contextual font inheritance of the accordion currently being rendered. They are
-not frozen and may change freely.
+The unexported fields (`accordionFontFamily`, `elementFontFamily` and the T4
+`fluidOnMobileClasses`) hold the contextual font inheritance of the accordion
+currently being rendered, and the fluid-on-mobile classes custom components
+registered. They are not frozen and may change freely.
 
 ## Types the frozen fields expose
 
@@ -114,7 +115,7 @@ fields too: `AttributeMap` (`map[string]string`), `Stylesheet` (`Rules`,
   lists. T4 (issue #5) did not change the interface: it added the methods
   `RenderContext.AddComponentHeadStyle`, `AddInstanceComponentHeadStyle`,
   `AddMediaQuery` and `AddFluidOnMobileClass`, the exported `RenderChildren` and
-  `IsContentTag`, and
+  `IsContentTag`, `RenderChildrenInTableBody`, and
   the unexported `fluidOnMobileClasses` state the fluid-on-mobile method fills.
   Methods and unexported fields may be added freely; the frozen field list above
   is unchanged, and `IncludeMobileFullWidthStyle` keeps its meaning (mj-image's

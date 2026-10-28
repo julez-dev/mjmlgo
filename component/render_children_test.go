@@ -105,10 +105,10 @@ func TestRenderChildrenRendersNestedContainers(t *testing.T) {
 	assert.Equal(t, textHTML("Inside"), output.String())
 }
 
-// TestRenderChildrenRendersRawChildren asserts mj-raw children are emitted at
-// their document position inside the raw-block markers, so the inliner cannot
-// foster-parent them out of a table body the container may have placed them in.
-// The renderer strips the markers from the finished document.
+// TestRenderChildrenRendersRawChildren asserts mj-raw children are emitted
+// verbatim, like the built-in containers render raw content outside a table body:
+// no raw-block markers, so the inliner can style the content and, just as
+// important, does not parse it in table-body mode at a position with no table.
 func TestRenderChildrenRendersRawChildren(t *testing.T) {
 	t.Parallel()
 
@@ -122,7 +122,29 @@ func TestRenderChildrenRendersRawChildren(t *testing.T) {
 	var output strings.Builder
 	require.NoError(t, RenderChildren(&RenderContext{}, &output, container))
 
-	assert.Equal(t, RawBlockStartMarker+`<div class="raw">raw</div>`+RawBlockEndMarker, output.String())
+	assert.Equal(t, `<div class="raw">raw</div>`, output.String())
+}
+
+// TestRenderChildrenInTableBodyMarksRawChildren asserts the table-body variant
+// wraps mj-raw children in the raw-block markers, which is what keeps the
+// inliner from foster-parenting them out of a <tbody>.
+func TestRenderChildrenInTableBodyMarksRawChildren(t *testing.T) {
+	t.Parallel()
+
+	container := &node.Node{
+		Type: "mj-notice",
+		Children: []*node.Node{
+			{Type: RawTagName, Content: "\n  <tr><td class=\"raw\">raw</td></tr>\n"},
+			{Type: TextTagName, Content: "After"},
+		},
+	}
+
+	var output strings.Builder
+	require.NoError(t, RenderChildrenInTableBody(&RenderContext{}, &output, container))
+
+	assert.Equal(t,
+		RawBlockStartMarker+`<tr><td class="raw">raw</td></tr>`+RawBlockEndMarker+textHTML("After"),
+		output.String())
 }
 
 // TestRenderChildrenEnforcesTheDeclaredChildList asserts RenderChildren checks a
@@ -165,4 +187,31 @@ func TestRenderChildrenReportsAnUnrenderableChild(t *testing.T) {
 
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "no component for child <mj-unknown> in <mj-notice>")
+}
+
+// TestRenderChildrenRejectsTheChildrenOfALeaf asserts the helper enforces the
+// leaf half of the contract too: a registered component that declares no children
+// accepts none, whether or not the document was validated first.
+func TestRenderChildrenRejectsTheChildrenOfALeaf(t *testing.T) {
+	t.Parallel()
+
+	ctx := contextWith(renderingComponent{tag: "mj-chip", html: "chip"})
+
+	leaf := &node.Node{Type: "mj-chip"}
+	child := &node.Node{Type: TextTagName, Content: "Inside"}
+	child.Parent = leaf
+	leaf.Children = []*node.Node{child}
+
+	var output strings.Builder
+	err := RenderChildren(ctx, &output, leaf)
+
+	require.Error(t, err)
+
+	var structured *Error
+	require.ErrorAs(t, err, &structured)
+	assert.Equal(t, KindDisallowedChild, structured.Kind)
+	assert.Equal(t, []string{"mj-chip", TextTagName}, structured.Path)
+	assert.Equal(t, TextTagName, structured.Value)
+	assert.Contains(t, err.Error(), "allowed children: none")
+	assert.Empty(t, output.String())
 }

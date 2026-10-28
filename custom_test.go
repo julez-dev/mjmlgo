@@ -612,7 +612,7 @@ func (rawTableComponent) AllowedChildren() []string { return []string{component.
 
 func (rawTableComponent) Render(ctx *component.RenderContext, w io.Writer, n *node.Node) error {
 	_, _ = io.WriteString(w, `<table class="raw-table"><tbody>`)
-	if err := component.RenderChildren(ctx, w, n); err != nil {
+	if err := component.RenderChildrenInTableBody(ctx, w, n); err != nil {
 		return err
 	}
 	_, err := io.WriteString(w, `</tbody></table>`)
@@ -640,4 +640,56 @@ func TestCustomContainerKeepsRawChildrenInPlace(t *testing.T) {
 	assert.Contains(t, rendered,
 		`<table class="raw-table"><tbody><tr><td class="raw" style="color:red;">raw</td></tr></tbody></table>`)
 	assert.NotContains(t, rendered, component.RawBlockStartMarker)
+}
+
+// divContainerComponent is a container that wraps its children in a plain <div>:
+// no table body, so raw content there must not be marked as table-body content.
+type divContainerComponent struct{}
+
+func (divContainerComponent) Name() string { return "mj-div-box" }
+
+func (divContainerComponent) AllowedAttributes() map[string]component.AttributeValidator {
+	return nil
+}
+
+func (divContainerComponent) DefaultAttributes(*component.RenderContext) map[string]string {
+	return nil
+}
+
+func (divContainerComponent) AllowedChildren() []string { return []string{component.RawTagName} }
+
+func (divContainerComponent) Render(ctx *component.RenderContext, w io.Writer, n *node.Node) error {
+	_, _ = io.WriteString(w, `<div class="wrap">`)
+	if err := component.RenderChildren(ctx, w, n); err != nil {
+		return err
+	}
+	_, err := io.WriteString(w, `</div>`)
+
+	return err
+}
+
+// TestCustomContainerRawOutsideTableIsNotMarked asserts a container that does not
+// use a table body renders raw content unmarked, so the inliner parses it in the
+// surrounding document instead of inventing table structure: a bare <td> must not
+// come back wrapped in a fabricated <tr> under the container's <div>.
+func TestCustomContainerRawOutsideTableIsNotMarked(t *testing.T) {
+	t.Parallel()
+
+	const document = `<mjml><mj-head><mj-style inline="inline">.raw { color: red; }</mj-style></mj-head>` +
+		`<mj-body><mj-section><mj-column>` +
+		`<mj-div-box><mj-raw><td class="raw">in-container</td></mj-raw></mj-div-box>` +
+		`</mj-column></mj-section></mj-body></mjml>`
+
+	rendered := renderWithComponents(t, document, divContainerComponent{})
+
+	start := strings.Index(rendered, `<div class="wrap">`)
+	require.GreaterOrEqual(t, start, 0, "the container wrapper is rendered")
+	end := strings.Index(rendered[start:], "</div>")
+	require.GreaterOrEqual(t, end, 0, "the container wrapper is closed")
+
+	block := rendered[start : start+end]
+
+	assert.NotContains(t, block, "<tr>", "no table row is fabricated around the raw cell")
+	assert.NotContains(t, block, component.RawBlockStartMarker)
+	assert.Contains(t, rendered, "in-container", "the raw content is not dropped")
 }

@@ -42,7 +42,9 @@ func (r MJMLRaw) Render(_ *RenderContext, w io.Writer, n *node.Node) error {
 //
 // It is the single place that renders raw children, so the per-container child
 // loops cannot drift apart. Containers whose raw content sits directly inside a
-// <table> body use renderRawChildInTableBody instead.
+// <table> body use renderRawChildInTableBody instead. A custom component chooses
+// between the two through RenderChildren and RenderChildrenInTableBody, which
+// call this function and renderRawChildInTableBody respectively.
 func renderRawChild(ctx *RenderContext, w io.Writer, n *node.Node) error {
 	var raw MJMLRaw
 	if err := InitComponent(ctx, raw, n); err != nil {
@@ -67,7 +69,9 @@ func renderRawChild(ctx *RenderContext, w io.Writer, n *node.Node) error {
 // head, the navbar, the horizontal social layout, the section, group and
 // wrapper cell content, the accordion element content - must use renderRawChild:
 // marking them would keep the inliner from applying inline styles to content it
-// can safely re-serialize.
+// can safely re-serialize. A custom container makes the same choice through
+// RenderChildren (no marker, any markup) or RenderChildrenInTableBody (marked,
+// children directly inside a <tbody>).
 func renderRawChildInTableBody(ctx *RenderContext, w io.Writer, n *node.Node) error {
 	if _, err := io.WriteString(w, RawBlockStartMarker); err != nil {
 		return err

@@ -34,10 +34,11 @@
 //   - IsBuiltinTag, which reports whether a tag is already implemented here
 //     (every component, the head handlers, mj-all, mj-class and mj-include) and
 //     so cannot be used by a custom component.
-//   - RenderChildren, which renders a container's children with the built-in or
-//     registered components they belong to, and IsContentTag, which reports
-//     whether a built-in tag is one of the content components a container may
-//     declare.
+//   - RenderChildren and RenderChildrenInTableBody, which render a container's
+//     children with the built-in or registered components they belong to (the
+//     second for children that sit directly in a table body, where raw content
+//     needs the raw-block markers), and IsContentTag, which reports whether a
+//     built-in tag is one of the content components a container may declare.
 //   - RenderContext.AddComponentHeadStyle, AddInstanceComponentHeadStyle,
 //     AddMediaQuery and AddFluidOnMobileClass, the head-contribution mechanisms
 //     the built-in components use.
@@ -71,9 +72,10 @@
 // element is expected. Registration is per renderer: there is no global
 // registry, and two renderers in one process may know different tags.
 //
-// A ChildComponent renders the children it accepted with RenderChildren, which
-// validates each child's attributes, applies its defaults and dispatches it to
-// the built-in or registered component that renders it. The container owns all
+// A ChildComponent renders the children it accepted with RenderChildren (or
+// RenderChildrenInTableBody when they sit directly in a <tbody>), which validates
+// each child's attributes, applies its defaults and dispatches it to the built-in
+// or registered component that renders it. The container owns all
 // markup around its children, so it can render them into a buffer first and write
 // its own wrapper around finished HTML. Its declared child list is closed:
 // registration rejects a container that declares a child which is neither a

@@ -3,7 +3,6 @@ package component
 import (
 	"fmt"
 	"io"
-	"strings"
 
 	"github.com/julez-dev/mjmlgo/node"
 )
@@ -56,33 +55,62 @@ func IsContentTag(tag string) bool {
 //	}
 //	// ... write the wrapper and children.String() ...
 //
-// An mj-raw child is rendered the way a built-in container renders raw content
-// that sits directly in a table body: inside the raw-block markers, which the
-// renderer strips from the finished document. A container may put its children in
-// a <tbody>, and the marker is what keeps html.Parse from foster-parenting raw
-// markup out of the table; the inliner parses such a block as a fragment at its
-// position, so the limits the built-in containers have for raw content apply here
-// too (a selector that needs an ancestor outside the block cannot match inside
-// it).
+// An mj-raw child is rendered verbatim, the way the built-in containers render raw
+// content outside a table body (mj-body, mj-head, mj-section, mj-wrapper,
+// mj-group, mj-accordion-element, mj-social and mj-navbar). A container whose
+// children sit directly inside a <tbody> must call RenderChildrenInTableBody
+// instead: there the raw block has to be marked, or the inliner foster-parents it
+// out of the table.
 func RenderChildren(ctx *RenderContext, w io.Writer, n *node.Node) error {
+	return renderChildList(ctx, w, n, renderRawChild)
+}
+
+// RenderChildrenInTableBody is RenderChildren for a container whose children sit
+// directly inside a <tbody> - the position the built-in column and hero put their
+// children in. Raw content there is wrapped in the raw-block markers, which the
+// renderer strips from the finished document: without them html.Parse
+// foster-parents the block out of the table and re-serializes it. The inliner
+// parses a marked block as a fragment at its position, so the limits the built-in
+// containers have for raw content apply here too (a selector that needs an
+// ancestor outside the block cannot match inside it).
+//
+// Use this only when the container really places its children in a table body.
+// Marking a block that sits anywhere else makes the fragment parse invent table
+// structure around it.
+func RenderChildrenInTableBody(ctx *RenderContext, w io.Writer, n *node.Node) error {
+	return renderChildList(ctx, w, n, renderRawChildInTableBody)
+}
+
+// renderChildList is the shared child loop of RenderChildren and
+// RenderChildrenInTableBody. renderRaw is the entry point for an mj-raw child and
+// is the only difference between the two, so the child-list check and the
+// dispatch cannot drift apart.
+func renderChildList(
+	ctx *RenderContext,
+	w io.Writer,
+	n *node.Node,
+	renderRaw func(*RenderContext, io.Writer, *node.Node) error,
+) error {
 	var container ChildComponent
-	if parent, custom := customComponent(ctx, n.Type); custom {
+
+	parent, isCustom := customComponent(ctx, n.Type)
+	if isCustom {
 		container, _ = parent.(ChildComponent)
 	}
 
 	for _, child := range n.Children {
-		if container != nil && !allowsCustomComponentChild(container, child.Type) {
+		if isCustom && (container == nil || !allowsCustomComponentChild(container, child.Type)) {
 			return NewError(
 				KindDisallowedChild,
 				elementPathSegments(child),
 				"",
 				child.Type,
-				fmt.Errorf("allowed children: %s", strings.Join(container.AllowedChildren(), ", ")),
+				fmt.Errorf("allowed children: %s", allowedChildList(ctx, n.Type)),
 			)
 		}
 
 		if child.Type == RawTagName {
-			if err := renderRawChildInTableBody(ctx, w, child); err != nil {
+			if err := renderRaw(ctx, w, child); err != nil {
 				return err
 			}
 
@@ -112,9 +140,11 @@ func RenderChildren(ctx *RenderContext, w io.Writer, n *node.Node) error {
 // childComponent resolves the component that renders one child of a custom
 // container: a built-in content component first, then a component registered on
 // this renderer. A custom component can never shadow a built-in one, so the
-// order only documents the intent. It is the single dispatch table every
-// container uses - the built-in ones and RenderChildren - so a new content
-// component is listed once.
+// order only documents the intent. It is the dispatch table the content
+// dispatchers share - mj-column, mj-hero and the RenderChildren helpers - so a
+// new content component is listed once. mj-body keeps its own switch because it
+// also dispatches the layout children (mj-section, mj-wrapper, mj-hero), which
+// contentComponents deliberately excludes.
 func childComponent(ctx *RenderContext, tag string) (Component, bool) {
 	if builtin, ok := contentComponents[tag]; ok {
 		return builtin, true

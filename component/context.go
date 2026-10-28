@@ -199,7 +199,7 @@ func (c *RenderContext) AddInstanceComponentHeadStyle(name string, style func(br
 // !important. It is the rule mj-image's fluid-on-mobile attribute uses, exposed
 // so a custom component can opt its own class in. Classes are emitted in
 // first-registration order, deduplicated, and after mj-image's own class when
-// the document has one.
+// the document has one; an empty class name is ignored.
 func (c *RenderContext) AddFluidOnMobileClass(className string) {
 	if className == "" || slices.Contains(c.fluidOnMobileClasses, className) {
 		return

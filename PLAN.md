@@ -129,19 +129,20 @@ Known divergences at the start: 214 records / 15 root causes (see
   output, the default cascade and every failure path. Built-in output is unchanged
   (parity corpus still at zero divergences).
 - **T4 done**: custom components work as containers with head styles. A container
-  renders the children it declared through the new `component.RenderChildren`, which
-  applies each child's defaults and dispatches it to the built-in content component or
-  the registered custom one, so the component owns the wrapper markup around finished
-  children; registration rejects a declared child that is neither a content component
+  renders the children it declared through the new `component.RenderChildren` (or
+  `RenderChildrenInTableBody` when the children sit directly in a `<tbody>`, which is
+  where raw content needs the raw-block markers), which applies each child's defaults
+  and dispatches it to the built-in content component or the registered custom one, so
+  the component owns the wrapper markup around finished children; registration rejects a declared child that is neither a content component
   (`component.IsContentTag`) nor a registered custom one. Undeclared children still fail
   validation with the element path. `RenderContext.AddComponentHeadStyle`,
   `AddInstanceComponentHeadStyle`, `AddMediaQuery` and `AddFluidOnMobileClass` export
   the head mechanisms the built-ins use, all in registration order, so the head is
   byte-deterministic across repeated renders; the named and class-level mechanisms
-  de-duplicate, the instance-level one never does, like MJML. Raw children are marked
-  so a container may place them in a table body without the inliner foster-parenting
-  them out. mj-image's fluid block is unchanged, and the built-in column and hero
-  renderers now share the one dispatch table in `childComponent`.
+  de-duplicate, the instance-level one never does, like MJML. mj-image's fluid block is
+  unchanged, and the built-in column and hero renderers now share the one dispatch
+  table in `childComponent`; their child render failures report the tag
+  (`failed to render <mj-text>: ...`), matching mj-body and `RenderChildren`.
   `example/customcomponent` gained the `mj-notice` container. No `Component` interface
   change; see ADR-0004 for the added methods. Parity is still at zero divergences.
 - **M3 done**: inline stylesheet selectors are compiled once per stylesheet, style
