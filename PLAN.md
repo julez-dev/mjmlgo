@@ -153,6 +153,29 @@ conflict-free. Rules that keep this safe:
   its own, because the harness normalizes formatting and ignores non-Outlook
   comments.
 
+## Phase 2: authoring surface and embedding API
+
+Planned work lives in GitHub: epic [#1](https://github.com/julez-dev/mjmlgo/issues/1)
+with the eight tickets below as sub-issues and native blocking edges. The settled
+decisions and per-ticket acceptance criteria are in the issue bodies; this section
+records the shape only.
+
+| Ticket | Content | Blocked by |
+| --- | --- | --- |
+| [#2](https://github.com/julez-dev/mjmlgo/issues/2) T1 | Comment preservation; `keepComments`, `fonts`, `ignoreIncludes`, `printerSupport`; `.cli-args` fixture sidecars | - |
+| [#3](https://github.com/julez-dev/mjmlgo/issues/3) T2 | Export `node`/`component` with fields as-is; four ADRs | T1 |
+| [#4](https://github.com/julez-dev/mjmlgo/issues/4) T3 | Custom-component contract, registry, validation integration | T2 |
+| [#5](https://github.com/julez-dev/mjmlgo/issues/5) T4 | Custom components as containers, head-style contribution | T3 |
+| [#6](https://github.com/julez-dev/mjmlgo/issues/6) T5 | Structured `*Error` across every validation site | T2 |
+| [#7](https://github.com/julez-dev/mjmlgo/issues/7) T6 | Remove the post-render `html.Parse`/`html.Render` round-trip | T2 |
+| [#8](https://github.com/julez-dev/mjmlgo/issues/8) T7 | Validation allocations (~5k per `input_big` render) | T5 |
+| [#9](https://github.com/julez-dev/mjmlgo/issues/9) T8 | Unit-test backfill for parity-only sources | T2 |
+
+Topology: spine T1 -> T2 -> T3 -> T4, tail T5 -> T7 with T6 and T8 parallel to either.
+No version tag in this phase. `skeleton`, `preprocessors` and presets stay deferred
+until custom components lands; `beautify`, `minify` and `juiceOptions` are permanently
+out of scope (compact output only).
+
 ## Roadmap
 
 | Milestone | Content |
