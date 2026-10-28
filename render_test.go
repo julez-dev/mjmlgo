@@ -755,31 +755,103 @@ func TestProtectRawBlocks(t *testing.T) {
 }
 
 // TestInlineCSSStylesRawBlocks asserts protected raw content is parsed as a
-// fragment and receives the inline declarations and the <mj-html-attributes>
-// selectors, while the markers still keep it at its position.
+// fragment - in a context that fits its own shape - and receives the inline
+// declarations and the <mj-html-attributes> selectors, while the markers keep it
+// at its position.
 func TestInlineCSSStylesRawBlocks(t *testing.T) {
 	t.Parallel()
 
-	// The block sits directly in a <tbody>, which is where the markers are
-	// required. Parsing it with that <tbody> as the fragment context is what
-	// keeps the row a row; a body context would drop the <td> and its class.
-	document := `<html><body><table><tbody>` +
-		component.RawBlockStartMarker + `<tr><td class="cell">raw row</td></tr>` + component.RawBlockEndMarker +
-		`<tr><td>content</td></tr>` +
-		`</tbody></table></body></html>`
-
-	ctx := inlineContext(inlineSheet(".cell", component.Style{Property: "color", Value: "red"}))
-	ctx.HTMLAttributes = []component.HTMLAttributeSelector{
-		{Path: ".cell", Attributes: []component.HTMLAttribute{{Name: "data-x", Value: "1"}}},
+	// A marked block sits directly in a <tbody>, which is where the markers are
+	// required. Each block is still parsed in the context its own first element
+	// needs, so both a bare row and a nested table survive.
+	tests := []struct {
+		name string
+		raw  string
+		want string
+	}{
+		{
+			name: "bare row stays a row",
+			raw:  `<tr><td class="cell">raw row</td></tr>`,
+			want: `<tr><td class="cell" data-x="1" style="color:red;">raw row</td></tr>`,
+		},
+		{
+			name: "nested table keeps its table element",
+			raw:  `<table><tr><td class="cell">raw cell</td></tr></table>`,
+			want: `<table><tbody><tr><td class="cell" data-x="1" style="color:red;">raw cell</td></tr></tbody></table>`,
+		},
+		{
+			name: "generic markup is untouched around the styled node",
+			raw:  `<div class="wrapper"><p class="cell">text</p></div>`,
+			want: `<div class="wrapper"><p class="cell" data-x="1" style="color:red;">text</p></div>`,
+		},
+		{
+			// A table child is not body content: a table body context would
+			// turn the caption into plain text.
+			name: "caption stays an element",
+			raw:  `<caption class="cell">caption</caption>`,
+			want: `<caption class="cell" data-x="1" style="color:red;">caption</caption>`,
+		},
 	}
 
-	var out bytes.Buffer
-	require.NoError(t, inlineCSS(ctx, strings.NewReader(document), &out))
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 
-	require.Equal(t, `<html><body><table><tbody>`+
-		`<tr><td class="cell" data-x="1" style="color:red;">raw row</td></tr>`+
-		`<tr><td>content</td></tr>`+
-		`</tbody></table></body></html>`, out.String())
+			document := `<html><body><table><tbody>` +
+				component.RawBlockStartMarker + tt.raw + component.RawBlockEndMarker +
+				`<tr><td>content</td></tr>` +
+				`</tbody></table></body></html>`
+
+			ctx := inlineContext(inlineSheet(".cell", component.Style{Property: "color", Value: "red"}))
+			ctx.HTMLAttributes = []component.HTMLAttributeSelector{
+				{Path: ".cell", Attributes: []component.HTMLAttribute{{Name: "data-x", Value: "1"}}},
+			}
+
+			var out bytes.Buffer
+			require.NoError(t, inlineCSS(ctx, strings.NewReader(document), &out))
+
+			require.Equal(t, `<html><body><table><tbody>`+
+				tt.want+
+				`<tr><td>content</td></tr>`+
+				`</tbody></table></body></html>`, out.String())
+		})
+	}
+}
+
+// TestRawBlockFragmentContext locks down the context choice: it is the block's
+// own first element that decides, not the table body the block sits in.
+func TestRawBlockFragmentContext(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		block string
+		want  string
+	}{
+		{block: `<tr><td>x</td></tr>`, want: "tbody"},
+		{block: `<TD class="cell">x</TD>`, want: "tbody"},
+		{block: `<th scope="col">x</th>`, want: "tbody"},
+		{block: `<tbody><tr><td>x</td></tr></tbody>`, want: "table"},
+		{block: `<thead><tr><th>x</th></tr></thead>`, want: "table"},
+		{block: `<tfoot><tr><td>x</td></tr></tfoot>`, want: "table"},
+		{block: `<caption>caption</caption>`, want: "table"},
+		{block: `<colgroup><col span="2"></colgroup>`, want: "table"},
+		{block: `<col span="2">`, want: "table"},
+		// A nested table is flow content: "in table body" mode would treat its
+		// start tag as an end tag and delete it.
+		{block: `<table><tr><td>x</td></tr></table>`, want: "div"},
+		{block: `<div><table><tr><td>x</td></tr></table></div>`, want: "div"},
+		// Text, comments and doctypes do not decide the context.
+		{block: `<!-- <tr><td>commented out</td></tr> --><div>x</div>`, want: "div"},
+		{block: `plain text with a < b`, want: "div"},
+		{block: ``, want: "div"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.block, func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, tt.want, rawBlockFragmentContext(tt.block).Data)
+		})
+	}
 }
 
 // TestInlineCSSKeepsUnmatchedRawBlocks asserts a block that no rule and no

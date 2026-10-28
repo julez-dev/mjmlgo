@@ -152,12 +152,6 @@ func rawBlockPlaceholderComment(i int) string {
 	return rawBlockPlaceholderPrefix + strconv.Itoa(i) + rawBlockPlaceholderSuffix
 }
 
-// rawBlockPlaceholderData returns the content of that comment: what the parsed
-// tree stores as the comment node's data, without the comment delimiters.
-func rawBlockPlaceholderData(i int) string {
-	return strings.TrimSuffix(strings.TrimPrefix(rawBlockPlaceholderComment(i), "<!--"), "-->")
-}
-
 var rawBlockMarkerPattern = regexp.MustCompile(`(?s)` + regexp.QuoteMeta(component.RawBlockStartMarker) + `(.*?)` + regexp.QuoteMeta(component.RawBlockEndMarker))
 
 // protectRawBlocks replaces raw blocks with comment placeholders so the HTML
@@ -243,24 +237,32 @@ func writeRestoredRawBlocks(w io.Writer, output string, blocks []string) error {
 //
 // A block is parsed as a fragment rather than as part of the document, because
 // the markers deliberately keep it out of the whole-document parse so that the
-// HTML parser cannot foster-parent it. The node the block's placeholder sits in
-// is the fragment's context, so raw content that is table content (<tr>, <td>)
-// keeps its meaning instead of being dropped the way a body context would drop
-// it.
+// HTML parser cannot foster-parent it. The fragment's context comes from the
+// block's own content (see rawBlockFragmentContext): a marked block always sits
+// inside a table body, and parsing its content in "in table body" mode is not
+// lossless - a <table> start tag there is treated as an end tag, which would
+// delete an author's nested layout table - while a generic context would drop
+// bare rows and cells.
 //
-// Fragment scope has a cost: a selector that depends on an ancestor outside the
-// block (`.hero .raw`) cannot match inside it, because those ancestors are not
-// part of the fragment. Selectors that match the block's own elements - the
-// common case for raw content - apply exactly as they do in the document.
-func styleRawBlocks(ctx *component.RenderContext, doc *html.Node, blocks []string) error {
+// Two limits follow from the fragment scope, and both are documented rather than
+// worked around:
+//
+//   - a selector that depends on an ancestor outside the block (`.hero .raw`)
+//     cannot match inside it, because those ancestors are not part of the
+//     fragment. Selectors that match the block's own elements - the common case
+//     for raw content - apply exactly as they do in the document;
+//   - a block that mixes table shapes cannot round-trip through any context:
+//     a <tr> before a <table> loses the nested table in table-section mode and
+//     the row in generic mode, and a bare table child (a section, caption or
+//     column group) followed by rows is invalid nesting inside the surrounding
+//     table body, which the reference's own parser normalizes differently.
+func styleRawBlocks(ctx *component.RenderContext, blocks []string) error {
 	if len(blocks) == 0 || (len(ctx.HTMLAttributes) == 0 && len(ctx.InlineStyles) == 0) {
 		return nil
 	}
 
-	contexts := rawBlockContexts(doc, len(blocks))
-
 	for i := range blocks {
-		nodes, err := html.ParseFragment(strings.NewReader(blocks[i]), contexts[i])
+		nodes, err := html.ParseFragment(strings.NewReader(blocks[i]), rawBlockFragmentContext(blocks[i]))
 		if err != nil {
 			return fmt.Errorf("parse raw block: %w", err)
 		}
@@ -294,39 +296,47 @@ func styleRawBlocks(ctx *component.RenderContext, doc *html.Node, blocks []strin
 	return nil
 }
 
-// rawBlockContexts returns the element each protected block's placeholder sits
-// in, indexed by block. That element is the fragment parsing context of the
-// block. A block whose placeholder cannot be found falls back to a body context,
-// which parses it as ordinary flow content.
-func rawBlockContexts(doc *html.Node, count int) []*html.Node {
-	contexts := make([]*html.Node, count)
-
-	placeholders := make(map[string]int, count)
-	for i := range contexts {
-		placeholders[rawBlockPlaceholderData(i)] = i
+// rawBlockFragmentContext returns the parsing context for a protected raw block,
+// chosen from the block's own content.
+//
+// The author's markup decides, because no single context is lossless for every
+// shape a raw block can have:
+//
+//   - a bare row or cell is table-section content. A table body context keeps it
+//     a row instead of dropping it, and adds no wrapper the author did not
+//     write: the HTML parser inserts the same rows when it parses the reference's
+//     output;
+//   - a table section, caption or column group is a table child, which a table
+//     body context would drop and a table context keeps;
+//   - everything else - including a nested <table>, which "in table body" mode
+//     would treat as an end tag - is parsed as ordinary flow content.
+func rawBlockFragmentContext(block string) *html.Node {
+	switch firstElementName(block) {
+	case "tr", "td", "th":
+		return &html.Node{Type: html.ElementNode, Data: "tbody", DataAtom: atom.Tbody}
+	case "tbody", "thead", "tfoot", "caption", "colgroup", "col":
+		return &html.Node{Type: html.ElementNode, Data: "table", DataAtom: atom.Table}
+	default:
+		return &html.Node{Type: html.ElementNode, Data: "div", DataAtom: atom.Div}
 	}
+}
 
-	var walk func(*html.Node)
-	walk = func(n *html.Node) {
-		if n.Type == html.CommentNode {
-			if i, ok := placeholders[n.Data]; ok && n.Parent != nil && n.Parent.Type == html.ElementNode {
-				contexts[i] = n.Parent
-			}
-		}
+// firstElementName returns the name of the first start or self-closing tag in
+// block, or "" when the block has none. Text, comments and doctypes are skipped,
+// so a comment before the markup does not decide the context.
+func firstElementName(block string) string {
+	tokenizer := html.NewTokenizer(strings.NewReader(block))
 
-		for c := n.FirstChild; c != nil; c = c.NextSibling {
-			walk(c)
-		}
-	}
-	walk(doc)
+	for {
+		switch tokenizer.Next() {
+		case html.ErrorToken:
+			return ""
+		case html.StartTagToken, html.SelfClosingTagToken:
+			name, _ := tokenizer.TagName()
 
-	for i := range contexts {
-		if contexts[i] == nil {
-			contexts[i] = &html.Node{Type: html.ElementNode, Data: "body", DataAtom: atom.Body}
+			return strings.ToLower(string(name))
 		}
 	}
-
-	return contexts
 }
 
 // styleDecl is one declaration of a style attribute. Inline style lists are
@@ -435,7 +445,7 @@ func inlineCSS(ctx *component.RenderContext, r io.Reader, w io.Writer) error {
 
 	changed = changed || inlined
 
-	if err := styleRawBlocks(ctx, htmlNode, rawBlocks); err != nil {
+	if err := styleRawBlocks(ctx, rawBlocks); err != nil {
 		return err
 	}
 

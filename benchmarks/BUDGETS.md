@@ -22,7 +22,7 @@ through `Renderer.RenderString` (fs reads included).
 | `carousel.mjml` | 128,741 | 345,640 | 2,418 | 80,463 | 216,025 | 1,511 |
 | `comments-between-components.mjml` | 124,325 | 257,898 | 2,838 | 77,703 | 161,186 | 1,774 |
 | `comments-containers.mjml` | 199,958 | 400,067 | 3,491 | 124,974 | 250,042 | 2,182 |
-| `comments-head.mjml` | 58,405 | 109,282 | 1,299 | 36,503 | 68,301 | 812 |
+| `comments-head.mjml` | 60,646 | 111,578 | 1,331 | 37,904 | 69,736 | 832 |
 | `comments-hero.mjml` | 123,251 | 234,520 | 2,427 | 77,032 | 146,575 | 1,517 |
 | `comments-hero-inline.mjml` | 173,419 | 302,195 | 2,701 | 108,387 | 188,872 | 1,688 |
 | `comments-keep-false.mjml` | 63,245 | 110,979 | 1,242 | 39,528 | 69,362 | 776 |
@@ -46,10 +46,12 @@ through `Renderer.RenderString` (fs reads included).
 | `navbar.mjml` | 91,592 | 172,783 | 1,783 | 57,245 | 107,989 | 1,114 |
 | `printer-support.mjml` | 89,856 | 152,194 | 1,773 | 56,160 | 95,121 | 1,108 |
 | `raw-in-column.mjml` | 58,983 | 116,711 | 1,244 | 36,864 | 72,944 | 777 |
-| `raw-in-column-inline.mjml` | 124,981 | 225,827 | 2,101 | 78,113 | 141,142 | 1,313 |
+| `raw-in-column-inline.mjml` | 126,853 | 247,613 | 2,117 | 79,283 | 154,758 | 1,323 |
 | `raw-in-group.mjml` | 86,856 | 161,021 | 1,960 | 54,285 | 100,638 | 1,225 |
 | `raw-in-section.mjml` | 76,111 | 143,559 | 1,733 | 47,569 | 89,724 | 1,083 |
 | `raw-position-file-start.mjml` | 52,802 | 102,541 | 1,181 | 33,001 | 64,088 | 738 |
+| `raw-rows-in-column-inline.mjml` | 113,533 | 217,981 | 1,864 | 70,958 | 136,238 | 1,165 |
+| `raw-table-in-column-inline.mjml` | 113,726 | 216,862 | 1,859 | 71,079 | 135,539 | 1,162 |
 | `raw.mjml` | 57,752 | 116,128 | 1,240 | 36,095 | 72,580 | 775 |
 | `section-container-width.mjml` | 100,378 | 175,112 | 2,172 | 62,736 | 109,445 | 1,357 |
 | `simple-hero.mjml` | 81,484 | 153,000 | 1,618 | 50,927 | 95,625 | 1,011 |

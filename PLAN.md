@@ -139,19 +139,24 @@ Known divergences at the start: 214 records / 15 root causes (see
   reads per-fixture `<fixture>.cli-args` sidecars, passes the flags to the
   reference CLI and maps `-c.<name>=<value>` onto those options, and it now
   compares comment text byte for byte - so the four existing comment/
-  `htmlmin-ignore` fixtures fail if comments are dropped. Eleven new fixtures
+  `htmlmin-ignore` fixtures fail if comments are dropped. Thirteen new fixtures
   cover head, raw, hero (also behind the inliner), container and
   between-component comments plus one per option; raw children are rendered by
   one shared helper, marked when they sit in a table body.
 - **raw content and the inliner**: protected raw blocks are parsed as fragments
-  (with the node their placeholder sits in as context, so table rows survive)
   and receive the inline declarations and `<mj-html-attributes>` injections,
-  then are restored in place. Before this, the markers kept raw content out of
-  the whole-document parse so it was never styled, which diverged from the
+  then are restored in place. The fragment context is chosen from the block's
+  own first element - a bare row or cell parses in a table body (so it stays a
+  row), a table section, caption or column group in a table (so it is not
+  dropped), and everything else as flow content (so a nested layout table keeps
+  its `<table>` element). Before this, the markers kept raw content out of the
+  whole-document parse so it was never styled, which diverged from the
   reference for a raw element matching an inline selector in any marked
-  container (column included, pre-existing). A selector that depends on an
-  ancestor outside the block still cannot match inside it - fragment scope is
-  the cost of keeping the block out of the whole-document parse.
+  container (column included, pre-existing). Two limits remain, both from the
+  fragment scope: a selector that depends on an ancestor outside the block
+  cannot match inside it, and a block that mixes table shapes (a bare row before
+  a nested table, or a bare table child followed by rows) cannot round-trip
+  through any single context.
 
 Current state: full MJML 4.18 component and head coverage, zero divergences,
 `TestMJMLInvalid` covering fail-fast validation, benchmarks and fuzz targets in

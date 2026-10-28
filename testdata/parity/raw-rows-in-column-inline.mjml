@@ -1,0 +1,16 @@
+<mjml>
+  <mj-head>
+    <mj-style inline="inline">
+      .cell { color: #ff0000; }
+    </mj-style>
+  </mj-head>
+  <mj-body>
+    <mj-section>
+      <mj-column>
+        <!-- bare rows join the column's own table body and keep their rows -->
+        <mj-raw><tr><td class="cell">first row</td></tr><tr><td class="cell">second row</td></tr></mj-raw>
+        <mj-text>Column text</mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>
