@@ -9,6 +9,14 @@ import (
 	"github.com/julez-dev/mjmlgo/node"
 )
 
+// Component is one MJML element that knows how to render itself. The renderer
+// looks a component up by tag name, validates the element's author attributes
+// with InitComponent and then calls Render, which writes the element's HTML to
+// w.
+//
+// The interface is exported so the renderer can hold one, but it is not yet
+// implementable outside this package: AllowedAttributes returns an unexported
+// validator type. The public custom-component contract is ticket T3 (issue #4).
 type Component interface {
 	Name() string
 	AllowedAttributes() map[string]validateAttributeFunc
@@ -32,6 +40,10 @@ var internalSyntheticAttributes = map[string]struct{}{
 	"mobileWidth": {},
 }
 
+// InitComponent prepares n for rendering with comp: it validates the attributes
+// the author wrote and then sets the component's default for every attribute the
+// element does not already have. It is the first thing every body-component
+// renderer calls for an element.
 func InitComponent(ctx *RenderContext, comp Component, n *node.Node) error {
 	// Validate the attributes the author wrote, before defaults are applied.
 	// Applying defaults first used to hide both unknown attributes and invalid

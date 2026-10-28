@@ -15,10 +15,28 @@ import (
 // AttributeMap holds a set of MJML attribute values keyed by attribute name.
 type AttributeMap = map[string]string
 
+// RenderContext is the state of one render: what the document's head configured,
+// what the renderer passes down the component tree and what components
+// accumulate for the head. The renderer creates one per document; every
+// component in that document receives the same pointer.
+//
+// The exported fields are frozen API: their meaning and their type do not change
+// (see the package documentation). A component that narrows a field for its
+// children - the container width, the contextual font family - restores it
+// before it returns.
 type RenderContext struct {
+	// InlineStyles holds the stylesheets the document asked to inline - every
+	// <mj-style inline> block - in document order. The renderer applies them to
+	// the finished HTML.
 	InlineStyles []Stylesheet
-	Fonts        map[string]string
-	FontOrder    []string
+	// Fonts maps a font family name to the URL it is imported from. It is seeded
+	// with the built-in web fonts unless FontsConfigured reports a caller-supplied
+	// registry; <mj-font> adds to it.
+	Fonts map[string]string
+	// FontOrder lists font families in emission order. Built-in and declared
+	// fonts keep their registration order; a caller-supplied registry is sorted by
+	// family name, because a Go map has no order of its own.
+	FontOrder []string
 	// FontsConfigured reports that Fonts was supplied by the caller and must
 	// not be extended with the built-in web fonts. Fonts declared by the
 	// document with <mj-font> are still added on top of it.
@@ -39,7 +57,11 @@ type RenderContext struct {
 	// order. Selectors with the same path are merged in place.
 	HTMLAttributes []HTMLAttributeSelector
 
+	// MJMLStylesheet maps a generated class name to the CSS rules components
+	// registered for it.
 	MJMLStylesheet map[string][]string
+	// MJMLStyleOrder lists those class names in first-registration order; the head
+	// emits them in this order, so the cascade is deterministic.
 	MJMLStyleOrder []string
 	// ComponentHeadStyles holds the named component-level <style> blocks (navbar,
 	// accordion, ...) in first-registration order. They are keyed by component
@@ -54,18 +76,34 @@ type RenderContext struct {
 	// IDGenerator produces the opaque ids MJML assigns to components that need
 	// them (navbar hamburger labels, carousels). It is set once per render by
 	// the renderer, so a nil generator falls back to DefaultIDGenerator.
-	IDGenerator                 func() string
+	IDGenerator func() string
+	// IncludeMobileFullWidthStyle reports that the document contains an mj-image,
+	// which adds MJML's mobile-full-width rule to the head.
 	IncludeMobileFullWidthStyle bool
-	ForceOWADesktop             bool
+	// ForceOWADesktop is set by <mjml owa="desktop"> and makes the generated
+	// conditional CSS target desktop Outlook.
+	ForceOWADesktop bool
 	// PrinterSupport repeats the generated media queries in an
 	// `@media only print` block, like MJML's printerSupport option.
 	PrinterSupport bool
+	// ContainerWidth is the width content may occupy at the current nesting
+	// depth, such as "600px". Containers narrow it for their children and restore
+	// it afterwards; the renderer seeds it from the body width.
 	ContainerWidth string
-	PreviewText    string
-	Title          string
-	Breakpoint     string
+	// PreviewText is the text of <mj-preview>, emitted as the hidden preheader of
+	// the body.
+	PreviewText string
+	// Title is the text of <mj-title>, used as the aria-label of the body div.
+	Title string
+	// Breakpoint is the document's media-query breakpoint, such as "480px".
+	// <mj-breakpoint> overrides the default.
+	Breakpoint string
 
-	Language  string
+	// Language is the document language from <mjml lang>, emitted as the lang
+	// attribute of the body.
+	Language string
+	// Direction is the document direction from <mjml dir>, emitted as the dir
+	// attribute of the body.
 	Direction string
 
 	// accordionFontFamily and elementFontFamily carry the contextual font
