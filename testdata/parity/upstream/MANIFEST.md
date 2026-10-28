@@ -12,6 +12,10 @@ implementations in `TestMJMLParity`.
 
 File names are `<package-without-mjml-prefix>--<test-name>--<index>.mjml`.
 
+Local edits: `parser-xml--preprocessors--00.mjml` declares the `mj-class` it
+references. MJML only warns about an undeclared class, while this implementation
+rejects it, so the declaration was added without changing the rendered HTML.
+
 These fixtures intentionally cover behaviour the hand-written corpus does not:
 accordion font inheritance, wrapper `gap`, section gutter, table
 `cellspacing`/width, social icon height/alignment, navbar icon padding,
