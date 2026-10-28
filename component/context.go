@@ -1,7 +1,6 @@
 package component
 
 import (
-	"encoding/xml"
 	"fmt"
 	"slices"
 	"strconv"
@@ -11,14 +10,9 @@ import (
 type AttributeMap = map[string]string
 
 type RenderContext struct {
-	// GlobalTextAttributes and GlobalAllAttributes mirror the <mj-text> and
-	// <mj-all> defaults. New code should use AttributeDefaults instead; these
-	// fields are kept as the last seen values for backwards compatibility.
-	GlobalTextAttributes []xml.Attr
-	GlobalAllAttributes  []xml.Attr
-	InlineStyles         []Stylesheet
-	Fonts                map[string]string
-	FontOrder            []string
+	InlineStyles []Stylesheet
+	Fonts        map[string]string
+	FontOrder    []string
 	// BodyContent is the rendered body HTML, used to detect which registered
 	// web fonts the document actually uses.
 	BodyContent string

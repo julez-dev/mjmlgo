@@ -249,12 +249,6 @@ func (m MJML) preparseHeadMetaValues(ctx *RenderContext, n *node.Node) error {
 
 						mergeAttributes(ctx.ClassDefaults[name][tagDefault.Type], attributesToMap(tagDefault.Attributes))
 					}
-				case TextTagName:
-					ctx.GlobalTextAttributes = nestedChild.Attributes
-					m.mergeAttributeDefaults(ctx, nestedChild)
-				case AllTagName:
-					ctx.GlobalAllAttributes = nestedChild.Attributes
-					m.mergeAttributeDefaults(ctx, nestedChild)
 				default:
 					m.mergeAttributeDefaults(ctx, nestedChild)
 				}
