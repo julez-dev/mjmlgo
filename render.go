@@ -46,11 +46,15 @@ func RenderMJML(input io.Reader) (string, error) {
 		return "", err
 	}
 
+	// MJML merges adjacent Outlook conditional blocks after rendering, so
+	// contiguous MSO fragments form a single conditional comment.
+	html := component.MergeOutlookConditionals(out.String())
+
 	if beforeDoctype := fileStartRawContent(node); beforeDoctype != "" {
-		return beforeDoctype + "\n" + out.String(), nil
+		return beforeDoctype + "\n" + html, nil
 	}
 
-	return out.String(), nil
+	return html, nil
 }
 
 // rawBlockMarkerPattern matches the markers emitted around raw column content.

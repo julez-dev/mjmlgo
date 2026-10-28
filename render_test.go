@@ -327,6 +327,25 @@ func TestMJMLInvalid(t *testing.T) {
 	}
 }
 
+// TestRenderMergesOutlookConditionals asserts the rendered document applies
+// MJML's mergeOutlookConditionnals step: adjacent Outlook conditional blocks are
+// joined so the MSO markup is not fragmented across comments.
+func TestRenderMergesOutlookConditionals(t *testing.T) {
+	t.Parallel()
+
+	input, err := os.ReadFile(filepath.Join(parityDir, "layout.mjml"))
+	require.NoError(t, err)
+
+	html, err := RenderMJML(bytes.NewReader(input))
+	require.NoError(t, err)
+
+	assert.NotContains(t, html, "<![endif]--><!--[if mso | IE]>")
+	assert.NotContains(t, html, "<![endif]--><![endif]-->")
+
+	// Nested MSO tables must still be closed: merging must not swallow markers.
+	assert.Contains(t, html, "<!--[if mso | IE]></td></tr></table><![endif]-->")
+}
+
 // forEachParityFixture runs fn for every parity fixture, named after its path
 // relative to the parity directory.
 func forEachParityFixture(tb testing.TB, fn func(name, fixture string)) {
