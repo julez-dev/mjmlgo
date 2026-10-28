@@ -14,11 +14,15 @@ type MJMLSection struct {
 }
 
 func (s MJMLSection) Name() string {
-	return "mj-section"
+	if s.IsWrapper {
+		return WrapperTagName
+	}
+
+	return SectionTagName
 }
 
 func (s MJMLSection) AllowedAttributes() map[string]validateAttributeFunc {
-	return map[string]validateAttributeFunc{
+	attributes := map[string]validateAttributeFunc{
 		"background-color":      validateColor(),
 		"background-url":        validateType("string"),
 		"background-repeat":     validateEnum([]string{"repeat", "no-repeat"}),
@@ -33,8 +37,7 @@ func (s MJMLSection) AllowedAttributes() map[string]validateAttributeFunc {
 		"border-right":          validateType("string"),
 		"border-top":            validateType("string"),
 		"direction":             validateEnum([]string{"ltr", "rtl"}),
-		"full-width":            validateEnum([]string{"full-width", "false"}),
-		"gap":                   validateUnit([]string{"px"}, false),
+		"full-width":            validateEnum([]string{"full-width", "false", ""}),
 		"padding-bottom":        validateUnit([]string{"px", "%"}, false),
 		"padding-left":          validateUnit([]string{"px", "%"}, false),
 		"padding-right":         validateUnit([]string{"px", "%"}, false),
@@ -43,6 +46,12 @@ func (s MJMLSection) AllowedAttributes() map[string]validateAttributeFunc {
 		"text-align":            validateEnum([]string{"left", "center", "right"}),
 		"text-padding":          validateUnit([]string{"px", "%"}, true),
 	}
+
+	if s.IsWrapper {
+		attributes["gap"] = validateUnit([]string{"px"}, false)
+	}
+
+	return attributes
 }
 
 func (s MJMLSection) DefaultAttributes(_ *RenderContext) map[string]string {
@@ -416,15 +425,25 @@ func (s MJMLSection) renderWrappedChildren(ctx *RenderContext, w io.Writer, n *n
 			"width": wrapperWidth,
 		}
 
+		var childComponent Component
+
+		switch child.Type {
+		case SectionTagName:
+			childComponent = MJMLSection{}
+		case HeroTagName:
+			childComponent = MJMLHero{}
+		default:
+			continue
+		}
+
 		_, _ = io.WriteString(w, "<!--[if mso | IE]><tr>")
 		_, _ = io.WriteString(w, "<td "+attr.InlineString()+">")
 		_, _ = io.WriteString(w, "<![endif]-->")
 
-		var sec MJMLSection
-		if err := InitComponent(ctx, sec, child); err != nil {
+		if err := InitComponent(ctx, childComponent, child); err != nil {
 			return err
 		}
-		if err := sec.Render(ctx, w, child); err != nil {
+		if err := childComponent.Render(ctx, w, child); err != nil {
 			return err
 		}
 

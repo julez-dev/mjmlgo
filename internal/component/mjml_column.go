@@ -3,7 +3,6 @@ package component
 import (
 	"fmt"
 	"io"
-	"slices"
 
 	"github.com/julez-dev/mjmlgo/internal/node"
 )
@@ -118,8 +117,8 @@ func (c MJMLColumn) renderColumn(ctx *RenderContext, w io.Writer, n *node.Node) 
 	}
 
 	for _, child := range n.Children {
-		if !slices.Contains(c.allowedChildren(), child.Type) {
-			return fmt.Errorf("invalid child type %s in column, allowed types are: %v", child.Type, c.allowedChildren())
+		if !allowsChild(ColumnTagName, child.Type) {
+			return fmt.Errorf("invalid child type %s in column, allowed types are: %v", child.Type, validationDependencies[ColumnTagName])
 		}
 	}
 
@@ -428,11 +427,4 @@ func (c MJMLColumn) hasGutter(n *node.Node) bool {
 	}
 
 	return false
-}
-
-func (c MJMLColumn) allowedChildren() []string {
-	return []string{DividerTagName, SpacerTagName, ImageTagName,
-		TextTagName, SocialTagName, TableTagName, ButtonTagName,
-		NavbarTagName, AccordionTagName, CarouselTagName, RawTagName,
-	}
 }

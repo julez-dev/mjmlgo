@@ -189,7 +189,7 @@ func (l MJMLNavbarLink) AllowedAttributes() map[string]validateAttributeFunc {
 		"name":            validateType("string"),
 		"target":          validateType("string"),
 		"rel":             validateType("string"),
-		"letter-spacing":  validateUnit([]string{"px", "em"}, false),
+		"letter-spacing":  validateUnitWithNegative([]string{"px", "em"}, false),
 		"line-height":     validateUnit([]string{"px", "%", ""}, false),
 		"padding-bottom":  validateUnit([]string{"px", "%"}, false),
 		"padding-left":    validateUnit([]string{"px", "%"}, false),

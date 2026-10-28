@@ -1,0 +1,1 @@
+mj-body > mj-text: <mj-text> is not allowed inside <mj-body>

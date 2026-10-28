@@ -356,7 +356,7 @@ func (t MJMLAccordionText) AllowedAttributes() map[string]validateAttributeFunc 
 		"font-size":        validateUnit([]string{"px"}, false),
 		"font-family":      validateType("string"),
 		"font-weight":      validateType("string"),
-		"letter-spacing":   validateUnit([]string{"px", "em"}, false),
+		"letter-spacing":   validateUnitWithNegative([]string{"px", "em"}, false),
 		"line-height":      validateUnit([]string{"px", "%", ""}, false),
 		"color":            validateColor(),
 		"padding-bottom":   validateUnit([]string{"px", "%"}, false),

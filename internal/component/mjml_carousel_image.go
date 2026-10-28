@@ -1,7 +1,6 @@
 package component
 
 import (
-	"fmt"
 	"strconv"
 
 	"github.com/julez-dev/mjmlgo/internal/node"
@@ -164,15 +163,13 @@ func (i MJMLCarouselImage) renderThumbnail(
 func initCarouselImage(n *node.Node) error {
 	image := MJMLCarouselImage{}
 
+	if err := validateAttributes(image.AllowedAttributes(), image.Name(), n); err != nil {
+		return err
+	}
+
 	for name, value := range image.DefaultAttributes(nil) {
 		if _, has := n.GetAttributeValue(name); !has {
 			n.SetAttribute(name, value)
-		}
-	}
-
-	for name, validator := range image.AllowedAttributes() {
-		if err := validator(n.GetAttributeValueDefault(name)); err != nil {
-			return fmt.Errorf("failed to validate field %s in <%s>: %w", name, image.Name(), err)
 		}
 	}
 

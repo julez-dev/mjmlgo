@@ -1,0 +1,1 @@
+mj-body > mj-section > mj-column > mj-text: attribute "made-up" is not allowed on <mj-text>

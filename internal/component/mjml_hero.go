@@ -17,13 +17,13 @@ func (h MJMLHero) Name() string {
 
 func (h MJMLHero) AllowedAttributes() map[string]validateAttributeFunc {
 	return map[string]validateAttributeFunc{
-		"mode":                       validateEnum([]string{"fluid-height", "fixed-height"}),
+		"mode":                       validateType("string"),
 		"height":                     validateUnit([]string{"px", "%"}, false),
 		"background-url":             validateType("string"),
 		"background-width":           validateUnit([]string{"px", "%"}, false),
 		"background-height":          validateUnit([]string{"px", "%"}, false),
 		"background-position":        validateType("string"),
-		"border-radius":              validateUnit([]string{"px", "%"}, true),
+		"border-radius":              validateType("string"),
 		"container-background-color": validateColor(),
 		"inner-background-color":     validateColor(),
 		"inner-padding":              validateUnit([]string{"px", "%"}, true),
@@ -38,13 +38,12 @@ func (h MJMLHero) AllowedAttributes() map[string]validateAttributeFunc {
 		"padding-right":              validateUnit([]string{"px", "%"}, false),
 		"background-color":           validateColor(),
 		"vertical-align":             validateEnum([]string{"top", "middle", "bottom"}),
-		"width":                      validateUnit([]string{"px", "%"}, false),
 	}
 }
 
 func (h MJMLHero) DefaultAttributes(ctx *RenderContext) map[string]string {
 	return map[string]string{
-		"mode":                "fluid-height",
+		"mode":                "fixed-height",
 		"height":              "0px",
 		"background-position": "center center",
 		"padding":             "0px",
@@ -255,6 +254,10 @@ func (h MJMLHero) renderContent(ctx *RenderContext, w io.Writer, n *node.Node) e
 	ctx.ContainerWidth = currentContainerWidth
 
 	for _, child := range n.Children {
+		if !allowsChild(HeroTagName, child.Type) {
+			return fmt.Errorf("unknown child type: %s for <mj-hero>, allowed types are: %v", child.Type, validationDependencies[HeroTagName])
+		}
+
 		var childComponent Component
 
 		switch child.Type {
@@ -274,6 +277,10 @@ func (h MJMLHero) renderContent(ctx *RenderContext, w io.Writer, n *node.Node) e
 			childComponent = MJMLTable{}
 		case CarouselTagName:
 			childComponent = MJMLCarousel{}
+		case NavbarTagName:
+			childComponent = MJMLNavbar{}
+		case AccordionTagName:
+			childComponent = MJMLAccordion{}
 		case RawTagName:
 			childComponent = MJMLRaw{}
 		}

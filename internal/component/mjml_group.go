@@ -17,7 +17,7 @@ func (g MJMLGroup) Name() string {
 func (g MJMLGroup) AllowedAttributes() map[string]validateAttributeFunc {
 	return map[string]validateAttributeFunc{
 		"background-color": validateColor(),
-		"direction":        validateEnum([]string{"ltr", "rtl", "auto"}),
+		"direction":        validateEnum([]string{"ltr", "rtl"}),
 		"vertical-align":   validateEnum([]string{"top", "bottom", "middle"}),
 		"width":            validateUnit([]string{"px", "%"}, false),
 	}
