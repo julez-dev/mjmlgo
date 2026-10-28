@@ -38,8 +38,8 @@ func (p *bodyProbe) Render(ctx *RenderContext, w io.Writer, n *node.Node) error 
 	return err
 }
 
-// TestMJMLBodyDefaults asserts the body's only default is the document width,
-// and that an author width survives it.
+// TestMJMLBodyDefaults asserts the body's tag name, that its only default is the
+// document width, and that an author width survives it.
 func TestMJMLBodyDefaults(t *testing.T) {
 	t.Parallel()
 
@@ -134,8 +134,8 @@ func TestMJMLBodySeedsTheContainerWidth(t *testing.T) {
 
 		_, err := renderComponent(t, ctx, MJMLBody{}, n)
 		require.NoError(t, err)
-		assert.Equal(t, "600px", probe.width)
-		assert.Equal(t, "600px", ctx.ContainerWidth)
+		assert.Equal(t, testContainerWidth, probe.width)
+		assert.Equal(t, testContainerWidth, ctx.ContainerWidth)
 	})
 }
 

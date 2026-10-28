@@ -9,8 +9,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TestMJMLRawRender asserts raw content is written as the author wrote it: the
-// surrounding whitespace is trimmed, the payload itself is untouched, and
+// TestRawContentIsWrittenVerbatim asserts raw content is written as the author
+// wrote it: the surrounding whitespace is trimmed, the payload itself is untouched, and
 // markup that looks like CDATA delimiters is not interpreted.
 func TestRawContentIsWrittenVerbatim(t *testing.T) {
 	t.Parallel()
@@ -60,7 +60,7 @@ func TestRawContentIsWrittenVerbatim(t *testing.T) {
 	}
 }
 
-// TestRenderRawChildMarksTheTableBodyVariant asserts the two raw-child helpers
+// TestTableBodyRawChildrenAreMarkedAndOthersAreNot asserts the two raw-child helpers
 // differ only by the markers: bare content outside a table body, marked content
 // directly inside one.
 func TestTableBodyRawChildrenAreMarkedAndOthersAreNot(t *testing.T) {
@@ -88,7 +88,7 @@ func TestTableBodyRawChildrenAreMarkedAndOthersAreNot(t *testing.T) {
 	})
 }
 
-// TestRenderRawChildValidatesTheNode asserts raw children go through the same
+// TestRawChildrenAreValidatedWhenRendered asserts raw children go through the same
 // attribute validation as any other component, so an invalid position is caught
 // during rendering too, not only by document validation.
 func TestRawChildrenAreValidatedWhenRendered(t *testing.T) {
@@ -117,8 +117,8 @@ func TestRawChildrenAreValidatedWhenRendered(t *testing.T) {
 	})
 }
 
-// TestStripRawBlockMarkers asserts marker removal is complete and idempotent, and
-// that html without markers is returned unchanged.
+// TestRawBlockMarkersAreRemovedFromRenderedHTML asserts marker removal is
+// complete and idempotent, and that html without markers is returned unchanged.
 func TestRawBlockMarkersAreRemovedFromRenderedHTML(t *testing.T) {
 	t.Parallel()
 

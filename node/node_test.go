@@ -8,8 +8,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TestGetAttributeValueReportsPresence pins the difference between "the
-// attribute is missing" and "the attribute is present with an empty value": a
+// TestAttributePresenceIsDistinguishableFromAbsence pins the difference between
+// "the attribute is missing" and "the attribute is present with an empty value": a
 // caller that only looks at the returned string cannot tell them apart, and
 // MJML treats an explicitly empty attribute differently from an absent one.
 func TestAttributePresenceIsDistinguishableFromAbsence(t *testing.T) {
@@ -36,7 +36,7 @@ func TestAttributePresenceIsDistinguishableFromAbsence(t *testing.T) {
 	assert.Empty(t, n.GetAttributeValueDefault("background-color"))
 }
 
-// TestSetAttributeReplacesExistingValueInPlace asserts that setting an
+// TestSettingAnAttributeKeepsItsDocumentPosition asserts that setting an
 // attribute the node already carries keeps its document position. Rendering
 // appends defaults to the author's attributes, so a default must never move an
 // author attribute or add a second copy of it.
@@ -56,9 +56,9 @@ func TestSettingAnAttributeKeepsItsDocumentPosition(t *testing.T) {
 	assert.Equal(t, "200px", n.Attributes[1].Value)
 }
 
-// TestSetAttributeAppendsNewAttributesInDocumentOrder asserts that a new
-// attribute - the shape a component's default takes - goes after the author's
-// attributes, and that the author's value stays the one a lookup returns.
+// TestNewAttributesAppendAfterAuthorAttributes asserts that a new attribute -
+// the shape a component's default takes - goes after the attributes already on
+// the node, and that setting the same name again updates it in place.
 func TestNewAttributesAppendAfterAuthorAttributes(t *testing.T) {
 	t.Parallel()
 

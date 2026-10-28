@@ -147,18 +147,14 @@ func TestMJMLButtonInnerPaddingDrivesBothPaddings(t *testing.T) {
 func TestMJMLButtonBackground(t *testing.T) {
 	t.Parallel()
 
-	t.Run("a hex shortcut is expanded", func(t *testing.T) {
-		t.Parallel()
-
-		out, err := renderComponent(t, &RenderContext{ContainerWidth: testContainerWidth}, MJMLButton{}, &node.Node{
-			Attributes: attributes("background-color", "#f00"),
-			Content:    "Click",
-		})
-		require.NoError(t, err)
-
-		assert.Contains(t, out, `bgcolor="#ff0000"`)
-		assert.Contains(t, out, "background:#ff0000")
+	out, err := renderComponent(t, &RenderContext{ContainerWidth: testContainerWidth}, MJMLButton{}, &node.Node{
+		Attributes: attributes("background-color", "#f00"),
+		Content:    "Click",
 	})
+	require.NoError(t, err)
+
+	assert.Contains(t, out, `bgcolor="#ff0000"`)
+	assert.Contains(t, out, "background:#ff0000")
 }
 
 // TestMJMLButtonVerticalAlign asserts the author's vertical alignment reaches

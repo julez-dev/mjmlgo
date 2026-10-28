@@ -23,8 +23,7 @@ func attributes(pairs ...string) []xml.Attr {
 	return attrs
 }
 
-// testContainerWidth is the document width most component tests measure
-// against.
+// testContainerWidth is the container width component tests measure against.
 const testContainerWidth = "600px"
 
 // renderComponent initialises n with comp and renders it, so tests read the
