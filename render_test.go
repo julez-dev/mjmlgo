@@ -378,6 +378,19 @@ func mjmlFixtures(t testing.TB, dir string) []string {
 	return fixtures
 }
 
+func TestRenderFileStartRaw(t *testing.T) {
+	t.Parallel()
+
+	const input = `<mjml>
+		<mj-raw position="file-start"><!-- file-start marker --></mj-raw>
+		<mj-body><mj-section><mj-column><mj-text>Body</mj-text></mj-column></mj-section></mj-body>
+	</mjml>`
+
+	html, err := RenderMJML(strings.NewReader(input))
+	require.NoError(t, err)
+	require.True(t, strings.HasPrefix(strings.ToLower(html), "<!-- file-start marker -->\n<!doctype html>"), "file-start raw must precede the doctype, got:\n%s", html)
+}
+
 func TestInlineCSS(t *testing.T) {
 	t.Parallel()
 

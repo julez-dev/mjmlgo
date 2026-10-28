@@ -45,6 +45,10 @@ func RenderMJML(input io.Reader) (string, error) {
 		return "", err
 	}
 
+	if beforeDoctype := fileStartRawContent(node); beforeDoctype != "" {
+		return beforeDoctype + "\n" + out.String(), nil
+	}
+
 	return out.String(), nil
 }
 
