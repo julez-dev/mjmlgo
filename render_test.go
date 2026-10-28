@@ -327,6 +327,33 @@ func TestMJMLInvalid(t *testing.T) {
 	}
 }
 
+// TestRenderWithoutInlineStylesKeepsMarkup asserts the fast path: a document
+// with neither <mj-style inline> nor <mj-html-attributes> is not round-tripped
+// through the HTML parser, but still normalizes to the same tree as the inlined
+// variant would.
+func TestRenderWithoutInlineStylesKeepsMarkup(t *testing.T) {
+	t.Parallel()
+
+	for _, fixture := range []string{"simple.mjml", "layout.mjml", "social.mjml"} {
+		input, err := os.ReadFile(filepath.Join(parityDir, fixture))
+		require.NoError(t, err)
+
+		rendered, err := RenderMJML(bytes.NewReader(input))
+		require.NoError(t, err)
+
+		var roundTripped strings.Builder
+		require.NoError(t, inlineCSS(&component.RenderContext{}, strings.NewReader(rendered), &roundTripped))
+
+		want, err := mjmltest.ParseHTML(roundTripped.String())
+		require.NoError(t, err)
+
+		got, err := mjmltest.ParseHTML(rendered)
+		require.NoError(t, err)
+
+		assert.Empty(t, mjmltest.Compare(want, got), "%s: fast path changed the normalized document", fixture)
+	}
+}
+
 // TestRenderMergesOutlookConditionals asserts the rendered document applies
 // MJML's mergeOutlookConditionnals step: adjacent Outlook conditional blocks are
 // joined so the MSO markup is not fragmented across comments.

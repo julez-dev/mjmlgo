@@ -39,16 +39,24 @@ func RenderMJML(input io.Reader) (string, error) {
 		return "", err
 	}
 
-	//spew.Dump(ctx.InlineStyles)
+	rendered := buff.String()
 
-	var out strings.Builder
-	if err := inlineCSS(ctx, strings.NewReader(buff.String()), &out); err != nil {
-		return "", err
+	// The HTML round-trip below only exists to apply inline styles and
+	// <mj-html-attributes>; documents that use neither keep the rendered
+	// markup untouched, which avoids parsing and re-rendering the whole
+	// document for nothing.
+	if len(ctx.InlineStyles) > 0 || len(ctx.HTMLAttributes) > 0 {
+		var inlined strings.Builder
+		if err := inlineCSS(ctx, strings.NewReader(rendered), &inlined); err != nil {
+			return "", err
+		}
+
+		rendered = inlined.String()
 	}
 
 	// MJML merges adjacent Outlook conditional blocks after rendering, so
 	// contiguous MSO fragments form a single conditional comment.
-	html := component.MergeOutlookConditionals(out.String())
+	html := component.MergeOutlookConditionals(rendered)
 
 	if beforeDoctype := fileStartRawContent(node); beforeDoctype != "" {
 		return beforeDoctype + "\n" + html, nil
