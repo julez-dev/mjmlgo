@@ -8,14 +8,30 @@ import (
 	"strings"
 
 	"github.com/ericchiang/css"
-	"github.com/julez-dev/mjmlgo/component"
-	"github.com/julez-dev/mjmlgo/node"
+	"github.com/julez-dev/mjmlgo/internal/component"
+	"github.com/julez-dev/mjmlgo/internal/node"
 	"golang.org/x/net/html"
 )
 
 var ErrUnknownStartingTag = errors.New("mjml: unknown starting tag")
 
+// defaultRenderer backs RenderMJML. It has no mutable per-render state, so a
+// single shared instance is safe for concurrent use.
+var defaultRenderer = NewRenderer()
+
+// RenderMJML renders the MJML document read from input and returns the
+// resulting HTML.
+//
+// Deprecated: use NewRenderer and Renderer.Render, Renderer.RenderString,
+// Renderer.RenderBytes or Renderer.RenderFile instead. RenderMJML is a thin
+// wrapper around the default Renderer and cannot read includes from a caller's
+// filesystem.
 func RenderMJML(input io.Reader) (string, error) {
+	return defaultRenderer.renderDocument(input)
+}
+
+// renderDocument is the single rendering pipeline shared by every entry point.
+func (r *Renderer) renderDocument(input io.Reader) (string, error) {
 	node, err := parse(input)
 	if err != nil {
 		return "", err
@@ -35,6 +51,7 @@ func RenderMJML(input io.Reader) (string, error) {
 	ctx := &component.RenderContext{
 		MJMLStylesheet: make(map[string][]string),
 		Fonts:          make(map[string]string),
+		IDGenerator:    r.idFunc(),
 	}
 	if err := component.InitComponent(ctx, mjml, node); err != nil {
 		return "", err
