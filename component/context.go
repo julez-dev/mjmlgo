@@ -31,11 +31,16 @@ type RenderContext struct {
 
 	MJMLStylesheet map[string][]string
 	MJMLStyleOrder []string
-	// ComponentHeadStyles holds the component-level <style> blocks (navbar,
+	// ComponentHeadStyles holds the named component-level <style> blocks (navbar,
 	// accordion, ...) in first-registration order. They are keyed by component
 	// name, so multiple instances of the same component register their style
 	// only once, like MJML's addHeadStyle.
 	ComponentHeadStyles []ComponentHeadStyle
+	// InstanceComponentHeadStyles holds component stylesheets that depend on the
+	// rendered instance rather than only on the breakpoint (mj-carousel, whose
+	// CSS embeds the carousel id and the number of images). MJML keeps these in
+	// an array without deduplication and emits them before ComponentHeadStyles.
+	InstanceComponentHeadStyles []ComponentHeadStyle
 	// componentIDCounter backs deterministic ids for components that MJML gives
 	// random ids to (navbar hamburger labels).
 	componentIDCounter          uint64
@@ -116,10 +121,6 @@ func (c RenderContext) orderedMJMLStyles() []string {
 
 	classes := make([]string, 0, len(c.MJMLStylesheet))
 	for className := range c.MJMLStylesheet {
-		if className == componentHeadStyleKey {
-			continue
-		}
-
 		classes = append(classes, className)
 	}
 
@@ -144,43 +145,53 @@ type ComponentHeadStyle struct {
 	Style func(breakpoint string) string
 }
 
-// componentHeadStyleKey is reserved inside MJMLStylesheet for the rendered
-// component-level stylesheet. It is deliberately not part of MJMLStyleOrder, so
-// the per-class @media loops skip it; head-style-section.tmpl emits it verbatim
-// in its own <style> block instead.
-const componentHeadStyleKey = "@@mjmlgo-component-head-styles@@"
-
 // addComponentHeadStyle records a component stylesheet, replacing an existing
 // registration for the same component name. Registration order is preserved.
+// It mirrors MJML's addHeadStyle, which is keyed by component name.
 func (c *RenderContext) addComponentHeadStyle(name string, style func(breakpoint string) string) {
-	if c.MJMLStylesheet == nil {
-		c.MJMLStylesheet = make(map[string][]string)
-	}
-
-	replaced := false
 	for i := range c.ComponentHeadStyles {
 		if c.ComponentHeadStyles[i].Name == name {
 			c.ComponentHeadStyles[i].Style = style
-			replaced = true
-			break
+			return
 		}
 	}
 
-	if !replaced {
-		c.ComponentHeadStyles = append(c.ComponentHeadStyles, ComponentHeadStyle{Name: name, Style: style})
+	c.ComponentHeadStyles = append(c.ComponentHeadStyles, ComponentHeadStyle{Name: name, Style: style})
+}
+
+// addInstanceComponentHeadStyle records a component stylesheet that is specific
+// to one rendered instance. Unlike addComponentHeadStyle it never merges, which
+// matches MJML's addComponentHeadSyle: every instance contributes its own block.
+func (c *RenderContext) addInstanceComponentHeadStyle(name string, style func(breakpoint string) string) {
+	c.InstanceComponentHeadStyles = append(c.InstanceComponentHeadStyles, ComponentHeadStyle{Name: name, Style: style})
+}
+
+// renderedComponentHeadStyles renders the instance-scoped component stylesheets
+// (mj-carousel) with the document breakpoint. They are emitted before the named
+// ones, like MJML's [...componentsHeadStyles, ...headStyles].
+func (c RenderContext) renderedInstanceComponentHeadStyles() []string {
+	lines := make([]string, 0, len(c.InstanceComponentHeadStyles))
+	for _, componentStyle := range c.InstanceComponentHeadStyles {
+		lines = append(lines, componentStyle.Style(c.Breakpoint))
 	}
 
+	return lines
+}
+
+// renderedComponentHeadStyles renders the named component stylesheets (navbar,
+// accordion, ...) with the document breakpoint.
+func (c RenderContext) renderedComponentHeadStyles() []string {
 	lines := make([]string, 0, len(c.ComponentHeadStyles))
 	for _, componentStyle := range c.ComponentHeadStyles {
 		lines = append(lines, componentStyle.Style(c.Breakpoint))
 	}
 
-	c.MJMLStylesheet[componentHeadStyleKey] = lines
+	return lines
 }
 
 // nextComponentID returns a deterministic 16-character hex id. MJML uses a
-// random id for navbar hamburger labels; parity normalizes those ids, and a
-// counter keeps our own output stable for tests.
+// random id for navbar hamburger labels and carousels; parity normalizes those
+// ids, and a counter keeps our own output stable for tests.
 func (c *RenderContext) nextComponentID() string {
 	id := fmt.Sprintf("%016x", c.componentIDCounter)
 	c.componentIDCounter++
