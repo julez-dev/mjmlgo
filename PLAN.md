@@ -10,7 +10,7 @@ against the reference JavaScript implementation.
 | Parity | Every fixture in `testdata/parity/` renders structurally identical HTML to MJML 4.18.0 (normalized DOM **and** normalized CSS). No allowlist: any difference fails. **Achieved** for all 60 fixtures; the baseline file was deleted when it reached zero. |
 | Components | Every MJML 4.18 component renders: body (`mj-body`, `mj-section`, `mj-wrapper`, `mj-column`, `mj-group`, `mj-text`, `mj-image`, `mj-button`, `mj-divider`, `mj-spacer`, `mj-table`, `mj-raw`, `mj-social`, `mj-social-element`, `mj-navbar`, `mj-navbar-link`, `mj-accordion`, `mj-accordion-element`, `mj-accordion-title`, `mj-accordion-text`, `mj-carousel`, `mj-carousel-image`, `mj-hero`) and head (`mj-head`, `mj-attributes` with `mj-all`/`mj-class`/per-tag, `mj-breakpoint`, `mj-font`, `mj-html-attributes`, `mj-preview`, `mj-style`, `mj-title`, `mj-raw`), plus `mj-raw position="file-start"`. `mj-map` does not exist in MJML 4.18 and is out of scope. `mj-include` is implemented over the caller's `fs.FS`: `type="mjml"` (default), `"html"` and `"css"` (with `css-inline`), paths relative to the including file, `fs.Glob` patterns, cycle detection and a recursion-depth cap. |
 | Validation | Fail-fast, hard errors: unknown tags, unknown/invalid attributes, invalid nesting (driven by MJML's own `dependencies.js`), missing required children. Structured errors carry the element path and attribute. This is an intentional divergence from MJML's soft validation; invalid input is covered by `testdata/invalid/`. |
-| API | `NewRenderer(Options)` + `Render(ctx, fs.FS, name, io.Writer)`; `Options` carries `IDGenerator`, custom components, and feature toggles; `RenderString`/`RenderFile`/`RenderBytes` conveniences; `RenderMJML` kept as a deprecated wrapper. Compact output only (no beautifier). |
+| API | Done: `NewRenderer(...Option)` + `Render(ctx, fs.FS, name, io.Writer)`, `RenderString`/`RenderBytes`/`RenderFile`, `WithIDGenerator`; `RenderMJML` is a deprecated wrapper over the same pipeline. Remaining: public custom-component interface (M2d). Compact output only (no beautifier). |
 | Performance | Benchmarks committed with a documented budget table; CI reports but does not gate. |
 | Coverage | Reported in CI (no numeric gate). Quality is enforced by parity, CSS comparison, fuzz targets and component unit tests. |
 
@@ -103,8 +103,16 @@ Known divergences at the start: 214 records / 15 root causes (see
   so the baseline file and its `-update` workflow were deleted.
 - **review follow-ups**: raw-block markers no longer leak into output when the
   inlining pass is skipped; the XML decoder is strict, so mismatched tags are
-  rejected (new invalid fixtures); `mj-include` fails loudly instead of silently
-  dropping content; dead code from the lanes removed.
+  rejected (new invalid fixtures); dead code from the lanes removed.
+- **M2a done**: implementation moved to `internal/component` + `internal/node`;
+  public `Renderer`/`Option`/`WithIDGenerator` API over `fs.FS`, with
+  `RenderString`/`RenderBytes`/`RenderFile`; injectable id generator (default
+  crypto/rand 16-hex); one pipeline for `RenderMJML` and the renderer; output
+  proven identical across all fixtures.
+- **M2b done**: `mj-include` resolves through the caller's `fs.FS` relative to the
+  including file, supports `fs.Glob` patterns and `type="mjml|html|css"`, detects
+  cycles and path escapes, and has a dedicated parity fixture tree (61 fixtures).
+  `RenderMJML` (no fs) rejects includes explicitly.
 - **M2b includes done**: `mj-include` resolves through the caller's `fs.FS`.
   `type="mjml"` (the default) parses the included file, wraps a bare fragment in
   `mjml`/`mj-body` like MJML does, splices the children of its `mj-body` where the
