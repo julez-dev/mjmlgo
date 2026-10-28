@@ -141,8 +141,6 @@ func (g MJMLGroup) Render(ctx *RenderContext, w io.Writer, n *node.Node) error {
 
 	for _, child := range n.Children {
 		if child.Type == RawTagName {
-			// Group raw content is emitted inside the group's <div>, not in a
-			// table body, so it needs no markers.
 			if err := renderRawChild(ctx, w, child); err != nil {
 				return err
 			}

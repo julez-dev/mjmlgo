@@ -135,7 +135,6 @@ func (c MJMLColumn) renderColumn(ctx *RenderContext, w io.Writer, n *node.Node) 
 
 	for _, child := range n.Children {
 		if child.Type == RawTagName {
-			// Column children sit directly in a <tbody>, so the block is marked.
 			if err := renderRawChildInTableBody(ctx, w, child); err != nil {
 				return err
 			}

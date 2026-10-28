@@ -90,11 +90,37 @@ through `Renderer.RenderString` (fs reads included).
 | `upstream/mjml--wrapper-gap--00.mjml` | 129,186 | 203,210 | 2,168 | 80,741 | 127,006 | 1,355 |
 | `upstream/parser-xml--preprocessors--00.mjml` | 51,462 | 74,498 | 886 | 32,164 | 46,561 | 554 |
 
+## Inline stage profile
+
+The inline stage no longer round-trips the document through `html.Parse` and
+`html.Render`. It tokenizes the markup the components emitted, matches the
+selectors against that tree and rewrites only the start tags a rule changed
+(`BenchmarkInlineStage`, document already rendered, medians of 7):
+
+| Fixture | Before ns/op | After ns/op | Before allocs/op | After allocs/op |
+| --- | ---: | ---: | ---: | ---: |
+| `input_big.mjml` | 817,000 | 610,000 | 7,815 | 6,830 |
+| `head.mjml` | 25,400 | 19,100 | 298 | 255 |
+
+End to end that is `input_big.mjml` 2.59 ms -> 2.31 ms (35,781 -> 34,776 allocs/op)
+and `head.mjml` 94.6 us -> 83.7 us (1,493 -> 1,448 allocs/op), measured by running
+the pre-change and the post-change tree alternately in one session; the per-fixture
+numbers above come from single runs of each tree and are medians of 7 and 5.
+
+What the stage costs now, from its CPU profile: about half is tokenizing the
+emitted markup and building the tree, a third is selector matching (one full tree
+traversal per rule) and the rest is the writer that patches the changed start
+tags. Removing the tokenizer would mean components emitting structured elements
+instead of text, which is a much larger change and is not planned.
+
 ## Known follow-ups
 
-- The inline stage is dominated by the post-render `html.Parse`/`html.Render`
-  round-trip (~0.54 ms of `input_big`, ~65% of the inline stage). Removing it is a
-  tracked structural lane.
+- Selector matching is one full tree traversal per rule, because that is the shape
+  of the selector engine's API. Indexing rules by their rightmost compound
+  selector is the next win in the inline stage; the profile above sizes it at
+  roughly a third of the stage.
+- The numbers in the inline-stage table below were measured before the validation
+  work landed and are re-measured on the merged tree.
 
 `BenchmarkParse` and `BenchmarkParityComparison` isolate the parser and the test
 harness.
@@ -102,7 +128,8 @@ harness.
 ## Reproducing
 
 ```bash
-go test ./ -run XXX -bench BenchmarkRenderMJML -benchmem -count=3
+go test ./ -run XXX -bench BenchmarkRenderMJML -benchmem -count=5
+go test ./ -run XXX -bench BenchmarkInlineStage -benchmem -count=5
 go test ./ -run XXX -bench BenchmarkParse -benchmem
 go test ./ -run XXX -bench BenchmarkParityComparison -benchmem
 ```

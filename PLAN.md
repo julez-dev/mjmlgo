@@ -47,7 +47,7 @@ Known divergences at the start: 214 records / 15 root causes (see
 | Error model | Fail fast, no partial output. |
 | Includes | `mj-include` resolves through the caller's `fs.FS` (`fs.Glob` for patterns); no implicit filesystem or network access. Paths are relative to the including file and may not leave the fs root; cycles and deep recursion are hard errors. |
 | Package layout | Parser and renderer stay unexported in the root package. The element tree (`node`) and the components plus render context (`component`) are public, because custom components must receive the same values the built-ins do; their exported fields are frozen in ADR-0004. Only the parity harness remains under `internal/`. |
-| Inliner | **Partial**: selectors are compiled once and style application is allocation-light and deterministic, and the round-trip is skipped when nothing needs inlining. Protected raw blocks are parsed and styled as fragments, then restored at their position. The post-render `html.Parse`/`html.Render` pass still exists for documents with inline styles (measured ~0.54 ms on `input_big`); removing it is a tracked follow-up. |
+| Inliner | **Done**: the markup is emitted once and selectors match a tree built from that markup; only the start tags a rule changed are rewritten, so an untouched element keeps the bytes its component wrote. Declarations cascade by importance, specificity and source order, and the mirrored legacy attributes follow the winner. There is no `html.Parse`/`html.Render` round-trip and no fragment scope for raw content. See ADR-0005. |
 | Determinism | `Options.IDGenerator` (default random) for carousel/navbar ids; the harness also normalizes generated ids as a safety net. |
 | Extensibility | Public `component.Component` contract, registered per renderer with `WithComponents`. See "Custom components (T3)" below. |
 | Output formatting | Compact HTML only. |
@@ -198,6 +198,22 @@ Known divergences at the start: 214 records / 15 root causes (see
   a nested table, or a bare table child followed by rows) cannot round-trip
   through any single context.
 
+- **T6 done**: the inline stage runs on the emitted markup (ADR-0005). The
+  document is tokenized once into an element tree, the `<mj-html-attributes>`
+  selectors and the inline stylesheets are matched against it, and the writer
+  patches only the start tags that changed. The raw-block markers, placeholders
+  and per-block fragment parse are gone with the round-trip they protected
+  against. Declarations now cascade like CSS (importance, then specificity, then
+  source order) instead of "first declaration wins", mirrored
+  `align`/`valign`/`bgcolor` attributes follow the winning declaration, and the
+  new `inline-cascade.mjml` fixture proves it against the reference - the
+  pre-change build fails it in three places. Inline stage on `input_big.mjml`
+  817 us -> 621 us, end to end 2.59 ms -> 2.31 ms with ~1k fewer allocations;
+  `head.mjml` 94.6 us -> 83.7 us. Output for a document that inlines CSS is now
+  formatted like the emitted markup (lowercase doctype, no `/>` on void elements,
+  no entity re-escaping) instead of carrying the round-trip's serialization
+  artifacts; every fixture's document is unchanged.
+
 - **T2 done**: `internal/node` and `internal/component` are the public `node`
   and `component` packages now, moved with `git mv` and with their fields,
   methods and behaviour unchanged. Both carry package docs that separate the
@@ -210,9 +226,11 @@ Known divergences at the start: 214 records / 15 root causes (see
 
 Current state: full MJML 4.18 component and head coverage, zero divergences,
 `TestMJMLInvalid` covering fail-fast validation, custom components as leaves and
-containers with head styles, benchmarks and fuzz targets in
-place. Remaining roadmap: T6 (inliner) and T8 (unit-test backfill) - the current
-implementation still uses the post-render HTML round-trip for inline CSS.
+containers with head styles, structured `*Error` values across the validation
+sites, the validation tables hoisted out of the per-instance path, an inline
+stage that runs on the emitted markup, and benchmarks and fuzz targets in place.
+Remaining roadmap: the rest of the validation surface, which rejects MJML's
+attribute types less strictly than planned.
 
 ## Working with lanes
 

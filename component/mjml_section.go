@@ -364,8 +364,6 @@ func (s MJMLSection) renderWrappedChildren(ctx *RenderContext, w io.Writer, n *n
 
 		for _, child := range n.Children {
 			if child.Type == RawTagName {
-				// Section raw content is emitted inside the section cell, not
-				// directly in a table body, so it needs no markers.
 				if err := renderRawChild(ctx, w, child); err != nil {
 					return err
 				}
@@ -419,8 +417,6 @@ func (s MJMLSection) renderWrappedChildren(ctx *RenderContext, w io.Writer, n *n
 
 	for _, child := range n.Children {
 		if child.Type == RawTagName {
-			// Wrapper raw content is emitted between the section cells, not
-			// directly in a table body, so it needs no markers.
 			if err := renderRawChild(ctx, w, child); err != nil {
 				return err
 			}

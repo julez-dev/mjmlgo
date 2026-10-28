@@ -269,8 +269,7 @@ func (h MJMLHero) renderContent(ctx *RenderContext, w io.Writer, n *node.Node) e
 		if child.Type == RawTagName {
 			// Raw content - an author comment, for instance - is emitted at its
 			// document position instead of the row/cell every content child
-			// gets: MJML checks isRawElement() and renders it bare. The hero
-			// places children directly in a <tbody>, so the block is marked.
+			// gets: MJML checks isRawElement() and renders it bare.
 			if err := renderRawChildInTableBody(ctx, w, child); err != nil {
 				return err
 			}
