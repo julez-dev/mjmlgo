@@ -107,7 +107,7 @@ func (r *Renderer) Render(ctx context.Context, fsys fs.FS, name string, w io.Wri
 		return fmt.Errorf("mjml: read %s: %w", name, err)
 	}
 
-	rendered, err := r.renderDocument(fsys, name, bytes.NewReader(input))
+	rendered, err := r.renderDocument(ctx, fsys, name, bytes.NewReader(input))
 	if err != nil {
 		return err
 	}

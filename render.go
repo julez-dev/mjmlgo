@@ -1,6 +1,7 @@
 package mjmlgo
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -14,6 +15,7 @@ import (
 	"golang.org/x/net/html"
 )
 
+// ErrUnknownStartingTag reports a document whose root element is not <mjml>.
 var ErrUnknownStartingTag = errors.New("mjml: unknown starting tag")
 
 // defaultRenderer backs RenderMJML. It has no mutable per-render state, so a
@@ -28,13 +30,21 @@ var defaultRenderer = NewRenderer()
 // wrapper around the default Renderer; it has no filesystem, so documents that
 // use mj-include are rejected with an error.
 func RenderMJML(input io.Reader) (string, error) {
-	return defaultRenderer.renderDocument(nil, "", input)
+	return defaultRenderer.renderDocument(context.Background(), nil, "", input)
 }
 
 // renderDocument is the single rendering pipeline shared by every entry point.
 // fsys and name identify the document for mj-include resolution; fsys is nil
 // when the caller has no filesystem of its own.
-func (r *Renderer) renderDocument(fsys fs.FS, name string, input io.Reader) (string, error) {
+//
+// Cancellation is checked between stages: parsing, include expansion, rendering
+// and inlining all happen in memory, so a cancelled context cannot interrupt
+// them part-way, but a caller is not left waiting for the remaining stages.
+func (r *Renderer) renderDocument(callCtx context.Context, fsys fs.FS, name string, input io.Reader) (string, error) {
+	if err := callCtx.Err(); err != nil {
+		return "", err
+	}
+
 	node, err := parse(input)
 	if err != nil {
 		return "", err
@@ -44,7 +54,15 @@ func (r *Renderer) renderDocument(fsys fs.FS, name string, input io.Reader) (str
 		return "", fmt.Errorf("%w: %s", ErrUnknownStartingTag, node.Type)
 	}
 
-	if err := resolveIncludes(fsys, name, node); err != nil {
+	if err := callCtx.Err(); err != nil {
+		return "", err
+	}
+
+	if err := resolveIncludes(callCtx, fsys, name, node); err != nil {
+		return "", err
+	}
+
+	if err := callCtx.Err(); err != nil {
 		return "", err
 	}
 
@@ -61,6 +79,10 @@ func (r *Renderer) renderDocument(fsys fs.FS, name string, input io.Reader) (str
 	}
 
 	if err := mjml.Render(ctx, &buff, node); err != nil {
+		return "", err
+	}
+
+	if err := callCtx.Err(); err != nil {
 		return "", err
 	}
 

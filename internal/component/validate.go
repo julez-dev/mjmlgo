@@ -52,6 +52,8 @@ var cssColorNames = map[string]struct{}{
 	"seagreen": {}, "seashell": {}, "sienna": {}, "silver": {}, "skyblue": {}, "slateblue": {}, "slategray": {}, "slategrey": {},
 	"snow": {}, "springgreen": {}, "steelblue": {}, "tan": {}, "teal": {}, "thistle": {}, "tomato": {}, "turquoise": {}, "violet": {},
 	"wheat": {}, "white": {}, "whitesmoke": {}, "yellow": {}, "yellowgreen": {},
+	// CSS-wide keywords accepted by MJML's colour type.
+	"inherit": {}, "transparent": {},
 }
 
 type validateAttributeFunc func(value string) error

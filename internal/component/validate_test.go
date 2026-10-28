@@ -176,3 +176,21 @@ func TestValidateType(t *testing.T) {
 		})
 	}
 }
+
+func TestValidateColorAcceptsCSSWideKeywords(t *testing.T) {
+	t.Parallel()
+
+	validate := validateColor()
+
+	for _, value := range []string{"transparent", "inherit", "TRANSPARENT", "#abc", "#AABBCC", "rgb(1,2,3)", "rgba(1,2,3,0.5)", "rebeccapurple"} {
+		if err := validate(value); err != nil {
+			t.Errorf("validateColor(%q) = %v, want nil", value, err)
+		}
+	}
+
+	for _, value := range []string{"notacolor", "#ab", "rgb(1,2)"} {
+		if err := validate(value); err == nil {
+			t.Errorf("validateColor(%q) = nil, want error", value)
+		}
+	}
+}

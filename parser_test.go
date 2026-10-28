@@ -2,6 +2,7 @@ package mjmlgo
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io/fs"
 	"os"
@@ -203,7 +204,7 @@ func parseWithIncludes(t *testing.T, fsys fs.FS, name, document string) (*node.N
 	root, err := parse(strings.NewReader(document))
 	require.NoError(t, err)
 
-	return root, resolveIncludes(fsys, name, root)
+	return root, resolveIncludes(context.Background(), fsys, name, root)
 }
 
 // describeTree lists the tag names of n and its descendants in document order.

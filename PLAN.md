@@ -47,7 +47,7 @@ Known divergences at the start: 214 records / 15 root causes (see
 | Error model | Fail fast, no partial output. |
 | Includes | `mj-include` resolves through the caller's `fs.FS` (`fs.Glob` for patterns); no implicit filesystem or network access. Paths are relative to the including file and may not leave the fs root; cycles and deep recursion are hard errors. |
 | Package layout | Implementation moves to `internal/` (`internal/component`, `internal/node`, parser/renderer). Public surface: root package only. |
-| Inliner | Own inliner emitting into the component tree, no `html.Parse`/`html.Render` round-trip; juice-compatible specificity and `!important`; fast path when nothing needs inlining. Focused dependencies allowed case by case with a written justification. |
+| Inliner | **Partial**: selectors are compiled once and style application is allocation-light and deterministic, and the round-trip is skipped when nothing needs inlining. The post-render `html.Parse`/`html.Render` pass still exists for documents with inline styles (measured ~0.54 ms on `input_big`); removing it is a tracked follow-up. |
 | Determinism | `Options.IDGenerator` (default random) for carousel/navbar ids; the harness also normalizes generated ids as a safety net. |
 | Extensibility | Public custom-component interface via `Options`, with a small stable contract shared by internal and user components. |
 | Output formatting | Compact HTML only. |
@@ -109,10 +109,6 @@ Known divergences at the start: 214 records / 15 root causes (see
   `RenderString`/`RenderBytes`/`RenderFile`; injectable id generator (default
   crypto/rand 16-hex); one pipeline for `RenderMJML` and the renderer; output
   proven identical across all fixtures.
-- **M2b done**: `mj-include` resolves through the caller's `fs.FS` relative to the
-  including file, supports `fs.Glob` patterns and `type="mjml|html|css"`, detects
-  cycles and path escapes, and has a dedicated parity fixture tree (61 fixtures).
-  `RenderMJML` (no fs) rejects includes explicitly.
 - **M2c done**: validation is driven by MJML's tables - unknown elements/attributes,
   undeclared `mj-class`, disallowed children, and MJML's value types (units
   including negatives, integers vs numbers, enums, colours) with element paths in

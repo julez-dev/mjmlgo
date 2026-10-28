@@ -2,6 +2,7 @@ package mjmlgo
 
 import (
 	"bytes"
+	"context"
 	"encoding/xml"
 	"errors"
 	"fmt"
@@ -147,6 +148,7 @@ const (
 // it resolves includes against the directory of the file it is parsing, which is
 // the included file itself for nested includes.
 type includeResolver struct {
+	ctx  context.Context
 	fsys fs.FS
 	// stack holds the documents currently being expanded, outermost first. It is
 	// what makes cycle detection work: a file may not include one of its own
@@ -166,7 +168,7 @@ type includeResolver struct {
 // relative include paths and to detect a file that includes the rendered
 // document itself. A nil fsys means the caller has no filesystem to read from,
 // so any mj-include is an error instead of a silently dropped element.
-func resolveIncludes(fsys fs.FS, name string, root *node.Node) error {
+func resolveIncludes(ctx context.Context, fsys fs.FS, name string, root *node.Node) error {
 	if !containsIncludeTag(root) {
 		return nil
 	}
@@ -175,7 +177,7 @@ func resolveIncludes(fsys fs.FS, name string, root *node.Node) error {
 		return fmt.Errorf("%w: render through Renderer.Render with a caller-provided filesystem", ErrIncludeNoFS)
 	}
 
-	resolver := &includeResolver{fsys: fsys, stack: []string{path.Clean(name)}}
+	resolver := &includeResolver{ctx: ctx, fsys: fsys, stack: []string{path.Clean(name)}}
 	head := ensureHead(root)
 
 	if err := resolver.expandChildren(root, path.Dir(name), head, 0); err != nil {
@@ -274,6 +276,10 @@ func (r *includeResolver) include(n *node.Node, dir string, head *node.Node, dep
 	for _, file := range files {
 		switch kind {
 		case "html":
+			if err := r.ctx.Err(); err != nil {
+				return nil, err
+			}
+
 			content, err := r.read(file)
 			if err != nil {
 				return nil, err
@@ -287,6 +293,10 @@ func (r *includeResolver) include(n *node.Node, dir string, head *node.Node, dep
 				Parent:  n.Parent,
 			})
 		case "css":
+			if err := r.ctx.Err(); err != nil {
+				return nil, err
+			}
+
 			content, err := r.read(file)
 			if err != nil {
 				return nil, err
@@ -335,6 +345,10 @@ func (r *includeResolver) expandDocument(file string, head *node.Node, depth int
 		chain := append(slices.Clone(r.stack), file)
 
 		return nil, fmt.Errorf("%w: %s", ErrIncludeCycle, strings.Join(chain, " -> "))
+	}
+
+	if err := r.ctx.Err(); err != nil {
+		return nil, err
 	}
 
 	content, err := r.read(file)
@@ -496,18 +510,18 @@ func ensureHead(root *node.Node) *node.Node {
 // mjmlEndTags is a map of MJML tags whose inner content should be
 // treated as a single raw string, not parsed into child nodes.
 var mjmlEndTags = map[string]struct{}{
-	"mj-raw":             struct{}{},
-	"mj-title":           struct{}{},
-	"mj-preview":         struct{}{},
-	"mj-breakpoint":      struct{}{},
-	"mj-style":           struct{}{},
-	"mj-text":            struct{}{},
-	"mj-button":          struct{}{},
-	"mj-table":           struct{}{},
-	"mj-navbar-link":     struct{}{},
-	"mj-accordion-text":  struct{}{},
-	"mj-accordion-title": struct{}{},
-	"mj-social-element":  struct{}{},
+	component.RawTagName:            {},
+	component.TitleTagName:          {},
+	component.PreviewTagName:        {},
+	component.BreakpointTagName:     {},
+	component.StyleTagName:          {},
+	component.TextTagName:           {},
+	component.ButtonTagName:         {},
+	component.TableTagName:          {},
+	component.NavbarLinkTagName:     {},
+	component.AccordionTextTagName:  {},
+	component.AccordionTitleTagName: {},
+	component.SocialElementTagName:  {},
 }
 
 // protectRawContent rewrites the inner content of raw-content elements into
