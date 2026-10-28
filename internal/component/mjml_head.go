@@ -57,6 +57,7 @@ func (h MJMLHead) Render(ctx *RenderContext, w io.Writer, n *node.Node) error {
 		"UserStyles":                  userStyles,
 		"IncludeMobileFullWidthStyle": ctx.IncludeMobileFullWidthStyle,
 		"ForceOWADesktop":             ctx.ForceOWADesktop,
+		"PrinterSupport":              ctx.PrinterSupport,
 		"LowerBreakpoint":             ctx.makeLowerBreakpoint(),
 		"Fonts":                       ctx.Fonts,
 		"UsedFonts":                   ctx.usedFonts(ctx.BodyContent, ctx.InlineStyles),
@@ -71,8 +72,7 @@ func (h MJMLHead) Render(ctx *RenderContext, w io.Writer, n *node.Node) error {
 		if child.Type != RawTagName {
 			continue
 		}
-		var raw MJMLRaw
-		if err := raw.Render(ctx, w, child); err != nil {
+		if err := renderRawChild(ctx, w, child); err != nil {
 			return err
 		}
 

@@ -1,0 +1,11 @@
+<mjml>
+  <mj-body>
+    <mj-section>
+      <mj-column>
+        <mj-raw><div class="sentinel"><!-- inside raw --></div></mj-raw>
+        <mj-text><p>Raw content keeps its comments verbatim.</p></mj-text>
+        <mj-raw><!-- a raw comment on its own --></mj-raw>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

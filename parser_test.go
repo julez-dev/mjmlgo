@@ -25,7 +25,7 @@ func TestParse(t *testing.T) {
 		</mjml>
 		`
 
-		n, err := parse(strings.NewReader(input))
+		n, err := parse(strings.NewReader(input), true)
 		require.NoError(t, err)
 
 		var rawContent string
@@ -49,7 +49,7 @@ func TestParse(t *testing.T) {
 			</mj-body>
 		</mjml>`
 
-		n, err := parse(strings.NewReader(input))
+		n, err := parse(strings.NewReader(input), true)
 		require.NoError(t, err)
 
 		body := findChild(t, n, "mj-body")
@@ -74,7 +74,7 @@ func TestParse(t *testing.T) {
 			<mj-body></mj-body>
 		</mjml>`
 
-		n, err := parse(strings.NewReader(input))
+		n, err := parse(strings.NewReader(input), true)
 		require.NoError(t, err)
 
 		require.Equal(t, "<!-- first -->\n<!-- second -->", fileStartRawContent(n))
@@ -86,7 +86,7 @@ func TestParse(t *testing.T) {
 			`<mj-raw><div data-x="1">a &amp; b</div></mj-raw>` +
 			`</mj-column></mj-section></mj-body></mjml>`
 
-		n, err := parse(strings.NewReader(input))
+		n, err := parse(strings.NewReader(input), true)
 		require.NoError(t, err)
 
 		contents := map[string]string{}
@@ -103,7 +103,7 @@ func TestParse(t *testing.T) {
 	t.Run("mj-end-tags", func(t *testing.T) {
 		const input = `<mjml><mj-text><h1>Test</h1></mj-text></mjml>`
 
-		n, err := parse(strings.NewReader(input))
+		n, err := parse(strings.NewReader(input), true)
 		require.NoError(t, err)
 
 		var rawContent string
@@ -144,7 +144,7 @@ func BenchmarkParse(b *testing.B) {
 			b.SetBytes(int64(len(input)))
 
 			for b.Loop() {
-				if _, err := parse(bytes.NewReader(input)); err != nil {
+				if _, err := parse(bytes.NewReader(input), true); err != nil {
 					b.Skipf("fixture does not parse: %v", err)
 				}
 			}
@@ -165,7 +165,7 @@ func FuzzParse(f *testing.F) {
 	f.Fuzz(func(t *testing.T, source string) {
 		checkFuzzInput(t, source)
 
-		root, err := parse(bytes.NewReader([]byte(source)))
+		root, err := parse(bytes.NewReader([]byte(source)), true)
 		if err != nil {
 			return
 		}
@@ -201,10 +201,10 @@ func includeTestFS(files map[string]string) fstest.MapFS {
 func parseWithIncludes(t *testing.T, fsys fs.FS, name, document string) (*node.Node, error) {
 	t.Helper()
 
-	root, err := parse(strings.NewReader(document))
+	root, err := parse(strings.NewReader(document), true)
 	require.NoError(t, err)
 
-	return root, resolveIncludes(context.Background(), fsys, name, root)
+	return root, resolveIncludes(context.Background(), fsys, name, root, true)
 }
 
 // describeTree lists the tag names of n and its descendants in document order.
@@ -670,4 +670,117 @@ func TestIncludeErrors(t *testing.T) {
 
 		require.ErrorIs(t, err, ErrParsingFailed)
 	})
+}
+
+// TestParseComments locks down how author comments are represented: like MJML,
+// every comment outside an ending tag becomes an mj-raw node at its document
+// position, byte for byte, and keepComments=false drops it at parse time.
+func TestParseComments(t *testing.T) {
+	t.Parallel()
+
+	const document = `<mjml>
+		<mj-head>
+			<!-- head comment -->
+			<mj-title>T</mj-title>
+		</mj-head>
+		<mj-body>
+			<!--     comment with 5 spaces     -->
+			<mj-section>
+				<mj-column>
+					<mj-text>text<!-- inside an ending tag --></mj-text>
+				</mj-column>
+			</mj-section>
+		</mj-body>
+	</mjml>`
+
+	t.Run("becomes-an-mj-raw-node-at-its-position", func(t *testing.T) {
+		t.Parallel()
+
+		root, err := parse(strings.NewReader(document), true)
+		require.NoError(t, err)
+
+		head := findChild(t, root, "mj-head")
+		require.Equal(t, "mj-raw", head.Children[0].Type)
+		require.Equal(t, "<!-- head comment -->", head.Children[0].Content)
+		require.Same(t, head, head.Children[0].Parent)
+
+		body := findChild(t, root, "mj-body")
+		require.Equal(t, "mj-raw", body.Children[0].Type)
+		require.Equal(t, "<!--     comment with 5 spaces     -->", body.Children[0].Content)
+	})
+
+	t.Run("content-of-an-ending-tag-is-untouched", func(t *testing.T) {
+		t.Parallel()
+
+		root, err := parse(strings.NewReader(document), true)
+		require.NoError(t, err)
+
+		var text *node.Node
+		walkNodes(root, func(n *node.Node) {
+			if n.Type == "mj-text" {
+				text = n
+			}
+		})
+		require.NotNil(t, text)
+
+		require.Equal(t, "text<!-- inside an ending tag -->", text.Content)
+		require.Empty(t, text.Children, "a comment inside an ending tag is content, not a node")
+	})
+
+	t.Run("dropped-when-disabled", func(t *testing.T) {
+		t.Parallel()
+
+		root, err := parse(strings.NewReader(document), false)
+		require.NoError(t, err)
+
+		head := findChild(t, root, "mj-head")
+		require.Equal(t, "mj-title", head.Children[0].Type)
+
+		body := findChild(t, root, "mj-body")
+		require.Equal(t, "mj-section", body.Children[0].Type)
+
+		// Comments inside ending tags are content, so keepComments never
+		// touches them.
+		var text *node.Node
+		walkNodes(root, func(n *node.Node) {
+			if n.Type == "mj-text" {
+				text = n
+			}
+		})
+		require.Equal(t, "text<!-- inside an ending tag -->", text.Content)
+	})
+
+	t.Run("outside-the-root-element-is-dropped", func(t *testing.T) {
+		t.Parallel()
+
+		root, err := parse(strings.NewReader(`<!-- before --><mjml><mj-body /></mjml><!-- after -->`), true)
+		require.NoError(t, err)
+
+		require.Equal(t, "mjml", root.Type)
+		require.Empty(t, root.Children[0].Content, "a comment before the root has no parent in MJML")
+	})
+}
+
+// TestStripIncludes locks down the ignoreIncludes path: the include element and
+// everything it carries disappear, and the files it names are never read.
+func TestStripIncludes(t *testing.T) {
+	t.Parallel()
+
+	const document = `<mjml><mj-head><mj-include path="partials/title.mjml" /></mj-head>` +
+		`<mj-body><!-- between --><mj-include path="partials/body.mjml" /></mj-body></mjml>`
+
+	root, err := parse(strings.NewReader(document), true)
+	require.NoError(t, err)
+
+	// A filesystem that fails on any read proves the includes are not resolved.
+	fsys := includeTestFS(nil)
+	require.Error(t, resolveIncludes(context.Background(), fsys, "main.mjml", root, true))
+
+	root, err = parse(strings.NewReader(document), true)
+	require.NoError(t, err)
+
+	stripIncludes(root)
+
+	require.Equal(t, "mjml mj-head mj-body mj-raw", describeTree(root))
+	require.Equal(t, "<!-- between -->", findChild(t, root, "mj-body").Children[0].Content)
 }

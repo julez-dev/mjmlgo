@@ -1,0 +1,16 @@
+<mjml>
+  <mj-head>
+    <mj-style inline="inline">
+      .cell { color: #ff0000; }
+    </mj-style>
+  </mj-head>
+  <mj-body>
+    <mj-section>
+      <mj-column>
+        <!-- a raw layout table keeps its table element when it is styled -->
+        <mj-raw><table><tr><td class="cell">raw cell <b>bold</b></td></tr></table></mj-raw>
+        <mj-text>Column text</mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

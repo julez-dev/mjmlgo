@@ -52,6 +52,17 @@
         }
         {{end}}
     </style>
+    {{ if .PrinterSupport }}
+    <style type="text/css">
+      @media only print {
+            {{range $className := .MJMLStyleOrder}}{{$rules := index $.MJMLStyles $className}}.{{$className}} {
+                  {{range $rules}}{{.}};
+                  {{end}}
+            }
+            {{end}}
+      }
+    </style>
+    {{end}}
     {{ if .ForceOWADesktop }}
     <style type="text/css">
       {{range $className := .MJMLStyleOrder}}{{$rules := index $.MJMLStyles $className}}[owa] .{{$className}} {

@@ -353,13 +353,12 @@ func (s MJMLSection) renderWrappedChildren(ctx *RenderContext, w io.Writer, n *n
 
 		for _, child := range n.Children {
 			if child.Type == RawTagName {
-				var raw MJMLRaw
-				if err := InitComponent(ctx, raw, child); err != nil {
+				// Section raw content is emitted inside the section cell, not
+				// directly in a table body, so it needs no markers.
+				if err := renderRawChild(ctx, w, child); err != nil {
 					return err
 				}
-				if err := raw.Render(ctx, w, child); err != nil {
-					return fmt.Errorf("failed to render raw: %w", err)
-				}
+
 				continue
 			}
 
@@ -409,13 +408,12 @@ func (s MJMLSection) renderWrappedChildren(ctx *RenderContext, w io.Writer, n *n
 
 	for _, child := range n.Children {
 		if child.Type == RawTagName {
-			var raw MJMLRaw
-			if err := InitComponent(ctx, raw, child); err != nil {
+			// Wrapper raw content is emitted between the section cells, not
+			// directly in a table body, so it needs no markers.
+			if err := renderRawChild(ctx, w, child); err != nil {
 				return err
 			}
-			if err := raw.Render(ctx, w, child); err != nil {
-				return fmt.Errorf("failed to render raw: %w", err)
-			}
+
 			continue
 		}
 

@@ -61,11 +61,7 @@ func (b MJMLBody) Render(ctx *RenderContext, w io.Writer, n *node.Node) error {
 	for _, child := range n.Children {
 		switch child.Type {
 		case RawTagName:
-			var raw MJMLRaw
-			if err := InitComponent(ctx, raw, child); err != nil {
-				return err
-			}
-			if err := raw.Render(ctx, w, child); err != nil {
+			if err := renderRawChild(ctx, w, child); err != nil {
 				return err
 			}
 		case SectionTagName:

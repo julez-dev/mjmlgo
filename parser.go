@@ -35,7 +35,11 @@ var (
 	ErrIncludeDepth = errors.New("mjml: mj-include depth limit exceeded")
 )
 
-func parse(input io.Reader) (*node.Node, error) {
+// parse decodes an MJML document. keepComments preserves author comments as
+// mj-raw nodes at their document position, which is exactly how MJML's parser
+// represents them; when it is false they are dropped here, at parse time, so
+// they never reach validation or rendering.
+func parse(input io.Reader, keepComments bool) (*node.Node, error) {
 	fullBytes, err := io.ReadAll(input)
 	if err != nil {
 		return nil, err
@@ -88,6 +92,22 @@ func parse(input io.Reader) (*node.Node, error) {
 
 				parent.Content += string(bytes.TrimSpace(t))
 			}
+		case xml.Comment:
+			// MJML turns every comment outside an ending tag into an mj-raw
+			// node, so it is emitted verbatim where it stands and nowhere else
+			// (a comment that is a direct child of <mjml> is dropped by the
+			// renderer, like it is in MJML). Comments inside ending tags never
+			// reach this branch: that content is protected as CDATA.
+			if !keepComments || len(stack) == 0 {
+				continue
+			}
+
+			parent := stack[len(stack)-1]
+			parent.Children = append(parent.Children, &node.Node{
+				Type:    component.RawTagName,
+				Content: "<!--" + string(t) + "-->",
+				Parent:  parent,
+			})
 		case xml.EndElement:
 			if len(stack) > 0 {
 				stack = stack[:len(stack)-1]
@@ -150,6 +170,9 @@ const (
 type includeResolver struct {
 	ctx  context.Context
 	fsys fs.FS
+	// keepComments applies to every included document as well: comments are
+	// author content, wherever the file is parsed from.
+	keepComments bool
 	// stack holds the documents currently being expanded, outermost first. It is
 	// what makes cycle detection work: a file may not include one of its own
 	// ancestors, and it also may not include itself.
@@ -168,7 +191,7 @@ type includeResolver struct {
 // relative include paths and to detect a file that includes the rendered
 // document itself. A nil fsys means the caller has no filesystem to read from,
 // so any mj-include is an error instead of a silently dropped element.
-func resolveIncludes(ctx context.Context, fsys fs.FS, name string, root *node.Node) error {
+func resolveIncludes(ctx context.Context, fsys fs.FS, name string, root *node.Node, keepComments bool) error {
 	if !containsIncludeTag(root) {
 		return nil
 	}
@@ -177,7 +200,7 @@ func resolveIncludes(ctx context.Context, fsys fs.FS, name string, root *node.No
 		return fmt.Errorf("%w: render through Renderer.Render with a caller-provided filesystem", ErrIncludeNoFS)
 	}
 
-	resolver := &includeResolver{ctx: ctx, fsys: fsys, stack: []string{path.Clean(name)}}
+	resolver := &includeResolver{ctx: ctx, fsys: fsys, keepComments: keepComments, stack: []string{path.Clean(name)}}
 	head := ensureHead(root)
 
 	if err := resolver.expandChildren(root, path.Dir(name), head, 0); err != nil {
@@ -189,6 +212,25 @@ func resolveIncludes(ctx context.Context, fsys fs.FS, name string, root *node.No
 	head.Children = append(head.Children, resolver.pending...)
 
 	return nil
+}
+
+// stripIncludes removes every mj-include element from the document without
+// resolving it. MJML's parser never creates a node for an include it is told to
+// ignore, so the element and its content vanish from the rendered document and
+// the files it names are never read.
+func stripIncludes(n *node.Node) {
+	children := n.Children[:0]
+
+	for _, child := range n.Children {
+		if child.Type == includeTagName {
+			continue
+		}
+
+		stripIncludes(child)
+		children = append(children, child)
+	}
+
+	n.Children = children
 }
 
 // expandChildren expands the includes among the children of parent and, before
@@ -364,7 +406,7 @@ func (r *includeResolver) expandDocument(file string, head *node.Node, depth int
 		document = "<mjml><mj-body>" + document + "</mj-body></mjml>"
 	}
 
-	root, err := parse(strings.NewReader(document))
+	root, err := parse(strings.NewReader(document), r.keepComments)
 	if err != nil {
 		return nil, fmt.Errorf("mjml: mj-include %s: %w", file, err)
 	}

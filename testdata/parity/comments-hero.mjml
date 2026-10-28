@@ -1,0 +1,20 @@
+<mjml>
+  <mj-body>
+    <mj-hero mode="fixed-height" height="469px" background-width="600px" background-height="469px" background-color="#2a3448" padding="100px 0px">
+      <!-- before the first hero child -->
+      <mj-text padding="20px" color="#ffffff" font-family="Helvetica" align="center" font-size="45px" line-height="45px" font-weight="900">
+        GO TO SPACE
+      </mj-text>
+      <!--     between hero children, with 5 spaces     -->
+      <mj-button href="https://mjml.io/" align="center">
+        ORDER YOUR TICKET NOW
+      </mj-button>
+      <!-- after the last hero child -->
+    </mj-hero>
+    <mj-hero mode="fluid-height" background-width="600px" background-height="469px" background-color="#2a3448">
+      <!-- before the first fluid hero child -->
+      <mj-raw><div class="hero-raw">raw child</div></mj-raw>
+      <!-- after the fluid hero child -->
+    </mj-hero>
+  </mj-body>
+</mjml>

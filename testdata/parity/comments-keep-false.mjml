@@ -1,0 +1,15 @@
+<mjml>
+  <mj-head>
+    <!-- dropped with keepComments=false -->
+    <mj-title>Comments dropped</mj-title>
+  </mj-head>
+  <mj-body>
+    <!-- dropped between components -->
+    <mj-section>
+      <mj-column>
+        <mj-text><p>Kept<!-- inside an ending tag, always preserved --></p></mj-text>
+        <!-- dropped inside a column -->
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

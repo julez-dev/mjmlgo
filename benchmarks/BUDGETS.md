@@ -9,8 +9,9 @@ Policy: CI prints benchmark results but does not fail on them. Update this table
 in the same commit as a change that moves a budget materially.
 
 Measured with Go 1.24 on an AMD Ryzen 9 9950X3D, `-benchmem -count=3`, medians,
-over the whole parity corpus. Fixtures with `mj-include` are measured through
-`Renderer.RenderString` (fs reads included).
+over the whole parity corpus. A fixture with a `.cli-args` sidecar is measured
+with the options it records, from memory; fixtures with `mj-include` are measured
+through `Renderer.RenderString` (fs reads included).
 
 | Fixture | Budget ns/op | Budget B/op | Budget allocs/op | Measured ns/op | Measured B/op | Measured allocs/op |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -19,25 +20,38 @@ over the whole parity corpus. Fixtures with `mj-include` are measured through
 | `button.mjml` | 57,855 | 113,272 | 1,266 | 36,159 | 70,795 | 791 |
 | `carousel-thumbnails-hidden.mjml` | 93,077 | 242,060 | 1,818 | 58,173 | 151,287 | 1,136 |
 | `carousel.mjml` | 128,741 | 345,640 | 2,418 | 80,463 | 216,025 | 1,511 |
+| `comments-between-components.mjml` | 124,325 | 257,898 | 2,838 | 77,703 | 161,186 | 1,774 |
+| `comments-containers.mjml` | 199,958 | 400,067 | 3,491 | 124,974 | 250,042 | 2,182 |
+| `comments-head.mjml` | 60,646 | 111,578 | 1,331 | 37,904 | 69,736 | 832 |
+| `comments-hero.mjml` | 123,251 | 234,520 | 2,427 | 77,032 | 146,575 | 1,517 |
+| `comments-hero-inline.mjml` | 173,419 | 302,195 | 2,701 | 108,387 | 188,872 | 1,688 |
+| `comments-keep-false.mjml` | 63,245 | 110,979 | 1,242 | 39,528 | 69,362 | 776 |
+| `comments-raw.mjml` | 57,366 | 116,206 | 1,246 | 35,854 | 72,629 | 779 |
 | `component-head-styles.mjml` | 124,703 | 258,346 | 2,440 | 77,939 | 161,466 | 1,525 |
 | `content.mjml` | 143,872 | 243,967 | 2,773 | 89,920 | 152,479 | 1,733 |
 | `fluid-height-hero.mjml` | 79,394 | 154,456 | 1,600 | 49,621 | 96,535 | 1,000 |
 | `head-attributes-class.mjml` | 113,821 | 210,189 | 2,420 | 71,138 | 131,368 | 1,512 |
 | `head-attributes-per-tag.mjml` | 87,988 | 162,832 | 1,892 | 54,992 | 101,770 | 1,182 |
+| `head-fonts-custom.mjml` | 81,483 | 148,102 | 1,675 | 50,927 | 92,564 | 1,047 |
 | `head-fonts-default.mjml` | 62,144 | 115,106 | 1,415 | 38,840 | 71,941 | 884 |
 | `head-html-attributes.mjml` | 144,826 | 228,724 | 2,540 | 90,516 | 142,952 | 1,587 |
 | `head-owa.mjml` | 52,551 | 98,589 | 1,186 | 32,844 | 61,618 | 741 |
 | `head.mjml` | 146,082 | 223,896 | 2,378 | 91,301 | 139,935 | 1,486 |
+| `ignore-includes/main.mjml` | 57,562 | 105,930 | 1,240 | 35,976 | 66,206 | 775 |
 | `image-complex.mjml` | 800,258 | 1,395,453 | 16,647 | 500,161 | 872,158 | 10,404 |
 | `image.mjml` | 61,725 | 112,573 | 1,330 | 38,578 | 70,358 | 831 |
 | `includes/main.mjml` | 449,231 | 669,952 | 6,360 | 280,769 | 418,720 | 3,975 |
-| `input_big.mjml` | 4,115,906 | 5,475,077 | 57,148 | 2,572,441 | 3,421,923 | 35,717 |
+| `input_big.mjml` | 4,052,451 | 5,814,678 | 57,218 | 2,532,782 | 3,634,174 | 35,761 |
 | `layout.mjml` | 270,480 | 500,234 | 5,765 | 169,050 | 312,646 | 3,603 |
 | `navbar.mjml` | 91,592 | 172,783 | 1,783 | 57,245 | 107,989 | 1,114 |
+| `printer-support.mjml` | 89,856 | 152,194 | 1,773 | 56,160 | 95,121 | 1,108 |
 | `raw-in-column.mjml` | 58,983 | 116,711 | 1,244 | 36,864 | 72,944 | 777 |
+| `raw-in-column-inline.mjml` | 126,853 | 247,613 | 2,117 | 79,283 | 154,758 | 1,323 |
 | `raw-in-group.mjml` | 86,856 | 161,021 | 1,960 | 54,285 | 100,638 | 1,225 |
 | `raw-in-section.mjml` | 76,111 | 143,559 | 1,733 | 47,569 | 89,724 | 1,083 |
 | `raw-position-file-start.mjml` | 52,802 | 102,541 | 1,181 | 33,001 | 64,088 | 738 |
+| `raw-rows-in-column-inline.mjml` | 113,533 | 217,981 | 1,864 | 70,958 | 136,238 | 1,165 |
+| `raw-table-in-column-inline.mjml` | 113,726 | 216,862 | 1,859 | 71,079 | 135,539 | 1,162 |
 | `raw.mjml` | 57,752 | 116,128 | 1,240 | 36,095 | 72,580 | 775 |
 | `section-container-width.mjml` | 100,378 | 175,112 | 2,172 | 62,736 | 109,445 | 1,357 |
 | `simple-hero.mjml` | 81,484 | 153,000 | 1,618 | 50,927 | 95,625 | 1,011 |
@@ -54,7 +68,7 @@ over the whole parity corpus. Fixtures with `mj-include` are measured through
 | `upstream/mjml--beautify-output--04.mjml` | 51,061 | 95,540 | 1,151 | 31,913 | 59,712 | 719 |
 | `upstream/mjml--carousel-hoverSupported--00.mjml` | 123,748 | 338,962 | 2,296 | 77,342 | 211,851 | 1,435 |
 | `upstream/mjml--column-border-radius--00.mjml` | 61,324 | 113,647 | 1,298 | 38,327 | 71,029 | 811 |
-| `upstream/mjml--html-attributes--00.mjml` | 163,605 | 274,410 | 2,799 | 102,253 | 171,506 | 1,749 |
+| `upstream/mjml--html-attributes--00.mjml` | 175,024 | 300,259 | 3,019 | 109,390 | 187,662 | 1,887 |
 | `upstream/mjml--html-comments--00.mjml` | 53,453 | 99,583 | 1,154 | 33,408 | 62,239 | 721 |
 | `upstream/mjml--htmlmin-ignore--00.mjml` | 47,400 | 95,671 | 970 | 29,625 | 59,794 | 606 |
 | `upstream/mjml--htmlmin-ignore--01.mjml` | 48,192 | 91,176 | 970 | 30,120 | 56,985 | 606 |

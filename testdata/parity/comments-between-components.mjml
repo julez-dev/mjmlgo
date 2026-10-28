@@ -1,0 +1,29 @@
+<mjml>
+  <mj-body>
+    <!-- before the first section -->
+    <mj-section>
+      <!-- between the columns -->
+      <mj-column>
+        <!-- before the first text -->
+        <mj-text>first</mj-text>
+        <!--     comment with 5 spaces     -->
+        <mj-text>second</mj-text>
+      </mj-column>
+      <mj-column>
+        <mj-text>third</mj-text>
+      </mj-column>
+    </mj-section>
+    <!-- between the sections -->
+    <mj-section>
+      <mj-column>
+        <mj-table>
+          <tr>
+            <td>cell<!-- inside a table cell --></td>
+          </tr>
+        </mj-table>
+      </mj-column>
+    </mj-section>
+    <!-- after the last section -->
+  </mj-body>
+  <!-- a direct child of <mjml> is dropped, like MJML drops it -->
+</mjml>

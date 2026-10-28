@@ -47,7 +47,7 @@ Known divergences at the start: 214 records / 15 root causes (see
 | Error model | Fail fast, no partial output. |
 | Includes | `mj-include` resolves through the caller's `fs.FS` (`fs.Glob` for patterns); no implicit filesystem or network access. Paths are relative to the including file and may not leave the fs root; cycles and deep recursion are hard errors. |
 | Package layout | Implementation moves to `internal/` (`internal/component`, `internal/node`, parser/renderer). Public surface: root package only. |
-| Inliner | **Partial**: selectors are compiled once and style application is allocation-light and deterministic, and the round-trip is skipped when nothing needs inlining. The post-render `html.Parse`/`html.Render` pass still exists for documents with inline styles (measured ~0.54 ms on `input_big`); removing it is a tracked follow-up. |
+| Inliner | **Partial**: selectors are compiled once and style application is allocation-light and deterministic, and the round-trip is skipped when nothing needs inlining. Protected raw blocks are parsed and styled as fragments, then restored at their position. The post-render `html.Parse`/`html.Render` pass still exists for documents with inline styles (measured ~0.54 ms on `input_big`); removing it is a tracked follow-up. |
 | Determinism | `Options.IDGenerator` (default random) for carousel/navbar ids; the harness also normalizes generated ids as a safety net. |
 | Extensibility | Public custom-component interface via `Options`, with a small stable contract shared by internal and user components. |
 | Output formatting | Compact HTML only. |
@@ -132,6 +132,31 @@ Known divergences at the start: 214 records / 15 root causes (see
   are hard errors, covered by `testdata/invalid/include-*.mjml`. The parity
   fixture is `testdata/parity/includes/main.mjml`; include targets live in
   `partials/` directories, which the corpus walk skips.
+- **T1 authoring surface done**: author comments are preserved as `mj-raw` nodes
+  at their document position (verbatim, spacing included) and dropped at parse
+  time by `WithComments(false)`; `WithFonts`, `WithIgnoreIncludes` and
+  `WithPrinterSupport` expose MJML's other renderer options. The parity harness
+  reads per-fixture `<fixture>.cli-args` sidecars, passes the flags to the
+  reference CLI and maps `-c.<name>=<value>` onto those options, and it now
+  compares comment text byte for byte - so the four existing comment/
+  `htmlmin-ignore` fixtures fail if comments are dropped. Thirteen new fixtures
+  cover head, raw, hero (also behind the inliner), container and
+  between-component comments plus one per option; raw children are rendered by
+  one shared helper, marked when they sit in a table body.
+- **raw content and the inliner**: protected raw blocks are parsed as fragments
+  and receive the inline declarations and `<mj-html-attributes>` injections,
+  then are restored in place. The fragment context is chosen from the block's
+  own first element - a bare row or cell parses in a table body (so it stays a
+  row), a table section, caption or column group in a table (so it is not
+  dropped), and everything else as flow content (so a nested layout table keeps
+  its `<table>` element). Before this, the markers kept raw content out of the
+  whole-document parse so it was never styled, which diverged from the
+  reference for a raw element matching an inline selector in any marked
+  container (column included, pre-existing). Two limits remain, both from the
+  fragment scope: a selector that depends on an ancestor outside the block
+  cannot match inside it, and a block that mixes table shapes (a bare row before
+  a nested table, or a bare table child followed by rows) cannot round-trip
+  through any single context.
 
 Current state: full MJML 4.18 component and head coverage, zero divergences,
 `TestMJMLInvalid` covering fail-fast validation, benchmarks and fuzz targets in

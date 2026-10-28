@@ -13,6 +13,7 @@ import (
 	"github.com/ericchiang/css"
 	"github.com/julez-dev/mjmlgo/internal/component"
 	"golang.org/x/net/html"
+	"golang.org/x/net/html/atom"
 )
 
 // ErrUnknownStartingTag reports a document whose root element is not <mjml>.
@@ -45,7 +46,7 @@ func (r *Renderer) renderDocument(callCtx context.Context, fsys fs.FS, name stri
 		return "", err
 	}
 
-	node, err := parse(input)
+	node, err := parse(input, !r.dropComments)
 	if err != nil {
 		return "", err
 	}
@@ -58,7 +59,9 @@ func (r *Renderer) renderDocument(callCtx context.Context, fsys fs.FS, name stri
 		return "", err
 	}
 
-	if err := resolveIncludes(callCtx, fsys, name, node); err != nil {
+	if r.ignoreIncludes {
+		stripIncludes(node)
+	} else if err := resolveIncludes(callCtx, fsys, name, node, !r.dropComments); err != nil {
 		return "", err
 	}
 
@@ -71,8 +74,12 @@ func (r *Renderer) renderDocument(callCtx context.Context, fsys fs.FS, name stri
 
 	ctx := &component.RenderContext{
 		MJMLStylesheet: make(map[string][]string),
-		Fonts:          make(map[string]string),
-		IDGenerator:    r.idFunc(),
+		Fonts:          r.fontRegistry(),
+		// A caller-provided registry replaces the built-in one instead of
+		// being extended with it.
+		FontsConfigured: r.fonts != nil,
+		PrinterSupport:  r.printerSupport,
+		IDGenerator:     r.idFunc(),
 	}
 	if err := component.InitComponent(ctx, mjml, node); err != nil {
 		return "", err
@@ -116,12 +123,34 @@ func (r *Renderer) renderDocument(callCtx context.Context, fsys fs.FS, name stri
 	return html, nil
 }
 
+// fontRegistry returns the web-font registry to seed the render context with.
+// The renderer's map is copied because rendering registers <mj-font> families in
+// the context and a Renderer may be used concurrently.
+func (r *Renderer) fontRegistry() map[string]string {
+	if r.fonts == nil {
+		return make(map[string]string)
+	}
+
+	registry := make(map[string]string, len(r.fonts))
+	for name, href := range r.fonts {
+		registry[name] = href
+	}
+
+	return registry
+}
+
 // Placeholders stand in for protected raw blocks while the document is parsed
 // for CSS inlining. The index of the block is embedded in the comment.
 const (
 	rawBlockPlaceholderPrefix = "<!--mjmlgo-raw-placeholder-"
 	rawBlockPlaceholderSuffix = "-->"
 )
+
+// rawBlockPlaceholderComment returns the placeholder comment that stands for
+// block i in the document handed to the HTML parser.
+func rawBlockPlaceholderComment(i int) string {
+	return rawBlockPlaceholderPrefix + strconv.Itoa(i) + rawBlockPlaceholderSuffix
+}
 
 var rawBlockMarkerPattern = regexp.MustCompile(`(?s)` + regexp.QuoteMeta(component.RawBlockStartMarker) + `(.*?)` + regexp.QuoteMeta(component.RawBlockEndMarker))
 
@@ -140,7 +169,7 @@ func protectRawBlocks(input string) (string, []string) {
 		content := strings.TrimSuffix(strings.TrimPrefix(match, component.RawBlockStartMarker), component.RawBlockEndMarker)
 		blocks = append(blocks, content)
 
-		return rawBlockPlaceholderPrefix + strconv.Itoa(len(blocks)-1) + rawBlockPlaceholderSuffix
+		return rawBlockPlaceholderComment(len(blocks) - 1)
 	})
 
 	return protected, blocks
@@ -199,6 +228,114 @@ func writeRestoredRawBlocks(w io.Writer, output string, blocks []string) error {
 		}
 
 		rest = rest[end+len(rawBlockPlaceholderSuffix):]
+	}
+}
+
+// styleRawBlocks applies the inline stylesheets and the <mj-html-attributes>
+// selectors to the content of protected raw blocks and replaces each block with
+// its styled, re-serialized form.
+//
+// A block is parsed as a fragment rather than as part of the document, because
+// the markers deliberately keep it out of the whole-document parse so that the
+// HTML parser cannot foster-parent it. The fragment's context comes from the
+// block's own content (see rawBlockFragmentContext): a marked block always sits
+// inside a table body, and parsing its content in "in table body" mode is not
+// lossless - a <table> start tag there is treated as an end tag, which would
+// delete an author's nested layout table - while a generic context would drop
+// bare rows and cells.
+//
+// Two limits follow from the fragment scope, and both are documented rather than
+// worked around:
+//
+//   - a selector that depends on an ancestor outside the block (`.hero .raw`)
+//     cannot match inside it, because those ancestors are not part of the
+//     fragment. Selectors that match the block's own elements - the common case
+//     for raw content - apply exactly as they do in the document;
+//   - a block that mixes table shapes cannot round-trip through any context:
+//     a <tr> before a <table> loses the nested table in table-section mode and
+//     the row in generic mode, and a bare table child (a section, caption or
+//     column group) followed by rows is invalid nesting inside the surrounding
+//     table body, which the reference's own parser normalizes differently.
+func styleRawBlocks(ctx *component.RenderContext, blocks []string) error {
+	if len(blocks) == 0 || (len(ctx.HTMLAttributes) == 0 && len(ctx.InlineStyles) == 0) {
+		return nil
+	}
+
+	for i := range blocks {
+		nodes, err := html.ParseFragment(strings.NewReader(blocks[i]), rawBlockFragmentContext(blocks[i]))
+		if err != nil {
+			return fmt.Errorf("parse raw block: %w", err)
+		}
+
+		// The document pass runs the attribute selectors before the inline
+		// styles so that a rule matching an injected attribute sees it; the
+		// block pass keeps that order.
+		changed := applyHTMLAttributesIn(ctx.HTMLAttributes, nodes, nil)
+
+		inlined, err := inlineStylesIn(ctx.InlineStyles, nodes)
+		if err != nil {
+			return err
+		}
+
+		if !changed && !inlined {
+			continue
+		}
+
+		var styled strings.Builder
+		styled.Grow(len(blocks[i]) + len(blocks[i])/8)
+
+		for _, n := range nodes {
+			if err := html.Render(&styled, n); err != nil {
+				return err
+			}
+		}
+
+		blocks[i] = styled.String()
+	}
+
+	return nil
+}
+
+// rawBlockFragmentContext returns the parsing context for a protected raw block,
+// chosen from the block's own content.
+//
+// The author's markup decides, because no single context is lossless for every
+// shape a raw block can have:
+//
+//   - a bare row or cell is table-section content. A table body context keeps it
+//     a row instead of dropping it, and adds no wrapper the author did not
+//     write: the HTML parser inserts the same rows when it parses the reference's
+//     output;
+//   - a table section, caption or column group is a table child, which a table
+//     body context would drop and a table context keeps;
+//   - everything else - including a nested <table>, which "in table body" mode
+//     would treat as an end tag - is parsed as ordinary flow content.
+func rawBlockFragmentContext(block string) *html.Node {
+	switch firstElementName(block) {
+	case "tr", "td", "th":
+		return &html.Node{Type: html.ElementNode, Data: "tbody", DataAtom: atom.Tbody}
+	case "tbody", "thead", "tfoot", "caption", "colgroup", "col":
+		return &html.Node{Type: html.ElementNode, Data: "table", DataAtom: atom.Table}
+	default:
+		return &html.Node{Type: html.ElementNode, Data: "div", DataAtom: atom.Div}
+	}
+}
+
+// firstElementName returns the name of the first start or self-closing tag in
+// block, or "" when the block has none. Text, comments and doctypes are skipped,
+// so a comment before the markup does not decide the context.
+func firstElementName(block string) string {
+	tokenizer := html.NewTokenizer(strings.NewReader(block))
+
+	for {
+		switch tokenizer.Next() {
+		case html.ErrorToken:
+			return ""
+		case html.StartTagToken, html.SelfClosingTagToken:
+			name, _ := tokenizer.TagName()
+
+			return strings.ToLower(string(name))
+		}
 	}
 }
 
@@ -308,6 +445,10 @@ func inlineCSS(ctx *component.RenderContext, r io.Reader, w io.Writer) error {
 
 	changed = changed || inlined
 
+	if err := styleRawBlocks(ctx, rawBlocks); err != nil {
+		return err
+	}
+
 	if !changed {
 		// No rule matched and no selector set an attribute, so the parsed
 		// document is the input document: re-rendering it would only burn time.
@@ -328,6 +469,12 @@ func inlineCSS(ctx *component.RenderContext, r io.Reader, w io.Writer) error {
 // declaration order and reports whether the document changed. Selectors are
 // compiled with the stylesheet, so this never parses CSS.
 func inlineStyles(sheets []component.Stylesheet, doc *html.Node) (bool, error) {
+	return inlineStylesIn(sheets, []*html.Node{doc})
+}
+
+// inlineStylesIn is inlineStyles over a set of disjoint roots: the document for
+// the whole-document pass, the top-level fragment nodes for a raw block.
+func inlineStylesIn(sheets []component.Stylesheet, roots []*html.Node) (bool, error) {
 	var (
 		changed bool
 		scratch styleDecls
@@ -343,13 +490,15 @@ func inlineStyles(sheets []component.Stylesheet, doc *html.Node) (bool, error) {
 				continue
 			}
 
-			for _, n := range sel.Select(doc) {
-				nodeChanged, err := applyDeclarations(n, rules[j].Declarations, &scratch)
-				if err != nil {
-					return false, err
-				}
+			for _, root := range roots {
+				for _, n := range sel.Select(root) {
+					nodeChanged, err := applyDeclarations(n, rules[j].Declarations, &scratch)
+					if err != nil {
+						return false, err
+					}
 
-				changed = changed || nodeChanged
+					changed = changed || nodeChanged
+				}
 			}
 		}
 	}
@@ -468,6 +617,13 @@ func applyHTMLAttributes(selectors []component.HTMLAttributeSelector, doc *html.
 		return false
 	}
 
+	return applyHTMLAttributesIn(selectors, []*html.Node{body}, body)
+}
+
+// applyHTMLAttributesIn is applyHTMLAttributes over a set of disjoint roots,
+// skipping skip itself when a selector matches it. The raw-block pass passes the
+// block's fragment roots and no skip.
+func applyHTMLAttributesIn(selectors []component.HTMLAttributeSelector, roots []*html.Node, skip *html.Node) bool {
 	changed := false
 
 	for _, htmlSelector := range selectors {
@@ -476,14 +632,16 @@ func applyHTMLAttributes(selectors []component.HTMLAttributeSelector, doc *html.
 			continue
 		}
 
-		for _, target := range sel.Select(body) {
-			if target == body {
-				continue
-			}
+		for _, root := range roots {
+			for _, target := range sel.Select(root) {
+				if target == skip {
+					continue
+				}
 
-			for _, htmlAttribute := range htmlSelector.Attributes {
-				if setHTMLAttribute(target, htmlAttribute.Name, htmlAttribute.Value) {
-					changed = true
+				for _, htmlAttribute := range htmlSelector.Attributes {
+					if setHTMLAttribute(target, htmlAttribute.Name, htmlAttribute.Value) {
+						changed = true
+					}
 				}
 			}
 		}

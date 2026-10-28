@@ -19,6 +19,10 @@ type RenderContext struct {
 	InlineStyles []Stylesheet
 	Fonts        map[string]string
 	FontOrder    []string
+	// FontsConfigured reports that Fonts was supplied by the caller and must
+	// not be extended with the built-in web fonts. Fonts declared by the
+	// document with <mj-font> are still added on top of it.
+	FontsConfigured bool
 	// BodyContent is the rendered body HTML, used to detect which registered
 	// web fonts the document actually uses.
 	BodyContent string
@@ -53,10 +57,13 @@ type RenderContext struct {
 	IDGenerator                 func() string
 	IncludeMobileFullWidthStyle bool
 	ForceOWADesktop             bool
-	ContainerWidth              string
-	PreviewText                 string
-	Title                       string
-	Breakpoint                  string
+	// PrinterSupport repeats the generated media queries in an
+	// `@media only print` block, like MJML's printerSupport option.
+	PrinterSupport bool
+	ContainerWidth string
+	PreviewText    string
+	Title          string
+	Breakpoint     string
 
 	Language  string
 	Direction string

@@ -1,0 +1,30 @@
+<mjml>
+  <mj-body>
+    <mj-wrapper>
+      <!-- in a wrapper between sections -->
+      <mj-section>
+        <mj-group>
+          <!-- in a group -->
+          <mj-column>
+            <mj-navbar>
+              <!-- in a navbar -->
+              <mj-navbar-link href="https://example.com">link</mj-navbar-link>
+            </mj-navbar>
+            <mj-social>
+              <!-- in a social block -->
+              <mj-social-element name="facebook" href="https://example.com">fb</mj-social-element>
+            </mj-social>
+            <mj-accordion>
+              <!-- in an accordion -->
+              <mj-accordion-element>
+                <!-- in an accordion element -->
+                <mj-accordion-title>t</mj-accordion-title>
+                <mj-accordion-text>x<!-- in accordion text --></mj-accordion-text>
+              </mj-accordion-element>
+            </mj-accordion>
+          </mj-column>
+        </mj-group>
+      </mj-section>
+    </mj-wrapper>
+  </mj-body>
+</mjml>

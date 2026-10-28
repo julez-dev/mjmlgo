@@ -9,6 +9,7 @@ import (
 	"slices"
 	"strings"
 	"testing"
+	"testing/fstest"
 
 	"github.com/julez-dev/mjmlgo/internal/component"
 	"github.com/julez-dev/mjmlgo/internal/mjmltest"
@@ -48,7 +49,7 @@ func TestMJMLParity(t *testing.T) {
 		want, ok := reference[fixture]
 		require.True(t, ok, "no reference output for %s", fixture)
 
-		got, renderErr := renderFixture(fixture)
+		got, renderErr := renderFixture(t, fixture)
 
 		t.Run(filepath.ToSlash(fixture), func(t *testing.T) {
 			if renderErr != nil {
@@ -72,17 +73,65 @@ func TestMJMLParity(t *testing.T) {
 	}
 }
 
-// fixtureRenderer renders fixtures. It holds no per-render state, so the tests
-// can share one instance.
+// fixtureRenderer renders fixtures that need no configuration. It holds no
+// per-render state, so the tests can share one instance.
 var fixtureRenderer = NewRenderer()
+
+// rendererFor returns the renderer a fixture must be rendered with: the options
+// its sidecar asks for, which is the same configuration the reference CLI is
+// given for that fixture. A fixture without a sidecar uses the shared default
+// renderer.
+func rendererFor(t testing.TB, fixture string) *Renderer {
+	t.Helper()
+
+	config := mjmltest.Config(t, fixture)
+
+	var opts []Option
+
+	if config.KeepComments != nil {
+		opts = append(opts, WithComments(*config.KeepComments))
+	}
+
+	if config.FontsSet {
+		opts = append(opts, WithFonts(config.Fonts))
+	}
+
+	if config.IgnoreIncludes != nil {
+		opts = append(opts, WithIgnoreIncludes(*config.IgnoreIncludes))
+	}
+
+	if config.PrinterSupport != nil {
+		opts = append(opts, WithPrinterSupport(*config.PrinterSupport))
+	}
+
+	if len(opts) == 0 {
+		return fixtureRenderer
+	}
+
+	return NewRenderer(opts...)
+}
 
 // renderFixture renders fixture the way a caller would: the fixture's directory
 // is the root of the filesystem, so mj-include resolves relative includes inside
 // the corpus. That is exactly what the reference CLI does with a file path.
-func renderFixture(fixture string) (string, error) {
+func renderFixture(t testing.TB, fixture string) (string, error) {
+	t.Helper()
+
 	fsys := os.DirFS(filepath.Dir(fixture))
 
-	return fixtureRenderer.RenderString(context.Background(), fsys, filepath.Base(fixture))
+	return rendererFor(t, fixture).RenderString(context.Background(), fsys, filepath.Base(fixture))
+}
+
+// renderConfiguredSource renders fixture's source with the configuration its
+// sidecar records, without reading anything else from disk. The benchmarks use
+// it so a fixture that exists to exercise an option is measured with it.
+func renderConfiguredSource(t testing.TB, fixture string, source []byte) (string, error) {
+	t.Helper()
+
+	name := filepath.Base(fixture)
+	fsys := fstest.MapFS{name: &fstest.MapFile{Data: source}}
+
+	return rendererFor(t, fixture).RenderString(context.Background(), fsys, name)
 }
 
 func formatMismatches(mismatches []mjmltest.Mismatch) string {
@@ -141,7 +190,7 @@ func TestMJMLInvalid(t *testing.T) {
 		t.Run(filepath.ToSlash(fixture), func(t *testing.T) {
 			t.Parallel()
 
-			html, err := renderFixture(fixture)
+			html, err := renderFixture(t, fixture)
 
 			expectedPath := fixture + ".error.txt"
 			expected, readErr := os.ReadFile(expectedPath)
@@ -222,11 +271,11 @@ func TestRenderInlineStylesIsDeterministic(t *testing.T) {
 
 		checked++
 
-		first, err := renderFixture(fixture)
+		first, err := renderFixture(t, fixture)
 		require.NoError(t, err)
 
 		for range 4 {
-			again, err := renderFixture(fixture)
+			again, err := renderFixture(t, fixture)
 			require.NoError(t, err)
 			require.Equal(t, first, again, "%s rendered differently on a repeated render", fixture)
 		}
@@ -705,6 +754,126 @@ func TestProtectRawBlocks(t *testing.T) {
 	})
 }
 
+// TestInlineCSSStylesRawBlocks asserts protected raw content is parsed as a
+// fragment - in a context that fits its own shape - and receives the inline
+// declarations and the <mj-html-attributes> selectors, while the markers keep it
+// at its position.
+func TestInlineCSSStylesRawBlocks(t *testing.T) {
+	t.Parallel()
+
+	// A marked block sits directly in a <tbody>, which is where the markers are
+	// required. Each block is still parsed in the context its own first element
+	// needs, so both a bare row and a nested table survive.
+	tests := []struct {
+		name string
+		raw  string
+		want string
+	}{
+		{
+			name: "bare row stays a row",
+			raw:  `<tr><td class="cell">raw row</td></tr>`,
+			want: `<tr><td class="cell" data-x="1" style="color:red;">raw row</td></tr>`,
+		},
+		{
+			name: "nested table keeps its table element",
+			raw:  `<table><tr><td class="cell">raw cell</td></tr></table>`,
+			want: `<table><tbody><tr><td class="cell" data-x="1" style="color:red;">raw cell</td></tr></tbody></table>`,
+		},
+		{
+			name: "generic markup is untouched around the styled node",
+			raw:  `<div class="wrapper"><p class="cell">text</p></div>`,
+			want: `<div class="wrapper"><p class="cell" data-x="1" style="color:red;">text</p></div>`,
+		},
+		{
+			// A table child is not body content: a table body context would
+			// turn the caption into plain text.
+			name: "caption stays an element",
+			raw:  `<caption class="cell">caption</caption>`,
+			want: `<caption class="cell" data-x="1" style="color:red;">caption</caption>`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			document := `<html><body><table><tbody>` +
+				component.RawBlockStartMarker + tt.raw + component.RawBlockEndMarker +
+				`<tr><td>content</td></tr>` +
+				`</tbody></table></body></html>`
+
+			ctx := inlineContext(inlineSheet(".cell", component.Style{Property: "color", Value: "red"}))
+			ctx.HTMLAttributes = []component.HTMLAttributeSelector{
+				{Path: ".cell", Attributes: []component.HTMLAttribute{{Name: "data-x", Value: "1"}}},
+			}
+
+			var out bytes.Buffer
+			require.NoError(t, inlineCSS(ctx, strings.NewReader(document), &out))
+
+			require.Equal(t, `<html><body><table><tbody>`+
+				tt.want+
+				`<tr><td>content</td></tr>`+
+				`</tbody></table></body></html>`, out.String())
+		})
+	}
+}
+
+// TestRawBlockFragmentContext locks down the context choice: it is the block's
+// own first element that decides, not the table body the block sits in.
+func TestRawBlockFragmentContext(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		block string
+		want  string
+	}{
+		{block: `<tr><td>x</td></tr>`, want: "tbody"},
+		{block: `<TD class="cell">x</TD>`, want: "tbody"},
+		{block: `<th scope="col">x</th>`, want: "tbody"},
+		{block: `<tbody><tr><td>x</td></tr></tbody>`, want: "table"},
+		{block: `<thead><tr><th>x</th></tr></thead>`, want: "table"},
+		{block: `<tfoot><tr><td>x</td></tr></tfoot>`, want: "table"},
+		{block: `<caption>caption</caption>`, want: "table"},
+		{block: `<colgroup><col span="2"></colgroup>`, want: "table"},
+		{block: `<col span="2">`, want: "table"},
+		// A nested table is flow content: "in table body" mode would treat its
+		// start tag as an end tag and delete it.
+		{block: `<table><tr><td>x</td></tr></table>`, want: "div"},
+		{block: `<div><table><tr><td>x</td></tr></table></div>`, want: "div"},
+		// Text, comments and doctypes do not decide the context.
+		{block: `<!-- <tr><td>commented out</td></tr> --><div>x</div>`, want: "div"},
+		{block: `plain text with a < b`, want: "div"},
+		{block: ``, want: "div"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.block, func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, tt.want, rawBlockFragmentContext(tt.block).Data)
+		})
+	}
+}
+
+// TestInlineCSSKeepsUnmatchedRawBlocks asserts a block that no rule and no
+// selector applies to keeps its exact bytes: comment-only blocks - the common
+// case - never get re-serialized.
+func TestInlineCSSKeepsUnmatchedRawBlocks(t *testing.T) {
+	t.Parallel()
+
+	const raw = `<!--     a comment with 5 spaces     --><div>plain</div>`
+	document := `<html><body><table><tbody>` +
+		component.RawBlockStartMarker + raw + component.RawBlockEndMarker +
+		`<tr><td class="other">content</td></tr>` +
+		`</tbody></table></body></html>`
+
+	ctx := inlineContext(inlineSheet(".other", component.Style{Property: "color", Value: "red"}))
+
+	var out bytes.Buffer
+	require.NoError(t, inlineCSS(ctx, strings.NewReader(document), &out))
+
+	require.Contains(t, out.String(), raw)
+}
+
 // BenchmarkRenderMJML measures the full pipeline (parse, render, inline CSS,
 // output post-processing) per fixture. The fixture set is the parity corpus, so
 // the numbers describe realistic documents rather than toy inputs.
@@ -724,12 +893,24 @@ func BenchmarkRenderMJML(b *testing.B) {
 				return err
 			}
 
+			// A fixture whose sidecar configures the renderer - keepComments,
+			// fonts, ignoreIncludes, printerSupport - must be measured with that
+			// configuration, or the row describes a pipeline the fixture does
+			// not stand for.
+			if len(mjmltest.Args(b, fixture)) > 0 {
+				render = func() error {
+					_, err := renderConfiguredSource(b, fixture, input)
+
+					return err
+				}
+			}
+
 			if err := render(); err != nil {
 				// Fixtures with mj-include cannot be rendered without a
 				// filesystem. Measure the caller-visible path instead, which
 				// includes reading the fixture and its includes from disk.
 				render = func() error {
-					_, err := renderFixture(fixture)
+					_, err := renderFixture(b, fixture)
 
 					return err
 				}
@@ -756,7 +937,7 @@ func BenchmarkRenderMJML(b *testing.B) {
 func BenchmarkParityComparison(b *testing.B) {
 	forEachParityFixture(b, func(name, fixture string) {
 		b.Run(name, func(b *testing.B) {
-			html, err := renderFixture(fixture)
+			html, err := renderFixture(b, fixture)
 			if err != nil {
 				b.Skipf("fixture does not render: %v", err)
 			}

@@ -1,0 +1,15 @@
+<mjml>
+  <mj-head>
+    <!-- the sidecar replaces the default web-font registry -->
+    <mj-font name="Custom Serif" href="https://example.com/custom-serif.css" />
+  </mj-head>
+  <mj-body>
+    <mj-section>
+      <mj-column>
+        <mj-text font-family="Custom Sans, sans-serif">Registry font</mj-text>
+        <mj-text font-family="Custom Serif, serif">The document's mj-font still wins</mj-text>
+        <mj-text font-family="Lato, sans-serif">Lato is not in the replaced registry</mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

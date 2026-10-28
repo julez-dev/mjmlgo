@@ -1,0 +1,20 @@
+<mjml>
+  <mj-head>
+    <!-- before the title -->
+    <mj-title>Comments in the head</mj-title>
+    <!-- between the title and the attributes -->
+    <mj-attributes>
+      <mj-all font-family="Arial, sans-serif" />
+    </mj-attributes>
+    <!-- between the attributes and the style -->
+    <mj-style>.note { color: #333333; }</mj-style>
+    <!-- last head comment -->
+  </mj-head>
+  <mj-body>
+    <mj-section>
+      <mj-column>
+        <mj-text><p class="note">Head comments are emitted at the end of the head.</p></mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>
