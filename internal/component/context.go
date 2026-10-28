@@ -8,6 +8,8 @@ import (
 	"slices"
 	"strconv"
 	"sync/atomic"
+
+	"github.com/ericchiang/css"
 )
 
 // AttributeMap holds a set of MJML attribute values keyed by attribute name.
@@ -237,6 +239,33 @@ type MediaRule struct {
 type Rule struct {
 	Selectors    string  `json:"selectors"`
 	Declarations []Style `json:"declarations"`
+
+	// compiled is the selector list compiled when the stylesheet was built, and
+	// compiledSet records that compilation ran. A rule whose selector text does
+	// not compile keeps compiled == nil: the inliner skips such a rule, which is
+	// how unparsable selector lists were always treated.
+	compiled    *css.Selector
+	compiledSet bool
+}
+
+// CompileSelectors compiles the rule's selector list and caches the result. The
+// stylesheet builders call it once, when the stylesheet is constructed, so
+// rendering never parses selectors.
+func (r *Rule) CompileSelectors() {
+	r.compiled, _ = css.Parse(r.Selectors)
+	r.compiledSet = true
+}
+
+// CompiledSelectors returns the rule's compiled selector list and reports
+// whether the rule is usable. A rule whose selectors do not compile reports
+// false and must be skipped. Rules that were never compiled - stylesheets built
+// by hand rather than by the head parser - are compiled on first use.
+func (r *Rule) CompiledSelectors() (*css.Selector, bool) {
+	if !r.compiledSet {
+		r.CompileSelectors()
+	}
+
+	return r.compiled, r.compiled != nil
 }
 
 // Style represents a single CSS property-value pair.

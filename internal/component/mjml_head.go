@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/aymerick/douceur/css"
 	"github.com/aymerick/douceur/parser"
 	"github.com/julez-dev/mjmlgo/internal/node"
 )
@@ -99,42 +100,38 @@ func (h MJMLHead) parseCSS(cssText string) (Stylesheet, error) {
 			}
 
 			for _, childRule := range rule.Rules {
-				decs := make([]Style, 0, len(childRule.Declarations))
-				for _, dec := range childRule.Declarations {
-					// Convert each declaration to a Style struct
-					decs = append(decs, Style{
-						Property:  dec.Property,
-						Value:     dec.Value,
-						Important: dec.Important,
-					})
-				}
-
-				mediaRule.Rules = append(mediaRule.Rules, Rule{
-					Selectors:    childRule.Prelude,
-					Declarations: decs,
-				})
+				mediaRule.Rules = append(mediaRule.Rules, newStylesheetRule(childRule.Prelude, childRule.Declarations))
 			}
 
 			outSheet.MediaRules = append(outSheet.MediaRules, mediaRule)
 			continue
 		}
 
-		r := Rule{
-			Selectors:    rule.Prelude,
-			Declarations: make([]Style, 0, len(rule.Declarations)),
-		}
-
-		for _, dec := range rule.Declarations {
-			// Convert each declaration to a Style struct
-			r.Declarations = append(r.Declarations, Style{
-				Property:  dec.Property,
-				Value:     dec.Value,
-				Important: dec.Important,
-			})
-		}
-
-		outSheet.Rules = append(outSheet.Rules, r)
+		outSheet.Rules = append(outSheet.Rules, newStylesheetRule(rule.Prelude, rule.Declarations))
 	}
 
 	return outSheet, err
+}
+
+// newStylesheetRule converts one parsed CSS rule and compiles its selector list
+// once, so the inliner can select nodes without re-parsing selectors per render.
+// A rule whose selectors do not compile carries no compiled selector and is
+// skipped by the inliner.
+func newStylesheetRule(prelude string, declarations []*css.Declaration) Rule {
+	r := Rule{
+		Selectors:    prelude,
+		Declarations: make([]Style, 0, len(declarations)),
+	}
+
+	for _, dec := range declarations {
+		r.Declarations = append(r.Declarations, Style{
+			Property:  dec.Property,
+			Value:     dec.Value,
+			Important: dec.Important,
+		})
+	}
+
+	r.CompileSelectors()
+
+	return r
 }
