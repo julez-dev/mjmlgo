@@ -68,6 +68,42 @@ Known divergences at the start: 214 records / 15 root causes (see
   `.gitignore` anchored so fixtures such as `testdata/parity/input_big.mjml` are
   tracked; do-nothing `TestRender` removed; hero `inner-div` emits `float` where
   it used to emit a duplicate `background-color`.
+- **Delegated lanes merged** (each in its own git worktree, reviewed before
+  merging):
+  - raw/parser: `mj-raw` as a child of column/section/group at its document
+    position, attribute-aware raw capture, `position="file-start"`, and
+    `mj-table width="auto"`.
+  - head features: `mj-class` and per-tag `mj-attributes` with MJML's precedence,
+    built-in font registry with usage-based emission, `owa="desktop"`, and
+    `mj-html-attributes` (folded into the existing post-render pass).
+  - navbar + accordion component families, including a component-head-style
+    registry.
+  - font detection performance: the regexp-per-font scan (6x pipeline slowdown)
+    replaced by a single allocation-light scan.
+- **Conditional merging restored**: MJML's `mergeOutlookConditionnals` runs at
+  the end of its pipeline, so merging is correct; it is now a single scan with
+  MJML's own regexp as test oracle. Divergences 293 -> 85, and the dominant
+  remaining group (261 records of conditional grouping) is gone.
+- **Fast path**: the post-render HTML round-trip is skipped when a document has
+  neither `<mj-style inline>` nor `<mj-html-attributes>`
+  (simple.mjml 30.2us -> 13.4us, layout.mjml 262us -> 155us).
+
+Current state: 85 recorded divergences (geometry/widths, social, border-radius,
+wrapper gap) and 3 fixtures that do not render (carousel, two CSS-template
+fixtures). In flight: `geometry` and `carousel` lanes.
+
+## Working with lanes
+
+Work is split into independent lanes, each in its own git worktree
+(`herdr worktree create`), each owning an explicit file set so merges stay
+conflict-free. Rules that keep this safe:
+
+- A lane never merges, pushes or tags; the manager reviews and merges.
+- The parity baseline is a per-lane snapshot; the manager regenerates it on the
+  merged tree and reviews the diff.
+- A lane must prove behaviour by diffing against the reference CLI
+  (`./node_modules/.bin/mjml fixture -s`); "the baseline passes" is not evidence,
+  and re-recording to bless an unexplained new divergence is a defect.
 
 ## Roadmap
 
