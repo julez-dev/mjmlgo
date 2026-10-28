@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/fs"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/ericchiang/css"
@@ -93,177 +94,359 @@ func (r *Renderer) renderDocument(fsys fs.FS, name string, input io.Reader) (str
 	return html, nil
 }
 
-// rawBlockPlaceholder stands in for a protected raw block while the document is
-// parsed for CSS inlining.
-const rawBlockPlaceholder = "<!--mjmlgo-raw-placeholder-%d-->"
+// Placeholders stand in for protected raw blocks while the document is parsed
+// for CSS inlining. The index of the block is embedded in the comment.
+const (
+	rawBlockPlaceholderPrefix = "<!--mjmlgo-raw-placeholder-"
+	rawBlockPlaceholderSuffix = "-->"
+)
 
 var rawBlockMarkerPattern = regexp.MustCompile(`(?s)` + regexp.QuoteMeta(component.RawBlockStartMarker) + `(.*?)` + regexp.QuoteMeta(component.RawBlockEndMarker))
 
 // protectRawBlocks replaces raw blocks with comment placeholders so the HTML
 // parser cannot move them out of table elements. The original blocks are
-// restored after serialization.
+// restored after serialization. Documents without raw blocks - the common case -
+// are returned as they are, without scanning for markers.
 func protectRawBlocks(input string) (string, []string) {
+	if !strings.Contains(input, component.RawBlockStartMarker) {
+		return input, nil
+	}
+
 	var blocks []string
 
 	protected := rawBlockMarkerPattern.ReplaceAllStringFunc(input, func(match string) string {
 		content := strings.TrimSuffix(strings.TrimPrefix(match, component.RawBlockStartMarker), component.RawBlockEndMarker)
 		blocks = append(blocks, content)
 
-		return fmt.Sprintf(rawBlockPlaceholder, len(blocks)-1)
+		return rawBlockPlaceholderPrefix + strconv.Itoa(len(blocks)-1) + rawBlockPlaceholderSuffix
 	})
 
 	return protected, blocks
 }
 
-func restoreRawBlocks(output string, blocks []string) string {
-	for i, content := range blocks {
-		output = strings.Replace(output, fmt.Sprintf(rawBlockPlaceholder, i), content, 1)
-	}
+// writeRestoredRawBlocks writes output with every placeholder replaced by the
+// raw block it stands for, directly into w: a per-block strings.Replace would
+// copy the whole document once per protected block, and an intermediate string
+// would copy it one more time.
+func writeRestoredRawBlocks(w io.Writer, output string, blocks []string) error {
+	if len(blocks) == 0 {
+		_, err := io.WriteString(w, output)
 
-	return output
-}
-
-func inlineCSS(ctx *component.RenderContext, r io.Reader, w io.Writer) error {
-	input, err := io.ReadAll(r)
-	if err != nil {
 		return err
 	}
 
-	protected, rawBlocks := protectRawBlocks(string(input))
+	write := func(s string) error {
+		_, err := io.WriteString(w, s)
+
+		return err
+	}
+
+	rest := output
+	for {
+		start := strings.Index(rest, rawBlockPlaceholderPrefix)
+		if start < 0 {
+			return write(rest)
+		}
+
+		if err := write(rest[:start]); err != nil {
+			return err
+		}
+
+		rest = rest[start+len(rawBlockPlaceholderPrefix):]
+
+		end := strings.Index(rest, rawBlockPlaceholderSuffix)
+		if end < 0 {
+			// A prefix without a suffix is not one of our placeholders.
+			return write(rawBlockPlaceholderPrefix + rest)
+		}
+
+		index, err := strconv.Atoi(rest[:end])
+		if err != nil || index < 0 || index >= len(blocks) {
+			// Leave an unknown placeholder alone rather than losing content.
+			if err := write(rawBlockPlaceholderPrefix + rest[:end+len(rawBlockPlaceholderSuffix)]); err != nil {
+				return err
+			}
+
+			rest = rest[end+len(rawBlockPlaceholderSuffix):]
+
+			continue
+		}
+
+		if err := write(blocks[index]); err != nil {
+			return err
+		}
+
+		rest = rest[end+len(rawBlockPlaceholderSuffix):]
+	}
+}
+
+// styleDecl is one declaration of a style attribute. Inline style lists are
+// tiny, so an ordered slice of property/value pairs beats a map: it preserves
+// the node's declaration order, keeps renders byte-for-byte reproducible and
+// avoids a hash table per matched node.
+type styleDecl struct {
+	property string
+	value    string
+}
+
+// styleDecls is an ordered list of inline style declarations.
+type styleDecls []styleDecl
+
+// reset drops the declarations but keeps the backing array, so one scratch list
+// can be reused for every matched node of a render.
+func (d *styleDecls) reset() {
+	*d = (*d)[:0]
+}
+
+// set applies one declaration in cascade order: it replaces the value of an
+// existing property only when that property is absent or the new declaration is
+// important, and appends new properties in application order. It reports whether
+// the list changed. The keyword !important is not serialized, matching the
+// inliner's historical output.
+func (d *styleDecls) set(decl component.Style) bool {
+	property := strings.TrimSpace(decl.Property)
+
+	for i := range *d {
+		if (*d)[i].property != property {
+			continue
+		}
+
+		if !decl.Important {
+			return false
+		}
+
+		changed := (*d)[i].value != decl.Value
+		(*d)[i].value = decl.Value
+
+		return changed
+	}
+
+	*d = append(*d, styleDecl{property: property, value: decl.Value})
+
+	return true
+}
+
+// lookup returns the value of property, if the node has one.
+func (d styleDecls) lookup(property string) (string, bool) {
+	for i := range d {
+		if d[i].property == property {
+			return d[i].value, true
+		}
+	}
+
+	return "", false
+}
+
+// String serializes the declarations the way the inliner always has: one
+// "property:value;" per declaration, in declaration order.
+func (d styleDecls) String() string {
+	if len(d) == 0 {
+		return ""
+	}
+
+	size := 0
+	for i := range d {
+		size += len(d[i].property) + len(d[i].value) + 2
+	}
+
+	var b strings.Builder
+	b.Grow(size)
+
+	for i := range d {
+		b.WriteString(d[i].property)
+		b.WriteByte(':')
+		b.WriteString(d[i].value)
+		b.WriteByte(';')
+	}
+
+	return b.String()
+}
+
+func inlineCSS(ctx *component.RenderContext, r io.Reader, w io.Writer) error {
+	// Reading through a strings.Builder hands the document to the HTML parser
+	// without the extra copy io.ReadAll plus a string conversion would make.
+	var input strings.Builder
+	if _, err := io.Copy(&input, r); err != nil {
+		return err
+	}
+
+	protected, rawBlocks := protectRawBlocks(input.String())
 
 	htmlNode, err := html.Parse(strings.NewReader(protected))
 	if err != nil {
 		return err
 	}
 
-	applyHTMLAttributes(ctx.HTMLAttributes, htmlNode)
+	changed := applyHTMLAttributes(ctx.HTMLAttributes, htmlNode)
 
-	for _, sheet := range ctx.InlineStyles {
-		for _, rule := range sheet.Rules {
-			sel, err := css.Parse(rule.Selectors)
-			if err != nil {
-				continue
-			}
+	inlined, err := inlineStyles(ctx.InlineStyles, htmlNode)
+	if err != nil {
+		return err
+	}
 
-			for _, n := range sel.Select(htmlNode) {
-				var (
-					styleIndex = -1
-					styleAttr  html.Attribute
-				)
-				for i, attr := range n.Attr {
-					if attr.Key == "style" {
-						styleIndex = i
-						styleAttr = attr
-					}
-				}
+	changed = changed || inlined
 
-				styles, err := parseStyleAttribute(styleAttr)
-				if err != nil {
-					return fmt.Errorf("failed to parse style attribute: %w", err)
-				}
-
-				for _, dec := range rule.Declarations {
-					if _, has := styles[dec.Property]; !has || dec.Important {
-						styles[dec.Property] = dec.Value
-					}
-				}
-
-				var styleText string
-				for k, v := range styles {
-					styleText += strings.TrimSpace(fmt.Sprintf("%s:%s;", k, v))
-				}
-
-				styleAttr.Val = styleText
-
-				if n.Data == "table" || n.Data == "td" || n.Data == "div" {
-					if v := styles["width"]; v != "" {
-						var alreadyHasWidth bool
-						for _, a := range n.Attr {
-							if a.Key == "width" {
-								alreadyHasWidth = true
-								break
-							}
-						}
-						if !alreadyHasWidth {
-							if strings.HasSuffix(v, "px") {
-								n.Attr = append(n.Attr, html.Attribute{Key: "width", Val: component.RemoveNonNumeric(v)})
-							} else {
-								n.Attr = append(n.Attr, html.Attribute{Key: "width", Val: v})
-							}
-						}
-					}
-				}
-
-				if v := styles["text-align"]; v != "" {
-					var alreadyHasAlign bool
-					for _, a := range n.Attr {
-						if a.Key == "align" {
-							alreadyHasAlign = true
-							break
-						}
-					}
-					if !alreadyHasAlign {
-						n.Attr = append(n.Attr, html.Attribute{Key: "align", Val: v})
-					}
-				}
-
-				if v := styles["vertical-align"]; v != "" {
-					var alreadyHasAlign bool
-					for _, a := range n.Attr {
-						if a.Key == "valign" {
-							alreadyHasAlign = true
-							break
-						}
-					}
-					if !alreadyHasAlign {
-						n.Attr = append(n.Attr, html.Attribute{Key: "valign", Val: v})
-					}
-				}
-
-				if v := styles["background-color"]; v != "" {
-					var alreadyHasBgColor bool
-					for _, a := range n.Attr {
-						if a.Key == "bgcolor" {
-							alreadyHasBgColor = true
-							break
-						}
-					}
-					if !alreadyHasBgColor {
-						n.Attr = append(n.Attr, html.Attribute{Key: "bgcolor", Val: styles["background-color"]})
-					}
-				}
-
-				if styleIndex < 0 {
-					n.Attr = append(n.Attr, html.Attribute{Key: "style", Val: styleAttr.Val})
-				} else {
-					n.Attr[styleIndex] = styleAttr
-				}
-			}
-		}
+	if !changed {
+		// No rule matched and no selector set an attribute, so the parsed
+		// document is the input document: re-rendering it would only burn time.
+		return writeRestoredRawBlocks(w, protected, rawBlocks)
 	}
 
 	var rendered strings.Builder
+	rendered.Grow(len(protected) + len(protected)/8)
+
 	if err := html.Render(&rendered, htmlNode); err != nil {
 		return err
 	}
 
-	_, err = io.WriteString(w, restoreRawBlocks(rendered.String(), rawBlocks))
-	return err
+	return writeRestoredRawBlocks(w, rendered.String(), rawBlocks)
+}
+
+// inlineStyles applies every rule of every inline stylesheet to the document in
+// declaration order and reports whether the document changed. Selectors are
+// compiled with the stylesheet, so this never parses CSS.
+func inlineStyles(sheets []component.Stylesheet, doc *html.Node) (bool, error) {
+	var (
+		changed bool
+		scratch styleDecls
+	)
+
+	for i := range sheets {
+		rules := sheets[i].Rules
+
+		for j := range rules {
+			sel, ok := rules[j].CompiledSelectors()
+			if !ok {
+				// MJML silently ignores a rule whose selectors do not parse.
+				continue
+			}
+
+			for _, n := range sel.Select(doc) {
+				nodeChanged, err := applyDeclarations(n, rules[j].Declarations, &scratch)
+				if err != nil {
+					return false, err
+				}
+
+				changed = changed || nodeChanged
+			}
+		}
+	}
+
+	return changed, nil
+}
+
+// applyDeclarations merges declarations into the node's style attribute and
+// mirrors the width/text-align/vertical-align/background-color declarations to
+// the legacy HTML attributes MJML emits. It reports whether the node changed.
+func applyDeclarations(n *html.Node, declarations []component.Style, scratch *styleDecls) (bool, error) {
+	styleIndex := -1
+	for i := range n.Attr {
+		if n.Attr[i].Key == "style" {
+			styleIndex = i
+		}
+	}
+
+	scratch.reset()
+
+	if styleIndex >= 0 {
+		if err := parseStyleAttribute(scratch, n.Attr[styleIndex].Val); err != nil {
+			return false, fmt.Errorf("failed to parse style attribute: %w", err)
+		}
+	}
+
+	changed := false
+
+	if styleIndex < 0 && len(declarations) == 0 {
+		// A matching rule without declarations adds nothing: an empty style
+		// attribute carries no meaning, so do not rewrite the node.
+		return false, nil
+	}
+
+	declarationsChanged := false
+	for _, decl := range declarations {
+		if scratch.set(decl) {
+			declarationsChanged = true
+		}
+	}
+
+	if n.Data == "table" || n.Data == "td" || n.Data == "div" {
+		if v, ok := scratch.lookup("width"); ok && v != "" {
+			if !hasAttribute(n, "width") {
+				if strings.HasSuffix(v, "px") {
+					n.Attr = append(n.Attr, html.Attribute{Key: "width", Val: component.RemoveNonNumeric(v)})
+				} else {
+					n.Attr = append(n.Attr, html.Attribute{Key: "width", Val: v})
+				}
+
+				changed = true
+			}
+		}
+	}
+
+	if v, ok := scratch.lookup("text-align"); ok && v != "" && !hasAttribute(n, "align") {
+		n.Attr = append(n.Attr, html.Attribute{Key: "align", Val: v})
+		changed = true
+	}
+
+	if v, ok := scratch.lookup("vertical-align"); ok && v != "" && !hasAttribute(n, "valign") {
+		n.Attr = append(n.Attr, html.Attribute{Key: "valign", Val: v})
+		changed = true
+	}
+
+	if v, ok := scratch.lookup("background-color"); ok && v != "" && !hasAttribute(n, "bgcolor") {
+		n.Attr = append(n.Attr, html.Attribute{Key: "bgcolor", Val: v})
+		changed = true
+	}
+
+	// The style attribute is written last, after the mirrored attributes, so the
+	// emitted attribute order stays what it was before the merge was rewritten.
+	// An unchanged style attribute keeps its exact current text instead of being
+	// reserialized.
+	if declarationsChanged || styleIndex < 0 {
+		value := scratch.String()
+
+		if styleIndex < 0 {
+			n.Attr = append(n.Attr, html.Attribute{Key: "style", Val: value})
+		} else if n.Attr[styleIndex].Val != value {
+			n.Attr[styleIndex].Val = value
+		}
+
+		changed = true
+	}
+
+	return changed, nil
+}
+
+// hasAttribute reports whether n already carries the attribute.
+func hasAttribute(n *html.Node, name string) bool {
+	for i := range n.Attr {
+		if n.Attr[i].Key == name {
+			return true
+		}
+	}
+
+	return false
 }
 
 // applyHTMLAttributes runs the <mj-html-attributes> selector pass on the parsed
 // document before inline styles are applied, mirroring MJML's pipeline. MJML
 // runs the pass against the rendered body content, so only the body subtree is
 // considered and the body element itself is not a target.
-func applyHTMLAttributes(selectors []component.HTMLAttributeSelector, doc *html.Node) {
+//
+// Each selector path is compiled once per render, outside the node loop, and an
+// unparsable path is skipped like MJML does. It reports whether any attribute
+// changed.
+func applyHTMLAttributes(selectors []component.HTMLAttributeSelector, doc *html.Node) bool {
 	if len(selectors) == 0 {
-		return
+		return false
 	}
 
 	body := findHTMLElement(doc, "body")
 	if body == nil {
-		return
+		return false
 	}
+
+	changed := false
 
 	for _, htmlSelector := range selectors {
 		sel, err := css.Parse(htmlSelector.Path)
@@ -277,10 +460,14 @@ func applyHTMLAttributes(selectors []component.HTMLAttributeSelector, doc *html.
 			}
 
 			for _, htmlAttribute := range htmlSelector.Attributes {
-				setHTMLAttribute(target, htmlAttribute.Name, htmlAttribute.Value)
+				if setHTMLAttribute(target, htmlAttribute.Name, htmlAttribute.Value) {
+					changed = true
+				}
 			}
 		}
 	}
+
+	return changed
 }
 
 func findHTMLElement(n *html.Node, tag string) *html.Node {
@@ -297,36 +484,61 @@ func findHTMLElement(n *html.Node, tag string) *html.Node {
 	return nil
 }
 
-func setHTMLAttribute(n *html.Node, name, value string) {
+// setHTMLAttribute sets one attribute on n and reports whether it changed.
+func setHTMLAttribute(n *html.Node, name, value string) bool {
 	for i := range n.Attr {
-		if n.Attr[i].Key == name {
-			n.Attr[i].Val = value
+		if n.Attr[i].Key != name {
+			continue
+		}
+
+		changed := n.Attr[i].Val != value
+		n.Attr[i].Val = value
+
+		return changed
+	}
+
+	n.Attr = append(n.Attr, html.Attribute{Key: name, Val: value})
+
+	return true
+}
+
+// parseStyleAttribute appends the declarations of an existing style attribute to
+// dst, keeping their order. A repeated property keeps its first position and
+// takes the last value, like the map it replaces.
+func parseStyleAttribute(dst *styleDecls, style string) error {
+	for declaration := range strings.SplitSeq(style, ";") {
+		declaration = strings.TrimSpace(declaration)
+		if declaration == "" {
+			continue
+		}
+
+		parts := strings.SplitN(declaration, ":", 2)
+		if len(parts) != 2 {
+			return fmt.Errorf("invalid style declaration: %s", declaration)
+		}
+
+		key := strings.TrimSpace(parts[0])
+		value := strings.TrimSpace(parts[1])
+		if key == "" || value == "" {
+			return fmt.Errorf("invalid style declaration: %s", declaration)
+		}
+
+		dst.appendOrReplace(styleDecl{property: key, value: value})
+	}
+
+	return nil
+}
+
+// appendOrReplace keeps the position of an existing property and takes the new
+// value; a new property is appended.
+func (d *styleDecls) appendOrReplace(decl styleDecl) {
+	for i := range *d {
+		if (*d)[i].property == decl.property {
+			(*d)[i].value = decl.value
+
 			return
 		}
 	}
 
-	n.Attr = append(n.Attr, html.Attribute{Key: name, Val: value})
-}
-
-func parseStyleAttribute(attr html.Attribute) (map[string]string, error) {
-	styles := make(map[string]string)
-
-	for style := range strings.SplitSeq(attr.Val, ";") {
-		style = strings.TrimSpace(style)
-		if style == "" {
-			continue
-		}
-		parts := strings.SplitN(style, ":", 2)
-		if len(parts) != 2 {
-			return nil, fmt.Errorf("invalid style declaration: %s", style)
-		}
-		key := strings.TrimSpace(parts[0])
-		value := strings.TrimSpace(parts[1])
-		if key == "" || value == "" {
-			return nil, fmt.Errorf("invalid style declaration: %s", style)
-		}
-		styles[key] = value
-	}
-
-	return styles, nil
+	*d = append(*d, decl)
 }
