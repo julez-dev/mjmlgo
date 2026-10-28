@@ -1,0 +1,26 @@
+<mjml>
+  <mj-head>
+    <mj-attributes>
+      <mj-all font-family="Arial, Helvetica, sans-serif" />
+      <mj-text font-size="12px" color="#333333" />
+      <mj-class name="primary" color="#ff0000" font-weight="bold" css-class="primary-class" />
+      <mj-class name="spaced" padding="20px" css-class="spaced-class" />
+      <mj-class name="layout">
+        <mj-text line-height="30px" />
+      </mj-class>
+    </mj-attributes>
+  </mj-head>
+  <mj-body>
+    <mj-section>
+      <mj-column>
+        <mj-text mj-class="primary spaced">Chained classes</mj-text>
+        <mj-text mj-class="primary" css-class="explicit-class" color="#00ff00">Element wins</mj-text>
+      </mj-column>
+    </mj-section>
+    <mj-section mj-class="layout">
+      <mj-column>
+        <mj-text>Nested class default</mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>
