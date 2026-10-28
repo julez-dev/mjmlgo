@@ -12,8 +12,8 @@ func (s MJMLSocial) Name() string {
 	return "mj-social"
 }
 
-func (s MJMLSocial) AllowedAttributes() map[string]validateAttributeFunc {
-	return map[string]validateAttributeFunc{
+func (s MJMLSocial) AllowedAttributes() map[string]AttributeValidator {
+	return map[string]AttributeValidator{
 		"align":                      validateEnum([]string{"left", "right", "center"}),
 		"border-radius":              validateUnit([]string{"px", "%"}, false),
 		"container-background-color": validateColor(),

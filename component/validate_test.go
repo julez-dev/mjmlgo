@@ -75,7 +75,7 @@ func TestValidateUnit(t *testing.T) {
 
 	tests := []struct {
 		name      string
-		validator validateAttributeFunc
+		validator AttributeValidator
 		value     string
 		wantErr   bool
 	}{

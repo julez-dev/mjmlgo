@@ -28,6 +28,7 @@ type rendererConfig struct {
 	fonts          map[string]string
 	ignoreIncludes bool
 	printerSupport bool
+	components     []component.Component
 }
 
 // Option configures a Renderer.
@@ -121,6 +122,12 @@ type Renderer struct {
 	fonts          map[string]string
 	ignoreIncludes bool
 	printerSupport bool
+
+	// components holds the custom components registered with WithComponents,
+	// indexed by tag. It is built once and never modified, so concurrent renders
+	// share it. componentsErr records a registration the renderer must refuse.
+	components    map[string]component.Component
+	componentsErr error
 }
 
 // NewRenderer returns a Renderer configured with the given options.
@@ -140,6 +147,8 @@ func NewRenderer(opts ...Option) *Renderer {
 	generator := config.idGenerator
 	var mu sync.Mutex
 
+	components, componentsErr := componentTable(config.components)
+
 	return &Renderer{
 		idGenerator: func() string {
 			mu.Lock()
@@ -151,6 +160,8 @@ func NewRenderer(opts ...Option) *Renderer {
 		fonts:          config.fonts,
 		ignoreIncludes: config.ignoreIncludes,
 		printerSupport: config.printerSupport,
+		components:     components,
+		componentsErr:  componentsErr,
 	}
 }
 

@@ -46,6 +46,13 @@ func (r *Renderer) renderDocument(callCtx context.Context, fsys fs.FS, name stri
 		return "", err
 	}
 
+	// A renderer whose custom components could not be registered renders
+	// nothing: the failure is about its configuration, not about this document,
+	// so it is reported identically for every document.
+	if r.componentsErr != nil {
+		return "", r.componentsErr
+	}
+
 	node, err := parse(input, !r.dropComments)
 	if err != nil {
 		return "", err
@@ -80,6 +87,9 @@ func (r *Renderer) renderDocument(callCtx context.Context, fsys fs.FS, name stri
 		FontsConfigured: r.fonts != nil,
 		PrinterSupport:  r.printerSupport,
 		IDGenerator:     r.idFunc(),
+		// The table belongs to the renderer and is immutable after
+		// construction, so concurrent renders may share it.
+		CustomComponents: r.components,
 	}
 	if err := component.InitComponent(ctx, mjml, node); err != nil {
 		return "", err

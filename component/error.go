@@ -34,6 +34,14 @@ const (
 	// kind because they are failures to assemble the document, not
 	// attribute validation.
 	KindParseFailure ErrorKind = "parse failure"
+	// KindInvalidComponent reports a custom component the renderer refuses to
+	// register: a nil component, an empty tag, a tag registered twice, or a tag
+	// that shadows a built-in element. It is a renderer-configuration failure
+	// rather than a document failure, so it does not match ErrValidation. There
+	// is no offending document element: Path names the tag that cannot be
+	// registered, or the document element when the component has no tag, and
+	// Value is the tag when there is one.
+	KindInvalidComponent ErrorKind = "invalid component"
 )
 
 // validationKinds are the kinds errors.Is reports as ErrValidation. The include
@@ -112,6 +120,9 @@ func (e *Error) Error() string {
 		fmt.Fprintf(&b, "unknown mj-include type %q (want mjml, html or css)", e.Value)
 	case KindParseFailure:
 		b.WriteString("parse failure")
+		e.writeCause(&b)
+	case KindInvalidComponent:
+		b.WriteString("invalid component")
 		e.writeCause(&b)
 	default:
 		fmt.Fprintf(&b, "validation failed (%s)", e.Kind)

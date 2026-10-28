@@ -14,8 +14,8 @@ func (d MJMLDivider) Name() string {
 	return "mj-divider"
 }
 
-func (d MJMLDivider) AllowedAttributes() map[string]validateAttributeFunc {
-	return map[string]validateAttributeFunc{
+func (d MJMLDivider) AllowedAttributes() map[string]AttributeValidator {
+	return map[string]AttributeValidator{
 		"border-color":               validateColor(),
 		"border-style":               validateType("string"),
 		"border-width":               validateUnit([]string{"px"}, false),

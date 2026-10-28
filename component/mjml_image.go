@@ -14,8 +14,8 @@ func (i MJMLImage) Name() string {
 	return "mj-image"
 }
 
-func (i MJMLImage) AllowedAttributes() map[string]validateAttributeFunc {
-	return map[string]validateAttributeFunc{
+func (i MJMLImage) AllowedAttributes() map[string]AttributeValidator {
+	return map[string]AttributeValidator{
 		"alt":                        validateType("string"),
 		"href":                       validateType("string"),
 		"name":                       validateType("string"),

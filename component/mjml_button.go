@@ -13,8 +13,8 @@ func (b MJMLButton) Name() string {
 	return "mj-button"
 }
 
-func (b MJMLButton) AllowedAttributes() map[string]validateAttributeFunc {
-	return map[string]validateAttributeFunc{
+func (b MJMLButton) AllowedAttributes() map[string]AttributeValidator {
+	return map[string]AttributeValidator{
 		"align":                      validateEnum([]string{"left", "center", "right"}),
 		"background-color":           validateColor(),
 		"border-bottom":              validateType("string"),

@@ -8,6 +8,11 @@ const (
 	BodyTagName MJMLComponentName = "mj-body"
 	RawTagName  MJMLComponentName = "mj-raw"
 
+	// IncludeTagName is the include element. It is resolved before validation
+	// and never reaches a component, so no component renders it - but it is
+	// part of the language, and a custom component must not shadow it.
+	IncludeTagName MJMLComponentName = "mj-include"
+
 	// head specific
 	AttributesTagName MJMLComponentName = "mj-attributes"
 	BreakpointTagName MJMLComponentName = "mj-breakpoint"

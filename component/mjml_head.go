@@ -15,8 +15,8 @@ func (h MJMLHead) Name() string {
 	return "mj-head"
 }
 
-func (h MJMLHead) AllowedAttributes() map[string]validateAttributeFunc {
-	return make(map[string]validateAttributeFunc)
+func (h MJMLHead) AllowedAttributes() map[string]AttributeValidator {
+	return make(map[string]AttributeValidator)
 }
 
 func (h MJMLHead) DefaultAttributes(_ *RenderContext) map[string]string {

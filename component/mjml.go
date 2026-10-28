@@ -19,8 +19,8 @@ func (m MJML) Name() string {
 	return "mjml"
 }
 
-func (m MJML) AllowedAttributes() map[string]validateAttributeFunc {
-	return map[string]validateAttributeFunc{
+func (m MJML) AllowedAttributes() map[string]AttributeValidator {
+	return map[string]AttributeValidator{
 		"owa":  validateEnum([]string{"desktop"}),
 		"lang": validateType("string"),
 		"dir":  validateEnum([]string{"ltr", "rtl", "auto"}),
@@ -132,7 +132,7 @@ func (m MJML) Render(ctx *RenderContext, w io.Writer, n *node.Node) error {
 // defaults, <mj-class> attributes, per-tag defaults declared inside an
 // ancestor's <mj-class>, and finally attributes written on the element itself.
 func (m MJML) setAttributeDefaults(ctx *RenderContext, n *node.Node, parentMjClasses string) {
-	if !strings.HasPrefix(n.Type, "mj-") {
+	if _, custom := customComponent(ctx, n.Type); !custom && !strings.HasPrefix(n.Type, "mj-") {
 		return
 	}
 

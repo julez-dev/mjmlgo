@@ -126,8 +126,8 @@ func (s MJMLSocialElement) Name() string {
 	return "mj-social-element"
 }
 
-func (s MJMLSocialElement) AllowedAttributes() map[string]validateAttributeFunc {
-	return map[string]validateAttributeFunc{
+func (s MJMLSocialElement) AllowedAttributes() map[string]AttributeValidator {
+	return map[string]AttributeValidator{
 		"align":            validateEnum([]string{"left", "right", "center"}),
 		"icon-position":    validateEnum([]string{"left", "right"}),
 		"background-color": validateColor(),

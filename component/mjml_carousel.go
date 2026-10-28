@@ -26,8 +26,8 @@ func (c MJMLCarousel) Name() string {
 	return "mj-carousel"
 }
 
-func (c MJMLCarousel) AllowedAttributes() map[string]validateAttributeFunc {
-	return map[string]validateAttributeFunc{
+func (c MJMLCarousel) AllowedAttributes() map[string]AttributeValidator {
+	return map[string]AttributeValidator{
 		"align":                      validateEnum([]string{"left", "center", "right"}),
 		"border-radius":              validateUnit([]string{"px", "%"}, true),
 		"container-background-color": validateColor(),
@@ -67,13 +67,13 @@ func (c MJMLCarousel) Render(ctx *RenderContext, w io.Writer, n *node.Node) erro
 	images := make([]*node.Node, 0, len(n.Children))
 
 	for _, child := range n.Children {
-		if !allowsChild(CarouselTagName, child.Type) {
+		if !allowsChild(ctx, CarouselTagName, child.Type) {
 			return NewError(
 				KindDisallowedChild,
 				append(elementPathSegments(n), child.Type),
 				"",
 				child.Type,
-				fmt.Errorf("allowed children: %s", allowedChildList(CarouselTagName)),
+				fmt.Errorf("allowed children: %s", allowedChildList(ctx, CarouselTagName)),
 			)
 		}
 

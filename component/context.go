@@ -44,6 +44,14 @@ type RenderContext struct {
 	// BodyContent is the rendered body HTML, used to detect which registered
 	// web fonts the document actually uses.
 	BodyContent string
+	// CustomComponents holds the custom components the renderer was configured
+	// with, keyed by tag name. Validation and rendering look a tag up here after
+	// the built-in tables, so a registered tag is a first-class element.
+	//
+	// The map belongs to the renderer and every render of that renderer shares
+	// it, including concurrent ones: components must not modify it. A nil or
+	// empty map is a renderer without custom components.
+	CustomComponents map[string]Component
 
 	// AttributeDefaults holds per-tag defaults from <mj-attributes>, keyed by
 	// tag name. The <mj-all> defaults live under the "mj-all" key.

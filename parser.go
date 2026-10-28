@@ -146,8 +146,9 @@ func fileStartRawContent(root *node.Node) string {
 }
 
 // includeTagName is the element that is replaced by the content of a file from
-// the caller's fs.FS.
-const includeTagName = "mj-include"
+// the caller's fs.FS. The tag name is shared with package component, so the
+// custom-component registry rejects it as a built-in element.
+const includeTagName = component.IncludeTagName
 
 // Include expansion limits. The reference implementation only detects cycles,
 // by remembering which files a document was included from; it has no depth cap,

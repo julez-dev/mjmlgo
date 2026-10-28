@@ -14,8 +14,8 @@ func (g MJMLGroup) Name() string {
 	return "mj-group"
 }
 
-func (g MJMLGroup) AllowedAttributes() map[string]validateAttributeFunc {
-	return map[string]validateAttributeFunc{
+func (g MJMLGroup) AllowedAttributes() map[string]AttributeValidator {
+	return map[string]AttributeValidator{
 		"background-color": validateColor(),
 		"direction":        validateEnum([]string{"ltr", "rtl"}),
 		"vertical-align":   validateEnum([]string{"top", "bottom", "middle"}),
