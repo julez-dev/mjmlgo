@@ -1,0 +1,15 @@
+<mjml>
+  <mj-body>
+    <mj-section>
+      <mj-column>
+        <mj-raw>
+          <div class="raw-before">raw before text</div>
+        </mj-raw>
+        <mj-text>Regular text</mj-text>
+        <mj-raw>
+          <span class="raw-after">raw after text</span>
+        </mj-raw>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>
