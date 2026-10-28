@@ -248,7 +248,6 @@ func (h MJMLHero) renderContent(ctx *RenderContext, w io.Writer, n *node.Node) e
 	}
 
 	defer func(value string) {
-		fmt.Println("reseting ContainerWidth", "current", ctx.ContainerWidth, "value", value)
 		ctx.ContainerWidth = value
 	}(ctx.ContainerWidth)
 

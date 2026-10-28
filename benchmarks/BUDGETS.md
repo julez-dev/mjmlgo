@@ -14,29 +14,29 @@ Fixtures that do not render yet (tracked by the parity baseline) are skipped.
 
 | Fixture | Budget ns/op | Budget B/op | Budget allocs/op | Measured ns/op | Measured B/op | Measured allocs/op |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| `button-complex.mjml` | 1,644,887 | 2,601,906 | 20,514 | 1,028,054 | 1,626,191 | 12,821 |
-| `button.mjml` | 98,328 | 164,364 | 1,360 | 61,455 | 102,727 | 850 |
-| `content.mjml` | 220,092 | 320,204 | 2,928 | 137,557 | 200,127 | 1,830 |
-| `fluid-height-hero.mjml` | 119,416 | 198,320 | 1,692 | 74,635 | 123,950 | 1,057 |
-| `head.mjml` | 131,981 | 202,210 | 1,951 | 82,488 | 126,381 | 1,219 |
-| `image-complex.mjml` | 1,173,826 | 1,883,031 | 16,464 | 733,641 | 1,176,894 | 10,290 |
-| `image.mjml` | 92,943 | 161,628 | 1,421 | 58,089 | 101,017 | 888 |
-| `input_big.mjml` | 4,259,069 | 5,974,176 | 54,679 | 2,661,918 | 3,733,860 | 34,174 |
-| `layout.mjml` | 394,327 | 646,154 | 5,525 | 246,454 | 403,846 | 3,453 |
-| `simple-hero.mjml` | 112,448 | 197,463 | 1,690 | 70,280 | 123,414 | 1,056 |
-| `simple.mjml` | 41,349 | 79,530 | 668 | 25,843 | 49,706 | 417 |
-| `social.mjml` | 222,404 | 440,727 | 3,012 | 139,002 | 275,454 | 1,882 |
-| `upstream/mjml--beautify-output--00.mjml` | 75,412 | 136,736 | 1,167 | 47,132 | 85,460 | 729 |
-| `upstream/mjml--beautify-output--01.mjml` | 75,951 | 137,008 | 1,167 | 47,469 | 85,630 | 729 |
-| `upstream/mjml--beautify-output--03.mjml` | 75,162 | 136,648 | 1,167 | 46,976 | 85,405 | 729 |
-| `upstream/mjml--beautify-output--04.mjml` | 76,506 | 137,058 | 1,167 | 47,816 | 85,661 | 729 |
-| `upstream/mjml--column-border-radius--00.mjml` | 86,236 | 155,434 | 1,304 | 53,897 | 97,146 | 815 |
-| `upstream/mjml--html-comments--00.mjml` | 83,504 | 151,375 | 1,269 | 52,190 | 94,609 | 793 |
-| `upstream/mjml--social-align--00.mjml` | 122,452 | 217,754 | 1,773 | 76,532 | 136,096 | 1,108 |
-| `upstream/mjml--social-icon-height--00.mjml` | 134,292 | 256,642 | 1,858 | 83,932 | 160,401 | 1,161 |
-| `upstream/mjml--wrapper-border-radius--00.mjml` | 103,421 | 176,018 | 1,564 | 64,638 | 110,011 | 977 |
-| `upstream/mjml--wrapper-gap--00.mjml` | 225,757 | 401,495 | 3,359 | 141,098 | 250,934 | 2,099 |
-| `upstream/parser-xml--preprocessors--00.mjml` | 76,122 | 136,901 | 1,175 | 47,576 | 85,563 | 734 |
+| `button-complex.mjml` | 1,416,556 | 2,310,516 | 20,511 | 885,347 | 1,444,072 | 12,819 |
+| `button.mjml` | 86,744 | 149,220 | 1,375 | 54,215 | 93,262 | 859 |
+| `content.mjml` | 197,213 | 305,794 | 2,944 | 123,258 | 191,121 | 1,840 |
+| `fluid-height-hero.mjml` | 109,904 | 186,447 | 1,704 | 68,690 | 116,529 | 1,065 |
+| `head.mjml` | 128,293 | 195,893 | 1,972 | 80,183 | 122,433 | 1,232 |
+| `image-complex.mjml` | 1,088,916 | 1,676,808 | 16,472 | 680,572 | 1,048,005 | 10,295 |
+| `image.mjml` | 89,658 | 150,616 | 1,437 | 56,036 | 94,135 | 898 |
+| `input_big.mjml` | 4,114,735 | 5,280,020 | 54,692 | 2,571,709 | 3,300,012 | 34,182 |
+| `layout.mjml` | 353,658 | 563,738 | 5,536 | 221,036 | 352,336 | 3,460 |
+| `simple-hero.mjml` | 110,087 | 183,444 | 1,701 | 68,804 | 114,652 | 1,063 |
+| `simple.mjml` | 39,807 | 70,287 | 682 | 24,879 | 43,929 | 426 |
+| `social.mjml` | 211,000 | 383,253 | 3,018 | 131,875 | 239,533 | 1,886 |
+| `upstream/mjml--beautify-output--00.mjml` | 72,693 | 124,511 | 1,181 | 45,433 | 77,819 | 738 |
+| `upstream/mjml--beautify-output--01.mjml` | 73,380 | 124,852 | 1,183 | 45,862 | 78,032 | 739 |
+| `upstream/mjml--beautify-output--03.mjml` | 72,637 | 124,444 | 1,181 | 45,398 | 77,777 | 738 |
+| `upstream/mjml--beautify-output--04.mjml` | 73,175 | 124,610 | 1,181 | 45,734 | 77,881 | 738 |
+| `upstream/mjml--column-border-radius--00.mjml` | 81,932 | 136,308 | 1,319 | 51,207 | 85,192 | 824 |
+| `upstream/mjml--html-comments--00.mjml` | 79,679 | 132,488 | 1,284 | 49,799 | 82,805 | 802 |
+| `upstream/mjml--social-align--00.mjml` | 117,941 | 201,602 | 1,786 | 73,713 | 126,001 | 1,116 |
+| `upstream/mjml--social-icon-height--00.mjml` | 126,336 | 225,117 | 1,869 | 78,960 | 140,698 | 1,168 |
+| `upstream/mjml--wrapper-border-radius--00.mjml` | 97,920 | 155,055 | 1,576 | 61,200 | 96,909 | 985 |
+| `upstream/mjml--wrapper-gap--00.mjml` | 214,295 | 359,524 | 3,367 | 133,934 | 224,702 | 2,104 |
+| `upstream/parser-xml--preprocessors--00.mjml` | 73,552 | 124,906 | 1,191 | 45,970 | 78,066 | 744 |
 
 Stage-level budgets are tracked from profiles for now; `BenchmarkParse` and
 `BenchmarkParityComparison` isolate the parser and the test harness. Inline CSS

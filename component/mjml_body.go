@@ -49,10 +49,13 @@ func (b MJMLBody) Render(ctx *RenderContext, w io.Writer, n *node.Node) error {
 	}
 
 	_, _ = io.WriteString(w, fmt.Sprintf("<div %s>\n", inlineAttributes{
-		"lang":  ctx.Language,
-		"dir":   ctx.Direction,
-		"class": bodyDivName,
-		"style": inlineStyle{{Property: "background-color", Value: n.GetAttributeValueDefault("background-color")}}.InlineString()}.InlineString()),
+		"aria-label":           ctx.Title,
+		"aria-roledescription": "email",
+		"role":                 "article",
+		"lang":                 ctx.Language,
+		"dir":                  ctx.Direction,
+		"class":                bodyDivName,
+		"style":                inlineStyle{{Property: "background-color", Value: n.GetAttributeValueDefault("background-color")}}.InlineString()}.InlineString()),
 	)
 
 	for _, child := range n.Children {

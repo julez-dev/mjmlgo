@@ -11,7 +11,7 @@ import (
 type MJMLHead struct{}
 
 func (h MJMLHead) Name() string {
-	return "mj-image"
+	return "mj-head"
 }
 
 func (h MJMLHead) AllowedAttributes() map[string]validateAttributeFunc {

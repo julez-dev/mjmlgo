@@ -58,6 +58,11 @@ Known divergences at the start: 214 records / 15 root causes (see
 - **M1 done** - parity/invalid corpora split, CSS comparison in the harness,
   31 curated upstream fixtures with provenance, benchmarks plus budget table,
   fuzz targets, CI workflow, coverage reporting.
+- **First fix batch done** - `mj-text` alignment, body accessibility wrapper
+  (role/aria), `mj-head` component name, stray brace in the font style block,
+  debug output in the hero and social renderers, hex shorthand expansion with
+  case preservation, and removal of the conditional-comment merging pass (which
+  also removed a whole-output regexp). Divergences: 334 -> 288.
 
 ## Roadmap
 
@@ -90,9 +95,15 @@ Root causes, with the site responsible, in the order they should be fixed
 10. Divider outlook width truncates percentages (`int(p)/100`) - 2.
 11. Hero MSO conditional table missing `cellspacing="0"`; debug `fmt.Println` in the hero renderer - 3.
 12. `mj-image` `border-radius`, gutter column background colour - 2.
-13. `mj-raw` as a child of `mj-column`/`mj-section`/`mj-group` - 1 render error.
+13. `mj-raw` as a child of `mj-column`/`mj-section`/`mj-group` - 1 render error, and the
+    reference CLI cannot render `mj-raw`-bearing fixtures until this is fixed.
 14. Font registry and usage filtering (default web fonts, no unconditional import) - 24.
 15. `owa="desktop"` CSS, dead `printSupport` branches - not visible to the old harness.
+16. Outlook conditional comment grouping: MJML emits one conditional comment per
+    contiguous MSO fragment (e.g. `</td><td ...>`), while components here emit one
+    per tag. Functionally equivalent in Outlook, structurally different. Requires
+    changing conditional emission in section, column, group, hero and social.
+17. `mj-table width="auto"` is rejected by validation (MJML allows it).
 
 ## Budgets
 

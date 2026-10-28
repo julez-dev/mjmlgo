@@ -71,8 +71,7 @@ func expandHexShortcut(hexCode string) (string, error) {
 			builder.WriteRune(char)
 			builder.WriteRune(char)
 		}
-		// Return the expanded code in uppercase for consistency
-		return strings.ToUpper(builder.String()), nil
+		return builder.String(), nil
 	case 6, 8: // This is already a full-length code (#RRGGBB or #RRGGBBAA)
 		// Just return it in a consistent case
 		return hexCode, nil
@@ -98,6 +97,14 @@ func (ia inlineAttributes) InlineString() string {
 		if value == "" {
 			continue
 		}
+
+		switch key {
+		case "bgcolor", "color":
+			if expanded, err := expandHexShortcut(value); err == nil {
+				value = expanded
+			}
+		}
+
 		b.WriteString(fmt.Sprintf("%s=\"%s\" ", key, value))
 	}
 	return strings.TrimSpace(b.String())

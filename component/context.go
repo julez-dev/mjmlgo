@@ -16,6 +16,7 @@ type RenderContext struct {
 	IncludeMobileFullWidthStyle bool
 	ContainerWidth              string
 	PreviewText                 string
+	Title                       string
 	Breakpoint                  string
 
 	Language  string

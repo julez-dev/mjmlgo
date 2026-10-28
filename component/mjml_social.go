@@ -77,7 +77,7 @@ func (s MJMLSocial) renderHorizontal(ctx *RenderContext, w io.Writer, n *node.No
 
 	_, _ = io.WriteString(w, "<!--[if mso | IE]>")
 	_, _ = io.WriteString(w, "<table "+tdAttr.InlineString()+">")
-	_, _ = io.WriteString(w, "<tr mjml-social-test>")
+	_, _ = io.WriteString(w, "<tr>")
 	_, _ = io.WriteString(w, "<![endif]-->")
 
 	attr := s.getSocialElementAttributes(n)

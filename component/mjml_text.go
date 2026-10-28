@@ -78,7 +78,7 @@ func (t MJMLText) getStyle(n *node.Node) inlineStyle {
 		{Property: "font-weight", Value: n.GetAttributeValueDefault("font-weight")},
 		{Property: "letter-spacing", Value: n.GetAttributeValueDefault("letter-spacing")},
 		{Property: "line-height", Value: n.GetAttributeValueDefault("line-height")},
-		{Property: "text-align", Value: n.GetAttributeValueDefault("text-align")},
+		{Property: "text-align", Value: n.GetAttributeValueDefault("align")},
 		{Property: "text-decoration", Value: n.GetAttributeValueDefault("text-decoration")},
 		{Property: "text-transform", Value: n.GetAttributeValueDefault("text-transform")},
 		{Property: "color", Value: n.GetAttributeValueDefault("color")},

@@ -138,6 +138,8 @@ func (m MJML) preparseHeadMetaValues(ctx *RenderContext, n *node.Node) error {
 			}
 		case PreviewTagName:
 			ctx.PreviewText = child.Content
+		case TitleTagName:
+			ctx.Title = child.Content
 		case FontTagName:
 			n, has := child.GetAttributeValue("name")
 			if !has {

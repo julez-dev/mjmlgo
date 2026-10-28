@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"regexp"
 	"strings"
 
 	"github.com/ericchiang/css"
@@ -13,7 +12,6 @@ import (
 )
 
 var ErrUnknownStartingTag = errors.New("mjml: unknown starting tag")
-var duplicateConditionalComments = regexp.MustCompile(`<!\[endif\]-->\s*<!--\[if mso \| IE\]>`)
 
 func RenderMJML(input io.Reader) (string, error) {
 	node, err := parse(input)
@@ -47,7 +45,7 @@ func RenderMJML(input io.Reader) (string, error) {
 		return "", err
 	}
 
-	return duplicateConditionalComments.ReplaceAllString(out.String(), ""), nil
+	return out.String(), nil
 }
 
 func inlineCSS(ctx *component.RenderContext, r io.Reader, w io.Writer) error {
