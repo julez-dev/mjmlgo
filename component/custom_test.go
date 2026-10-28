@@ -166,7 +166,9 @@ func TestValidateDocumentCustomComponent(t *testing.T) {
 func TestIsBuiltinTag(t *testing.T) {
 	t.Parallel()
 
-	for _, tag := range []string{MJMLTagName, BodyTagName, TextTagName, AttributesTagName, ClassTagName, AllTagName} {
+	for _, tag := range []string{
+		MJMLTagName, BodyTagName, TextTagName, AttributesTagName, ClassTagName, AllTagName, IncludeTagName,
+	} {
 		assert.True(t, IsBuiltinTag(tag), "%s should be a built-in tag", tag)
 	}
 

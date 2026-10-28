@@ -48,9 +48,10 @@ func acceptsPerTagDefaults(ctx *RenderContext, tag string) bool {
 }
 
 // IsBuiltinTag reports whether tag is one of the elements this package
-// implements: every body and head component, mj-all, mj-class and the document
-// elements. A custom component must not use such a tag, because registration
-// would shadow the built-in element instead of extending the language.
+// implements: every body and head component, mj-all, mj-class, mj-include and
+// the document elements. A custom component must not use such a tag, because
+// registration would shadow the built-in element instead of extending the
+// language.
 func IsBuiltinTag(tag string) bool {
 	_, builtin := knownTags[tag]
 

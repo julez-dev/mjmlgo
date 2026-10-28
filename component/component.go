@@ -210,8 +210,10 @@ var componentTags = map[string]struct{}{
 	CarouselTagName: {}, CarouselImageTagName: {},
 }
 
-// knownTags is every tag this implementation recognises, including the
-// component-less head tags.
+// knownTags is every tag this implementation recognises: the component-backed
+// tags, everything the dependency table names, mj-all, mj-class and mj-include.
+// Include elements are resolved before validation and never rendered, but they
+// are part of the language, so a custom component must not shadow one.
 var knownTags = func() map[string]struct{} {
 	tags := make(map[string]struct{}, len(componentTags)+4)
 
@@ -226,7 +228,7 @@ var knownTags = func() map[string]struct{} {
 		}
 	}
 
-	for _, tag := range []string{AllTagName, ClassTagName} {
+	for _, tag := range []string{AllTagName, ClassTagName, IncludeTagName} {
 		tags[tag] = struct{}{}
 	}
 

@@ -31,7 +31,8 @@
 //   - Error, ErrorKind and NewError, the structured failure every validation,
 //     parse and component-registration site constructs. Callers inspect Kind,
 //     Path, Attribute and Value; errors.Is keeps matching ErrValidation.
-//   - IsBuiltinTag, which reports whether a tag is already implemented here and
+//   - IsBuiltinTag, which reports whether a tag is already implemented here
+//     (every component, the head handlers, mj-all, mj-class and mj-include) and
 //     so cannot be used by a custom component.
 //   - DefaultIDGenerator and the TagName constants.
 //

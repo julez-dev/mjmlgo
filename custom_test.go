@@ -52,7 +52,9 @@ func structuredError(t *testing.T, err error) *component.Error {
 
 // bodyContent returns the rendered content of the body div, so a test can assert
 // exactly what a document produced without pinning the head boilerplate that the
-// parity corpus already covers.
+// parity corpus already covers. bodyDiv is the opening tag mjml_body.go emits; a
+// change to its attributes fails this helper loudly, which is intended: the
+// parity corpus is what pins that markup.
 func bodyContent(t *testing.T, rendered string) string {
 	t.Helper()
 
@@ -265,6 +267,12 @@ func TestWithComponentsRejectsInvalidRegistration(t *testing.T) {
 			renderer: mjmlgo.NewRenderer(mjmlgo.WithComponents(namedComponent{tag: component.TextTagName})),
 			path:     []string{component.TextTagName},
 			value:    component.TextTagName,
+		},
+		{
+			name:     "tag shadowing the include element",
+			renderer: mjmlgo.NewRenderer(mjmlgo.WithComponents(namedComponent{tag: component.IncludeTagName})),
+			path:     []string{component.IncludeTagName},
+			value:    component.IncludeTagName,
 		},
 		{
 			name:     "empty tag",

@@ -112,8 +112,7 @@ Known divergences at the start: 214 records / 15 root causes (see
 - **M2c done**: validation is driven by MJML's tables - unknown elements/attributes,
   undeclared `mj-class`, disallowed children, and MJML's value types (units
   including negatives, integers vs numbers, enums, colours) with element paths in
-  every error. Seven invalid fixtures added. Remaining M2 item: the public
-  custom-component interface (M2d).
+  every error. Seven invalid fixtures added.
 - **T5 done**: every validation and parse site returns a structured `*Error`
   (`Kind`, `Path`, `Attribute`, `Value`, `Err`) from one constructor, with the
   closed kind set from issue #6. `errors.As` reaches it through wrapping and

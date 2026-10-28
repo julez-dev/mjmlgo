@@ -93,8 +93,9 @@ func (b MJMLBody) Render(ctx *RenderContext, w io.Writer, n *node.Node) error {
 			custom, isCustom := customComponent(ctx, child.Type)
 			if !isCustom {
 				// Unreachable while ValidateDocument runs first: every other child
-				// of mj-body is a disallowed-child error before rendering.
-				continue
+				// of mj-body is a disallowed-child error before rendering. Report
+				// the broken invariant as internal, not as author input.
+				return fmt.Errorf("no component for allowed child <%s> in <mj-body>", child.Type)
 			}
 
 			if err := InitComponent(ctx, custom, child); err != nil {
