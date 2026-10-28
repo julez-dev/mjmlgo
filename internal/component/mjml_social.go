@@ -83,6 +83,21 @@ func (s MJMLSocial) renderHorizontal(ctx *RenderContext, w io.Writer, n *node.No
 	attr := s.getSocialElementAttributes(n)
 
 	for _, child := range n.Children {
+		if child.Type == RawTagName {
+			// Raw content - an author comment, for instance - is emitted at
+			// its document position, like every other component child.
+			var raw MJMLRaw
+			if err := InitComponent(ctx, raw, child); err != nil {
+				return err
+			}
+
+			if err := raw.Render(ctx, w, child); err != nil {
+				return err
+			}
+
+			continue
+		}
+
 		if child.Type != SocialElementTagName {
 			continue
 		}

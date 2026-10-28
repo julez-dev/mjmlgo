@@ -28,6 +28,11 @@ const (
 	// KindConditional is an Outlook conditional comment (<!--[if mso]>...<![endif]-->).
 	// Name holds the normalized condition, Children the parsed payload.
 	KindConditional
+	// KindComment is any other HTML comment. Text holds the comment body exactly
+	// as written, without the <!-- and --> delimiters: MJML preserves author
+	// comments byte for byte, spacing included, so the harness compares them
+	// byte for byte too.
+	KindComment
 )
 
 // Attr is a normalized HTML attribute.
@@ -51,8 +56,9 @@ type Node struct {
 // ParseHTML parses an HTML document into its normalized tree form.
 //
 // Normalization rules:
-//   - comments are dropped, except Outlook conditional comments, whose payload
-//     is parsed and compared as part of the tree;
+//   - Outlook conditional comments are parsed and compared as part of the tree;
+//     every other comment is kept as a KindComment node whose text is compared
+//     byte for byte, so a dropped or re-spaced author comment fails the test;
 //   - whitespace-only text nodes are dropped and all other text has runs of
 //     whitespace collapsed to a single space;
 //   - <style> contents are parsed and canonicalized so that generated CSS is
@@ -114,7 +120,11 @@ func convert(n *html.Node) *Node {
 		return &Node{Kind: KindText, Text: text}
 
 	case html.CommentNode:
-		return convertConditional(n.Data)
+		if conditional := convertConditional(n.Data); conditional != nil {
+			return conditional
+		}
+
+		return &Node{Kind: KindComment, Text: n.Data}
 
 	default:
 		return nil
@@ -372,6 +382,8 @@ func writeCanonical(b *strings.Builder, n *Node, depth int) {
 		b.WriteString(indent + "#text " + n.Text + "\n")
 	case KindConditional:
 		b.WriteString(indent + "#conditional [if " + n.Name + "]\n")
+	case KindComment:
+		b.WriteString(indent + "#comment <" + n.Text + ">\n")
 	case KindElement:
 		b.WriteString(indent + "<" + n.Name)
 

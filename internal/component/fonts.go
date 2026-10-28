@@ -18,11 +18,26 @@ var builtinFonts = []struct {
 	{"Ubuntu", "https://fonts.googleapis.com/css?family=Ubuntu:300,400,500,700"},
 }
 
-// ensureFontRegistry seeds the default web fonts and records their order. Fonts
-// already configured by the caller are kept as they are.
+// ensureFontRegistry seeds the default web fonts and records their order. A
+// caller-provided registry is kept as it is: it replaces the defaults rather
+// than extending them. A Go map has no order of its own, so a custom registry is
+// emitted in ascending family-name order to keep renders reproducible.
 func (c *RenderContext) ensureFontRegistry() {
 	if c.Fonts == nil {
 		c.Fonts = make(map[string]string)
+	}
+
+	if c.FontsConfigured {
+		if len(c.FontOrder) == 0 {
+			c.FontOrder = make([]string, 0, len(c.Fonts))
+			for name := range c.Fonts {
+				c.FontOrder = append(c.FontOrder, name)
+			}
+
+			slices.Sort(c.FontOrder)
+		}
+
+		return
 	}
 
 	for _, font := range builtinFonts {

@@ -48,7 +48,7 @@ func TestMJMLParity(t *testing.T) {
 		want, ok := reference[fixture]
 		require.True(t, ok, "no reference output for %s", fixture)
 
-		got, renderErr := renderFixture(fixture)
+		got, renderErr := renderFixture(t, fixture)
 
 		t.Run(filepath.ToSlash(fixture), func(t *testing.T) {
 			if renderErr != nil {
@@ -72,17 +72,53 @@ func TestMJMLParity(t *testing.T) {
 	}
 }
 
-// fixtureRenderer renders fixtures. It holds no per-render state, so the tests
-// can share one instance.
+// fixtureRenderer renders fixtures that need no configuration. It holds no
+// per-render state, so the tests can share one instance.
 var fixtureRenderer = NewRenderer()
+
+// rendererFor returns the renderer a fixture must be rendered with: the options
+// its sidecar asks for, which is the same configuration the reference CLI is
+// given for that fixture. A fixture without a sidecar uses the shared default
+// renderer.
+func rendererFor(t testing.TB, fixture string) *Renderer {
+	t.Helper()
+
+	config := mjmltest.Config(t, fixture)
+
+	var opts []Option
+
+	if config.KeepComments != nil {
+		opts = append(opts, WithComments(*config.KeepComments))
+	}
+
+	if config.FontsSet {
+		opts = append(opts, WithFonts(config.Fonts))
+	}
+
+	if config.IgnoreIncludes != nil {
+		opts = append(opts, WithIgnoreIncludes(*config.IgnoreIncludes))
+	}
+
+	if config.PrinterSupport != nil {
+		opts = append(opts, WithPrinterSupport(*config.PrinterSupport))
+	}
+
+	if len(opts) == 0 {
+		return fixtureRenderer
+	}
+
+	return NewRenderer(opts...)
+}
 
 // renderFixture renders fixture the way a caller would: the fixture's directory
 // is the root of the filesystem, so mj-include resolves relative includes inside
 // the corpus. That is exactly what the reference CLI does with a file path.
-func renderFixture(fixture string) (string, error) {
+func renderFixture(t testing.TB, fixture string) (string, error) {
+	t.Helper()
+
 	fsys := os.DirFS(filepath.Dir(fixture))
 
-	return fixtureRenderer.RenderString(context.Background(), fsys, filepath.Base(fixture))
+	return rendererFor(t, fixture).RenderString(context.Background(), fsys, filepath.Base(fixture))
 }
 
 func formatMismatches(mismatches []mjmltest.Mismatch) string {
@@ -141,7 +177,7 @@ func TestMJMLInvalid(t *testing.T) {
 		t.Run(filepath.ToSlash(fixture), func(t *testing.T) {
 			t.Parallel()
 
-			html, err := renderFixture(fixture)
+			html, err := renderFixture(t, fixture)
 
 			expectedPath := fixture + ".error.txt"
 			expected, readErr := os.ReadFile(expectedPath)
@@ -222,11 +258,11 @@ func TestRenderInlineStylesIsDeterministic(t *testing.T) {
 
 		checked++
 
-		first, err := renderFixture(fixture)
+		first, err := renderFixture(t, fixture)
 		require.NoError(t, err)
 
 		for range 4 {
-			again, err := renderFixture(fixture)
+			again, err := renderFixture(t, fixture)
 			require.NoError(t, err)
 			require.Equal(t, first, again, "%s rendered differently on a repeated render", fixture)
 		}
@@ -729,7 +765,7 @@ func BenchmarkRenderMJML(b *testing.B) {
 				// filesystem. Measure the caller-visible path instead, which
 				// includes reading the fixture and its includes from disk.
 				render = func() error {
-					_, err := renderFixture(fixture)
+					_, err := renderFixture(b, fixture)
 
 					return err
 				}
@@ -756,7 +792,7 @@ func BenchmarkRenderMJML(b *testing.B) {
 func BenchmarkParityComparison(b *testing.B) {
 	forEachParityFixture(b, func(name, fixture string) {
 		b.Run(name, func(b *testing.B) {
-			html, err := renderFixture(fixture)
+			html, err := renderFixture(b, fixture)
 			if err != nil {
 				b.Skipf("fixture does not render: %v", err)
 			}

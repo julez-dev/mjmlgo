@@ -20,16 +20,70 @@ package and by the reference MJML CLI, then compared structurally:
   normalized, class tokens are sorted and whitespace is collapsed, so formatting
   noise does not matter; empty `style`, `class` and `alt` attributes are treated
   as absent (they carry no information);
-- comments are ignored except Outlook conditional comments, whose payload
-  (`<table><tr><td>` MSO markup) is parsed and compared as part of the tree.
+- Outlook conditional comments are parsed and compared as part of the tree.
   Downlevel-reveal wrappers (`<!--[if !mso]><!-->`) have no payload but are kept,
   so their presence and position are compared too;
+- every other comment is compared **byte for byte** at its document position,
+  spacing inside the delimiters included. The reference implementation preserves
+  author comments verbatim (`<!--     comment with 5 spaces     -->` stays as
+  written), so a dropped or re-spaced comment is a real divergence;
 - `<style>` bodies are parsed as CSS and compared rule by rule. Rule **and**
   declaration order are preserved because the cascade depends on them;
   formatting and comments are dropped.
 
 `parity/upstream/` holds fixtures extracted from the upstream MJML test suite;
 see `parity/upstream/MANIFEST.md` for provenance and the curation rule.
+
+### Per-fixture reference flags (`<fixture>.cli-args`)
+
+Some features only show up under a non-default reference configuration
+(`keepComments`, `fonts`, `ignoreIncludes`, `printerSupport`). A fixture is
+rendered with reference flags by writing them to a sibling sidecar:
+`testdata/parity/printer-support.mjml.cli-args` configures
+`testdata/parity/printer-support.mjml`.
+
+The sidecar format is **one reference CLI argument per line**. Blank lines and
+lines starting with `#` are ignored; every other line is passed to the reference
+CLI unchanged, with surrounding whitespace trimmed. One argument per line keeps
+values that contain spaces (a URL in the `-c.fonts` JSON, for example)
+unambiguous:
+
+```text
+# comments are dropped, so the fixture proves the option
+-c.keepComments=false
+```
+
+The harness maps the flags it understands onto this package's renderer options,
+so the reference and this implementation are compared under the same
+configuration. An unknown or unmappable flag fails the test instead of silently
+comparing the reference's configured output against our defaults. The mapping is
+deliberately small:
+
+| Reference flag | Renderer option |
+| --- | --- |
+| `-c.keepComments=<value>` | `WithComments` |
+| `-c.fonts=<json object>` | `WithFonts` |
+| `-c.ignoreIncludes=<value>` | `WithIgnoreIncludes` |
+| `-c.printerSupport=<value>` | `WithPrinterSupport` |
+
+The registry of `-c.fonts` reaches this package as a Go map, which has no order
+of its own; a custom registry is therefore emitted in ascending family-name
+order (see `WithFonts`). A fixture that uses several custom families must pick
+names whose alphabetical order matches the sidecar's key order.
+
+`--config.<name>=<value>` is accepted as well. The value semantics follow the
+reference CLI, which is not uniform: `keepComments` is off only for the literal
+`false`, while `ignoreIncludes` and `printerSupport` are handed to mjml-core as
+strings and every non-empty string is truthy - so `-c.printerSupport=false`
+*enables* the option in the reference run, and sidecars use `true`.
+
+`keepComments` is the one option that changes the AST: the reference parser
+represents each author comment as an `mj-raw` node at its document position and
+drops them at parse time when the option is off. Comments inside ending tags
+(`mj-text`, `mj-table`, `mj-raw`, `mj-button`, ...) are part of that content and
+are never affected. Outlook conditional comments the renderer generates itself
+are emitted after parsing and are never affected either. The fixture
+`comments-keep-false.mjml` covers both halves.
 
 ### Configuring the MJML version
 

@@ -85,7 +85,7 @@ func compareNodes(mismatches *[]Mismatch, want, got *Node, path string, index in
 			})
 		}
 		return
-	case KindText:
+	case KindText, KindComment:
 		if want.Text != got.Text {
 			*mismatches = append(*mismatches, Mismatch{
 				Path:   path,
@@ -210,6 +210,8 @@ func childPath(path string, want, got *Node, index int) string {
 		name = "#doctype"
 	case KindText:
 		name = "#text"
+	case KindComment:
+		name = "#comment"
 	}
 
 	if index > 0 {
@@ -243,6 +245,8 @@ func kindString(n *Node) string {
 		return "<!doctype " + n.Text + ">"
 	case KindText:
 		return strconv.Quote(n.Text)
+	case KindComment:
+		return "<!--" + n.Text + "-->"
 	case KindConditional:
 		return "#conditional [if " + n.Name + "]"
 	case KindElement:

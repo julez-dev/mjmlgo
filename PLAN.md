@@ -132,6 +132,15 @@ Known divergences at the start: 214 records / 15 root causes (see
   are hard errors, covered by `testdata/invalid/include-*.mjml`. The parity
   fixture is `testdata/parity/includes/main.mjml`; include targets live in
   `partials/` directories, which the corpus walk skips.
+- **T1 authoring surface done**: author comments are preserved as `mj-raw` nodes
+  at their document position (verbatim, spacing included) and dropped at parse
+  time by `WithComments(false)`; `WithFonts`, `WithIgnoreIncludes` and
+  `WithPrinterSupport` expose MJML's other renderer options. The parity harness
+  reads per-fixture `<fixture>.cli-args` sidecars, passes the flags to the
+  reference CLI and maps `-c.<name>=<value>` onto those options, and it now
+  compares comment text byte for byte - so the four existing comment/
+  `htmlmin-ignore` fixtures fail if comments are dropped. Seven new fixtures
+  cover head, raw, container and between-component comments plus one per option.
 
 Current state: full MJML 4.18 component and head coverage, zero divergences,
 `TestMJMLInvalid` covering fail-fast validation, benchmarks and fuzz targets in

@@ -45,7 +45,7 @@ func (r *Renderer) renderDocument(callCtx context.Context, fsys fs.FS, name stri
 		return "", err
 	}
 
-	node, err := parse(input)
+	node, err := parse(input, !r.dropComments)
 	if err != nil {
 		return "", err
 	}
@@ -58,7 +58,9 @@ func (r *Renderer) renderDocument(callCtx context.Context, fsys fs.FS, name stri
 		return "", err
 	}
 
-	if err := resolveIncludes(callCtx, fsys, name, node); err != nil {
+	if r.ignoreIncludes {
+		stripIncludes(node)
+	} else if err := resolveIncludes(callCtx, fsys, name, node, !r.dropComments); err != nil {
 		return "", err
 	}
 
@@ -71,8 +73,12 @@ func (r *Renderer) renderDocument(callCtx context.Context, fsys fs.FS, name stri
 
 	ctx := &component.RenderContext{
 		MJMLStylesheet: make(map[string][]string),
-		Fonts:          make(map[string]string),
-		IDGenerator:    r.idFunc(),
+		Fonts:          r.fontRegistry(),
+		// A caller-provided registry replaces the built-in one instead of
+		// being extended with it.
+		FontsConfigured: r.fonts != nil,
+		PrinterSupport:  r.printerSupport,
+		IDGenerator:     r.idFunc(),
 	}
 	if err := component.InitComponent(ctx, mjml, node); err != nil {
 		return "", err
@@ -114,6 +120,22 @@ func (r *Renderer) renderDocument(callCtx context.Context, fsys fs.FS, name stri
 	}
 
 	return html, nil
+}
+
+// fontRegistry returns the web-font registry to seed the render context with.
+// The renderer's map is copied because rendering registers <mj-font> families in
+// the context and a Renderer may be used concurrently.
+func (r *Renderer) fontRegistry() map[string]string {
+	if r.fonts == nil {
+		return make(map[string]string)
+	}
+
+	registry := make(map[string]string, len(r.fonts))
+	for name, href := range r.fonts {
+		registry[name] = href
+	}
+
+	return registry
 }
 
 // Placeholders stand in for protected raw blocks while the document is parsed

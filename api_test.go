@@ -176,3 +176,118 @@ func TestRendererConcurrentUse(t *testing.T) {
 	wg.Wait()
 	assert.Empty(t, errs)
 }
+
+// renderSource renders an in-memory document with renderer and returns the
+// resulting HTML.
+func renderSource(t *testing.T, renderer *mjmlgo.Renderer, source string) string {
+	t.Helper()
+
+	fsys := fstest.MapFS{"doc.mjml": &fstest.MapFile{Data: []byte(source)}}
+
+	html, err := renderer.RenderString(context.Background(), fsys, "doc.mjml")
+	require.NoError(t, err)
+
+	return html
+}
+
+// mediaQueryDocument produces the column media queries printerSupport repeats in
+// its print block.
+const mediaQueryDocument = `<mjml><mj-body><mj-section>` +
+	`<mj-column width="50%"><mj-text>a</mj-text></mj-column>` +
+	`</mj-section></mj-body></mjml>`
+
+// TestWithComments asserts the authoring default and the opt-out: comments are
+// preserved by default, dropped on request, and comments inside an ending tag
+// are content and are always kept.
+func TestWithComments(t *testing.T) {
+	t.Parallel()
+
+	const document = `<mjml><mj-body><!-- between components -->` +
+		`<mj-section><mj-column><mj-text>text<!-- inside a text --></mj-text></mj-column></mj-section>` +
+		`</mj-body></mjml>`
+
+	defaultOutput := renderSource(t, mjmlgo.NewRenderer(), document)
+	assert.Contains(t, defaultOutput, "<!-- between components -->")
+	assert.Contains(t, defaultOutput, "<!-- inside a text -->")
+
+	dropped := renderSource(t, mjmlgo.NewRenderer(mjmlgo.WithComments(false)), document)
+	assert.NotContains(t, dropped, "<!-- between components -->")
+	assert.Contains(t, dropped, "<!-- inside a text -->", "comments inside an ending tag are content")
+
+	kept := renderSource(t, mjmlgo.NewRenderer(mjmlgo.WithComments(true)), document)
+	assert.Contains(t, kept, "<!-- between components -->")
+}
+
+// TestWithFonts asserts that a custom registry replaces the MJML default one
+// instead of extending it, that WithFonts(nil) means the defaults, and that an
+// <mj-font> element still wins for its family.
+func TestWithFonts(t *testing.T) {
+	t.Parallel()
+
+	const document = `<mjml><mj-head>` +
+		`<mj-font name="Document Font" href="https://example.com/document.css" />` +
+		`</mj-head><mj-body><mj-section><mj-column>` +
+		`<mj-text font-family="Custom Sans, sans-serif">custom</mj-text>` +
+		`<mj-text font-family="Document Font, serif">document</mj-text>` +
+		`<mj-text font-family="Lato, sans-serif">default</mj-text>` +
+		`</mj-column></mj-section></mj-body></mjml>`
+
+	custom := renderSource(t, mjmlgo.NewRenderer(mjmlgo.WithFonts(map[string]string{
+		"Custom Sans": "https://example.com/custom-sans.css",
+	})), document)
+
+	assert.Contains(t, custom, "https://example.com/custom-sans.css")
+	assert.Contains(t, custom, "https://example.com/document.css", "<mj-font> wins for its family")
+	assert.NotContains(t, custom, "fonts.googleapis.com/css?family=Lato", "the default registry is replaced")
+
+	defaults := renderSource(t, mjmlgo.NewRenderer(mjmlgo.WithFonts(nil)), document)
+	assert.Contains(t, defaults, "fonts.googleapis.com/css?family=Lato")
+	assert.NotContains(t, defaults, "https://example.com/custom-sans.css")
+
+	empty := renderSource(t, mjmlgo.NewRenderer(mjmlgo.WithFonts(map[string]string{})), document)
+	assert.NotContains(t, empty, "fonts.googleapis.com", "an empty registry replaces the defaults with nothing")
+	assert.Contains(t, empty, "https://example.com/document.css")
+}
+
+// TestWithIgnoreIncludes asserts that includes are left unexpanded: the element
+// disappears, the included file is never read, and the document still renders.
+func TestWithIgnoreIncludes(t *testing.T) {
+	t.Parallel()
+
+	const document = `<mjml><mj-body><mj-include path="partials/body.mjml" />` +
+		`<mj-section><mj-column><mj-text>local</mj-text></mj-column></mj-section>` +
+		`</mj-body></mjml>`
+
+	fsys := fstest.MapFS{"doc.mjml": &fstest.MapFile{Data: []byte(document)}}
+
+	_, err := mjmlgo.NewRenderer().RenderString(context.Background(), fsys, "doc.mjml")
+	require.Error(t, err, "without ignoreIncludes the missing include is an error")
+
+	html, err := mjmlgo.NewRenderer(mjmlgo.WithIgnoreIncludes(true)).
+		RenderString(context.Background(), fsys, "doc.mjml")
+	require.NoError(t, err)
+
+	assert.Contains(t, html, "local")
+	assert.NotContains(t, html, "partials/body.mjml")
+}
+
+// TestWithPrinterSupport asserts the option only adds MJML's print block, and
+// only when the document generates media queries.
+func TestWithPrinterSupport(t *testing.T) {
+	t.Parallel()
+
+	defaultOutput := renderSource(t, mjmlgo.NewRenderer(), mediaQueryDocument)
+	assert.NotContains(t, defaultOutput, "@media only print")
+	assert.Contains(t, defaultOutput, "@media only screen", "the base media queries are always emitted")
+
+	printOutput := renderSource(t, mjmlgo.NewRenderer(mjmlgo.WithPrinterSupport(true)), mediaQueryDocument)
+	assert.Contains(t, printOutput, "@media only print")
+	assert.Contains(t, printOutput, ".mj-column-per-50", "the print block reuses the base media queries")
+
+	// A document without media queries - no column, so no width class - gets no
+	// print block, like MJML.
+	const plainDocument = `<mjml><mj-body><mj-raw><div>raw only</div></mj-raw></mj-body></mjml>`
+	assert.NotContains(t,
+		renderSource(t, mjmlgo.NewRenderer(mjmlgo.WithPrinterSupport(true)), plainDocument),
+		"@media only print")
+}

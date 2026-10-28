@@ -38,9 +38,17 @@ func TestParseHTMLNormalization(t *testing.T) {
 			b:    `<html><body><div class="b a"></div></body></html>`,
 		},
 		{
-			name: "formatting whitespace and comments",
-			a:    "<html><body><p>\n  Hello   <b>world</b>\n</p><!-- note --></body></html>",
+			name: "formatting whitespace",
+			a:    "<html><body><p>\n  Hello   <b>world</b>\n</p></body></html>",
 			b:    "<html><body><p>Hello <b>world</b></p></body></html>",
+		},
+		{
+			// Comments are compared byte for byte, but a comment in the
+			// reference and in our output is the same comment regardless of
+			// the whitespace the formatter put around it.
+			name: "comment with surrounding formatting",
+			a:    "<html><body>\n  <!--     keep this     -->\n  <p>x</p>\n</body></html>",
+			b:    "<html><body><!--     keep this     --><p>x</p></body></html>",
 		},
 		{
 			name: "empty alt and style attributes",
@@ -161,6 +169,23 @@ func TestParseHTMLNormalization(t *testing.T) {
 			name: "downlevel reveal wrapper missing",
 			a:    `<!--[if !mso]><!--><meta charset="utf-8"><!--<![endif]-->`,
 			b:    `<meta charset="utf-8">`,
+		},
+		{
+			name: "missing comment",
+			a:    `<html><body><!-- note --><p>x</p></body></html>`,
+			b:    `<html><body><p>x</p></body></html>`,
+		},
+		{
+			// MJML preserves author comments byte for byte, including the
+			// spacing inside the delimiters, so a re-spaced comment differs.
+			name: "comment spacing",
+			a:    `<html><body><!--     comment with 5 spaces     --><p>x</p></body></html>`,
+			b:    `<html><body><!-- comment with 5 spaces --><p>x</p></body></html>`,
+		},
+		{
+			name: "comment position",
+			a:    `<html><body><!-- note --><p>x</p></body></html>`,
+			b:    `<html><body><p>x</p><!-- note --></body></html>`,
 		},
 		{
 			name: "conditional comment payload",

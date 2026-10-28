@@ -57,6 +57,7 @@ func (h MJMLHead) Render(ctx *RenderContext, w io.Writer, n *node.Node) error {
 		"UserStyles":                  userStyles,
 		"IncludeMobileFullWidthStyle": ctx.IncludeMobileFullWidthStyle,
 		"ForceOWADesktop":             ctx.ForceOWADesktop,
+		"PrinterSupport":              ctx.PrinterSupport,
 		"LowerBreakpoint":             ctx.makeLowerBreakpoint(),
 		"Fonts":                       ctx.Fonts,
 		"UsedFonts":                   ctx.usedFonts(ctx.BodyContent, ctx.InlineStyles),

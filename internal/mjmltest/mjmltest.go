@@ -262,26 +262,44 @@ func (c *CLI) detectVersion(t testing.TB) string {
 }
 
 // RenderAll renders each of the given .mjml files with the reference MJML
-// implementation and returns the resulting HTML keyed by file path.
+// implementation and returns the resulting HTML keyed by file path. Fixtures
+// with a sidecar (see Args) are rendered with the reference flags it records, so
+// the reference and this implementation are compared under the same
+// configuration.
 //
 // All files are rendered with a single CLI invocation where possible, because
-// starting Node.js once per fixture dominates the runtime.
+// starting Node.js once per fixture dominates the runtime. A fixture with its
+// own flags needs its own invocation, since the flags apply to the whole batch.
 func (c *CLI) RenderAll(t testing.TB, files []string) map[string]string {
 	t.Helper()
 
+	out := make(map[string]string, len(files))
 	if len(files) == 0 {
-		return map[string]string{}
+		return out
+	}
+
+	configured := make(map[string][]string, len(files))
+	var defaults []string
+
+	for _, file := range files {
+		if args := Args(t, file); len(args) > 0 {
+			configured[file] = args
+
+			continue
+		}
+
+		defaults = append(defaults, file)
 	}
 
 	// Group by output basename: the CLI writes <basename>.html into the output
 	// directory, so identically named fixtures must be rendered separately.
 	groups := make(map[string][]string)
-	for _, file := range files {
+	for _, file := range defaults {
 		base := strings.TrimSuffix(filepath.Base(file), filepath.Ext(file))
 		groups[base] = append(groups[base], file)
 	}
 
-	unique := make([]string, 0, len(files))
+	unique := make([]string, 0, len(defaults))
 	var duplicates []string
 
 	for _, group := range groups {
@@ -296,16 +314,20 @@ func (c *CLI) RenderAll(t testing.TB, files []string) map[string]string {
 
 	sort.Strings(unique)
 
-	out := make(map[string]string, len(files))
-
 	if len(unique) > 0 {
-		for file, html := range c.renderBatch(t, unique) {
+		for file, html := range c.renderBatch(t, unique, nil) {
 			out[file] = html
 		}
 	}
 
 	for _, file := range duplicates {
-		for f, html := range c.renderBatch(t, []string{file}) {
+		for f, html := range c.renderBatch(t, []string{file}, nil) {
+			out[f] = html
+		}
+	}
+
+	for file, args := range configured {
+		for f, html := range c.renderBatch(t, []string{file}, args) {
 			out[f] = html
 		}
 	}
@@ -313,12 +335,15 @@ func (c *CLI) RenderAll(t testing.TB, files []string) map[string]string {
 	return out
 }
 
-func (c *CLI) renderBatch(t testing.TB, files []string) map[string]string {
+// renderBatch renders files in one CLI invocation, passing flags as reference
+// configuration options.
+func (c *CLI) renderBatch(t testing.TB, files, flags []string) map[string]string {
 	t.Helper()
 
 	outDir := t.TempDir()
 
 	args := append([]string{}, c.argv[1:]...)
+	args = append(args, flags...)
 	absFiles := make([]string, len(files))
 
 	for i, file := range files {
