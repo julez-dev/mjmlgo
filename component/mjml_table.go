@@ -16,28 +16,30 @@ func (t MJMLTable) Name() string {
 	return "mj-table"
 }
 
+var tableAllowedAttributes = map[string]AttributeValidator{
+	"align":                      validateEnum([]string{"left", "right", "center"}),
+	"border":                     validateType("string"),
+	"cellpadding":                integerValue,
+	"cellspacing":                integerValue,
+	"container-background-color": validateColor(),
+	"color":                      validateColor(),
+	"font-family":                validateType("string"),
+	"font-size":                  validateUnit([]string{"px"}, false),
+	"font-weight":                validateType("string"),
+	"line-height":                validateUnit([]string{"px", "%", ""}, false),
+	"padding-bottom":             validateUnit([]string{"px", "%"}, false),
+	"padding-left":               validateUnit([]string{"px", "%"}, false),
+	"padding-right":              validateUnit([]string{"px", "%"}, false),
+	"padding-top":                validateUnit([]string{"px", "%"}, false),
+	"padding":                    validateUnit([]string{"px", "%"}, true),
+	"role":                       validateEnum([]string{"none", "presentation"}),
+	"table-layout":               validateEnum([]string{"auto", "fixed", "initial", "inherit"}),
+	"vertical-align":             validateEnum([]string{"top", "bottom", "middle"}),
+	"width":                      validateTableWidth(),
+}
+
 func (t MJMLTable) AllowedAttributes() map[string]AttributeValidator {
-	return map[string]AttributeValidator{
-		"align":                      validateEnum([]string{"left", "right", "center"}),
-		"border":                     validateType("string"),
-		"cellpadding":                validateInteger(),
-		"cellspacing":                validateInteger(),
-		"container-background-color": validateColor(),
-		"color":                      validateColor(),
-		"font-family":                validateType("string"),
-		"font-size":                  validateUnit([]string{"px"}, false),
-		"font-weight":                validateType("string"),
-		"line-height":                validateUnit([]string{"px", "%", ""}, false),
-		"padding-bottom":             validateUnit([]string{"px", "%"}, false),
-		"padding-left":               validateUnit([]string{"px", "%"}, false),
-		"padding-right":              validateUnit([]string{"px", "%"}, false),
-		"padding-top":                validateUnit([]string{"px", "%"}, false),
-		"padding":                    validateUnit([]string{"px", "%"}, true),
-		"role":                       validateEnum([]string{"none", "presentation"}),
-		"table-layout":               validateEnum([]string{"auto", "fixed", "initial", "inherit"}),
-		"vertical-align":             validateEnum([]string{"top", "bottom", "middle"}),
-		"width":                      validateTableWidth(),
-	}
+	return tableAllowedAttributes
 }
 
 func validateTableWidth() AttributeValidator {

@@ -14,20 +14,22 @@ func (d MJMLDivider) Name() string {
 	return "mj-divider"
 }
 
+var dividerAllowedAttributes = map[string]AttributeValidator{
+	"border-color":               validateColor(),
+	"border-style":               validateType("string"),
+	"border-width":               validateUnit([]string{"px"}, false),
+	"container-background-color": validateColor(),
+	"padding":                    validateUnit([]string{"px", "%"}, true),
+	"padding-bottom":             validateUnit([]string{"px", "%"}, false),
+	"padding-left":               validateUnit([]string{"px", "%"}, false),
+	"padding-right":              validateUnit([]string{"px", "%"}, false),
+	"padding-top":                validateUnit([]string{"px", "%"}, false),
+	"width":                      validateUnit([]string{"px", "%"}, false),
+	"align":                      validateEnum([]string{"left", "center", "right"}),
+}
+
 func (d MJMLDivider) AllowedAttributes() map[string]AttributeValidator {
-	return map[string]AttributeValidator{
-		"border-color":               validateColor(),
-		"border-style":               validateType("string"),
-		"border-width":               validateUnit([]string{"px"}, false),
-		"container-background-color": validateColor(),
-		"padding":                    validateUnit([]string{"px", "%"}, true),
-		"padding-bottom":             validateUnit([]string{"px", "%"}, false),
-		"padding-left":               validateUnit([]string{"px", "%"}, false),
-		"padding-right":              validateUnit([]string{"px", "%"}, false),
-		"padding-top":                validateUnit([]string{"px", "%"}, false),
-		"width":                      validateUnit([]string{"px", "%"}, false),
-		"align":                      validateEnum([]string{"left", "center", "right"}),
-	}
+	return dividerAllowedAttributes
 }
 
 func (d MJMLDivider) DefaultAttributes(_ *RenderContext) map[string]string {

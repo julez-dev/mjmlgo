@@ -26,26 +26,28 @@ func (c MJMLCarousel) Name() string {
 	return "mj-carousel"
 }
 
+var carouselAllowedAttributes = map[string]AttributeValidator{
+	"align":                      validateEnum([]string{"left", "center", "right"}),
+	"border-radius":              validateUnit([]string{"px", "%"}, true),
+	"container-background-color": validateColor(),
+	"icon-width":                 validateUnit([]string{"px", "%"}, false),
+	"left-icon":                  validateType("string"),
+	"padding":                    validateUnit([]string{"px", "%"}, true),
+	"padding-bottom":             validateUnit([]string{"px", "%"}, false),
+	"padding-left":               validateUnit([]string{"px", "%"}, false),
+	"padding-right":              validateUnit([]string{"px", "%"}, false),
+	"padding-top":                validateUnit([]string{"px", "%"}, false),
+	"right-icon":                 validateType("string"),
+	"tb-border":                  validateType("string"),
+	"tb-border-radius":           validateUnit([]string{"px", "%"}, false),
+	"tb-hover-border-color":      validateColor(),
+	"tb-selected-border-color":   validateColor(),
+	"tb-width":                   validateUnit([]string{"px", "%"}, false),
+	"thumbnails":                 validateEnum([]string{"visible", "hidden", "supported"}),
+}
+
 func (c MJMLCarousel) AllowedAttributes() map[string]AttributeValidator {
-	return map[string]AttributeValidator{
-		"align":                      validateEnum([]string{"left", "center", "right"}),
-		"border-radius":              validateUnit([]string{"px", "%"}, true),
-		"container-background-color": validateColor(),
-		"icon-width":                 validateUnit([]string{"px", "%"}, false),
-		"left-icon":                  validateType("string"),
-		"padding":                    validateUnit([]string{"px", "%"}, true),
-		"padding-bottom":             validateUnit([]string{"px", "%"}, false),
-		"padding-left":               validateUnit([]string{"px", "%"}, false),
-		"padding-right":              validateUnit([]string{"px", "%"}, false),
-		"padding-top":                validateUnit([]string{"px", "%"}, false),
-		"right-icon":                 validateType("string"),
-		"tb-border":                  validateType("string"),
-		"tb-border-radius":           validateUnit([]string{"px", "%"}, false),
-		"tb-hover-border-color":      validateColor(),
-		"tb-selected-border-color":   validateColor(),
-		"tb-width":                   validateUnit([]string{"px", "%"}, false),
-		"thumbnails":                 validateEnum([]string{"visible", "hidden", "supported"}),
-	}
+	return carouselAllowedAttributes
 }
 
 func (c MJMLCarousel) DefaultAttributes(_ *RenderContext) map[string]string {

@@ -13,11 +13,13 @@ func (b MJMLBody) Name() string {
 	return "mj-body"
 }
 
+var bodyAllowedAttributes = map[string]AttributeValidator{
+	"background-color": validateColor(),
+	"width":            validateUnit([]string{"px"}, false),
+}
+
 func (b MJMLBody) AllowedAttributes() map[string]AttributeValidator {
-	return map[string]AttributeValidator{
-		"background-color": validateColor(),
-		"width":            validateUnit([]string{"px"}, false),
-	}
+	return bodyAllowedAttributes
 }
 
 func (b MJMLBody) DefaultAttributes(_ *RenderContext) map[string]string {

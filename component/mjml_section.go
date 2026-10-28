@@ -3,6 +3,7 @@ package component
 import (
 	"fmt"
 	"io"
+	"maps"
 	"strconv"
 	"strings"
 
@@ -21,37 +22,47 @@ func (s MJMLSection) Name() string {
 	return SectionTagName
 }
 
-func (s MJMLSection) AllowedAttributes() map[string]AttributeValidator {
-	attributes := map[string]AttributeValidator{
-		"background-color":      validateColor(),
-		"background-url":        validateType("string"),
-		"background-repeat":     validateEnum([]string{"repeat", "no-repeat"}),
-		"background-size":       validateType("string"),
-		"background-position":   validateType("string"),
-		"background-position-x": validateType("string"),
-		"background-position-y": validateType("string"),
-		"border":                validateType("string"),
-		"border-bottom":         validateType("string"),
-		"border-left":           validateType("string"),
-		"border-radius":         validateType("string"),
-		"border-right":          validateType("string"),
-		"border-top":            validateType("string"),
-		"direction":             validateEnum([]string{"ltr", "rtl"}),
-		"full-width":            validateEnum([]string{"full-width", "false", ""}),
-		"padding-bottom":        validateUnit([]string{"px", "%"}, false),
-		"padding-left":          validateUnit([]string{"px", "%"}, false),
-		"padding-right":         validateUnit([]string{"px", "%"}, false),
-		"padding-top":           validateUnit([]string{"px", "%"}, false),
-		"padding":               validateUnit([]string{"px", "%"}, true),
-		"text-align":            validateEnum([]string{"left", "center", "right"}),
-		"text-padding":          validateUnit([]string{"px", "%"}, true),
-	}
+var sectionAllowedAttributes = map[string]AttributeValidator{
+	"background-color":      validateColor(),
+	"background-url":        validateType("string"),
+	"background-repeat":     validateEnum([]string{"repeat", "no-repeat"}),
+	"background-size":       validateType("string"),
+	"background-position":   validateType("string"),
+	"background-position-x": validateType("string"),
+	"background-position-y": validateType("string"),
+	"border":                validateType("string"),
+	"border-bottom":         validateType("string"),
+	"border-left":           validateType("string"),
+	"border-radius":         validateType("string"),
+	"border-right":          validateType("string"),
+	"border-top":            validateType("string"),
+	"direction":             validateEnum([]string{"ltr", "rtl"}),
+	"full-width":            validateEnum([]string{"full-width", "false", ""}),
+	"padding-bottom":        validateUnit([]string{"px", "%"}, false),
+	"padding-left":          validateUnit([]string{"px", "%"}, false),
+	"padding-right":         validateUnit([]string{"px", "%"}, false),
+	"padding-top":           validateUnit([]string{"px", "%"}, false),
+	"padding":               validateUnit([]string{"px", "%"}, true),
+	"text-align":            validateEnum([]string{"left", "center", "right"}),
+	"text-padding":          validateUnit([]string{"px", "%"}, true),
+}
 
-	if s.IsWrapper {
-		attributes["gap"] = validateUnit([]string{"px"}, false)
-	}
+// wrapperAllowedAttributes is the section table plus the wrapper-only gap
+// attribute. Both tables are static, so they are built once at package init
+// rather than per validated node.
+var wrapperAllowedAttributes = func() map[string]AttributeValidator {
+	attributes := maps.Clone(sectionAllowedAttributes)
+	attributes["gap"] = validateUnit([]string{"px"}, false)
 
 	return attributes
+}()
+
+func (s MJMLSection) AllowedAttributes() map[string]AttributeValidator {
+	if s.IsWrapper {
+		return wrapperAllowedAttributes
+	}
+
+	return sectionAllowedAttributes
 }
 
 func (s MJMLSection) DefaultAttributes(_ *RenderContext) map[string]string {

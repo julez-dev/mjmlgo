@@ -21,14 +21,6 @@ var (
 
 	// Regex for expanding shorthand hex values
 	shorthandHexRegex = regexp.MustCompile(`^#([0-9a-fA-F])([0-9a-fA-F])([0-9a-fA-F])$`)
-
-	// unitValueRegex splits a single unit value into its optional sign, numeric
-	// part and unit. It mirrors the permissive number part of MJML's unit type,
-	// which accepts any sequence of digits, dots and commas.
-	unitValueRegex = regexp.MustCompile(`^(-?)([\d.,]+)([A-Za-z%]*)$`)
-
-	// integerRegex mirrors MJML's integer type, which is an unanchored \d+.
-	integerRegex = regexp.MustCompile(`\d+`)
 )
 
 var cssColorNames = map[string]struct{}{
@@ -118,77 +110,146 @@ func validateUnitValues(validUnits []string, minValues, maxValues int, allowNega
 			return errors.New("empty value is not a valid unit")
 		}
 
-		values := strings.Split(value, " ")
-		if len(values) < minValues || len(values) > maxValues {
-			return fmt.Errorf("%q has %d value(s), want %d to %d", value, len(values), minValues, maxValues)
+		// The values are space separated, like MJML's shorthand types. Count
+		// them without splitting so the success path allocates nothing: a space
+		// always starts a new value, including the empty values produced by
+		// leading, trailing and repeated spaces.
+		valueCount := strings.Count(value, " ") + 1
+		if valueCount < minValues || valueCount > maxValues {
+			return fmt.Errorf("%q has %d value(s), want %d to %d", value, valueCount, minValues, maxValues)
 		}
 
-		for _, s := range values {
+		for start := 0; ; {
+			end := strings.IndexByte(value[start:], ' ')
+
+			var s string
+
+			if end < 0 {
+				s = value[start:]
+			} else {
+				end += start
+				s = value[start:end]
+			}
+
 			if s == "" {
 				return fmt.Errorf("empty value in %q", value)
 			}
 
-			if s == "0" {
-				continue
-			}
+			if s != "0" {
+				if s == "auto" {
+					if !slices.Contains(validUnits, "auto") || valueCount != 1 {
+						return fmt.Errorf("unit %q from value %q is not one of %v", s, value, validUnits)
+					}
+				} else {
+					negative, unit, ok := parseUnitValue(s)
+					if !ok {
+						return fmt.Errorf("unable to parse CSS unit from: %s", s)
+					}
 
-			if s == "auto" {
-				if !slices.Contains(validUnits, "auto") || len(values) != 1 {
-					return fmt.Errorf("unit %q from value %q is not one of %v", s, value, validUnits)
+					if negative && !allowNegative {
+						return fmt.Errorf("negative value %q is not allowed", s)
+					}
+
+					if !slices.Contains(validUnits, unit) {
+						return fmt.Errorf("unit %q from value %q is not one of %v", unit, s, validUnits)
+					}
 				}
-
-				continue
 			}
 
-			matches := unitValueRegex.FindStringSubmatch(s)
-			if matches == nil {
-				return fmt.Errorf("unable to parse CSS unit from: %s", s)
+			if end < 0 {
+				break
 			}
 
-			negative, number, unit := matches[1], matches[2], matches[3]
-			if negative != "" && !allowNegative {
-				return fmt.Errorf("negative value %q is not allowed", s)
-			}
-
-			if number == "" {
-				return fmt.Errorf("unable to parse CSS unit from: %s", s)
-			}
-
-			if !slices.Contains(validUnits, unit) {
-				return fmt.Errorf("unit %q from value %q is not one of %v", unit, s, validUnits)
-			}
+			start = end + 1
 		}
 
 		return nil
 	}
 }
 
-func validateInteger() AttributeValidator {
-	return func(value string) error {
-		if !integerRegex.MatchString(value) {
-			return fmt.Errorf("value %q is not an integer", value)
+// parseUnitValue splits one unit value into its optional sign, numeric part and
+// unit without allocating. It mirrors MJML's permissive number part, which
+// accepts any sequence of digits, dots and commas, and requires the unit to
+// consist of ASCII letters and percent signs up to the end of the value.
+func parseUnitValue(s string) (negative bool, unit string, ok bool) {
+	i := 0
+	if i < len(s) && s[i] == '-' {
+		negative = true
+		i++
+	}
+
+	numberStart := i
+	for i < len(s) {
+		c := s[i]
+		if (c < '0' || c > '9') && c != '.' && c != ',' {
+			break
 		}
+
+		i++
+	}
+
+	if i == numberStart {
+		return false, "", false
+	}
+
+	unitStart := i
+	for i < len(s) {
+		c := s[i]
+		if !(c >= 'a' && c <= 'z') && !(c >= 'A' && c <= 'Z') && c != '%' {
+			return false, "", false
+		}
+
+		i++
+	}
+
+	return negative, s[unitStart:], true
+}
+
+// The type validators are stateless, so each type is one shared value rather
+// than a fresh closure per call. validateType hands them out; the hoisted
+// AllowedAttributes tables then hold them for the process lifetime.
+var (
+	acceptAllValue AttributeValidator = func(string) error { return nil }
+
+	booleanValue AttributeValidator = func(value string) error {
+		if !strings.EqualFold(value, "true") && !strings.EqualFold(value, "false") {
+			return fmt.Errorf("value %q is not a boolean", value)
+		}
+
 		return nil
 	}
-}
+
+	numberValue AttributeValidator = func(value string) error {
+		if _, err := strconv.ParseFloat(value, 64); err != nil {
+			return fmt.Errorf("value %q is not a valid number", value)
+		}
+
+		return nil
+	}
+
+	// integerValue mirrors MJML's integer type, which is an unanchored \d+: the
+	// value is accepted when it contains at least one ASCII digit.
+	integerValue AttributeValidator = func(value string) error {
+		for i := 0; i < len(value); i++ {
+			if c := value[i]; c >= '0' && c <= '9' {
+				return nil
+			}
+		}
+
+		return fmt.Errorf("value %q is not an integer", value)
+	}
+)
 
 func validateType(expectedType string) AttributeValidator {
-	return func(value string) error {
-		switch expectedType {
-		case "string":
-			return nil
-		case "boolean":
-			if !strings.EqualFold(value, "true") && !strings.EqualFold(value, "false") {
-				return fmt.Errorf("value %q is not a boolean", value)
-			}
-		case "number":
-			if _, err := strconv.ParseFloat(value, 64); err != nil {
-				return fmt.Errorf("value %q is not a valid number", value)
-			}
-		case "integer":
-			return validateInteger()(value)
-		}
-
-		return nil
+	switch expectedType {
+	case "boolean":
+		return booleanValue
+	case "number":
+		return numberValue
+	case "integer":
+		return integerValue
+	default:
+		// "string" accepts every value; MJML's unknown types are permissive too.
+		return acceptAllValue
 	}
 }

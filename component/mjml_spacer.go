@@ -12,21 +12,23 @@ func (s MJMLSpacer) Name() string {
 	return "mj-spacer"
 }
 
+var spacerAllowedAttributes = map[string]AttributeValidator{
+	"border":                     validateType("string"),
+	"border-bottom":              validateType("string"),
+	"border-left":                validateType("string"),
+	"border-right":               validateType("string"),
+	"border-top":                 validateType("string"),
+	"container-background-color": validateColor(),
+	"padding-bottom":             validateUnit([]string{"px", "%"}, false),
+	"padding-left":               validateUnit([]string{"px", "%"}, false),
+	"padding-right":              validateUnit([]string{"px", "%"}, false),
+	"padding-top":                validateUnit([]string{"px", "%"}, false),
+	"padding":                    validateUnit([]string{"px", "%"}, true),
+	"height":                     validateUnit([]string{"px", "%"}, false),
+}
+
 func (s MJMLSpacer) AllowedAttributes() map[string]AttributeValidator {
-	return map[string]AttributeValidator{
-		"border":                     validateType("string"),
-		"border-bottom":              validateType("string"),
-		"border-left":                validateType("string"),
-		"border-right":               validateType("string"),
-		"border-top":                 validateType("string"),
-		"container-background-color": validateColor(),
-		"padding-bottom":             validateUnit([]string{"px", "%"}, false),
-		"padding-left":               validateUnit([]string{"px", "%"}, false),
-		"padding-right":              validateUnit([]string{"px", "%"}, false),
-		"padding-top":                validateUnit([]string{"px", "%"}, false),
-		"padding":                    validateUnit([]string{"px", "%"}, true),
-		"height":                     validateUnit([]string{"px", "%"}, false),
-	}
+	return spacerAllowedAttributes
 }
 
 func (s MJMLSpacer) DefaultAttributes(ctx *RenderContext) map[string]string {

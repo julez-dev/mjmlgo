@@ -16,7 +16,7 @@ func (h MJMLHead) Name() string {
 }
 
 func (h MJMLHead) AllowedAttributes() map[string]AttributeValidator {
-	return make(map[string]AttributeValidator)
+	return emptyAllowedAttributes
 }
 
 func (h MJMLHead) DefaultAttributes(_ *RenderContext) map[string]string {

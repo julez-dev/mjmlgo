@@ -13,28 +13,30 @@ func (t MJMLText) Name() string {
 	return "mj-text"
 }
 
+var textAllowedAttributes = map[string]AttributeValidator{
+	"align":                      validateEnum([]string{"left", "right", "center", "justify"}),
+	"background-color":           validateColor(),
+	"color":                      validateColor(),
+	"container-background-color": validateColor(),
+	"font-family":                validateType("string"),
+	"font-size":                  validateUnit([]string{"px"}, false),
+	"font-style":                 validateType("string"),
+	"font-weight":                validateType("string"),
+	"height":                     validateUnit([]string{"px", "%"}, false),
+	"letter-spacing":             validateUnitWithNegative([]string{"px", "em"}, false),
+	"line-height":                validateUnit([]string{"px", "%", ""}, false),
+	"padding-bottom":             validateUnit([]string{"px", "%"}, false),
+	"padding-left":               validateUnit([]string{"px", "%"}, false),
+	"padding-right":              validateUnit([]string{"px", "%"}, false),
+	"padding-top":                validateUnit([]string{"px", "%"}, false),
+	"padding":                    validateUnit([]string{"px", "%"}, true),
+	"text-decoration":            validateType("string"),
+	"text-transform":             validateType("string"),
+	"vertical-align":             validateEnum([]string{"top", "bottom", "middle"}),
+}
+
 func (t MJMLText) AllowedAttributes() map[string]AttributeValidator {
-	return map[string]AttributeValidator{
-		"align":                      validateEnum([]string{"left", "right", "center", "justify"}),
-		"background-color":           validateColor(),
-		"color":                      validateColor(),
-		"container-background-color": validateColor(),
-		"font-family":                validateType("string"),
-		"font-size":                  validateUnit([]string{"px"}, false),
-		"font-style":                 validateType("string"),
-		"font-weight":                validateType("string"),
-		"height":                     validateUnit([]string{"px", "%"}, false),
-		"letter-spacing":             validateUnitWithNegative([]string{"px", "em"}, false),
-		"line-height":                validateUnit([]string{"px", "%", ""}, false),
-		"padding-bottom":             validateUnit([]string{"px", "%"}, false),
-		"padding-left":               validateUnit([]string{"px", "%"}, false),
-		"padding-right":              validateUnit([]string{"px", "%"}, false),
-		"padding-top":                validateUnit([]string{"px", "%"}, false),
-		"padding":                    validateUnit([]string{"px", "%"}, true),
-		"text-decoration":            validateType("string"),
-		"text-transform":             validateType("string"),
-		"vertical-align":             validateEnum([]string{"top", "bottom", "middle"}),
-	}
+	return textAllowedAttributes
 }
 
 func (t MJMLText) DefaultAttributes(ctx *RenderContext) map[string]string {

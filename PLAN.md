@@ -151,6 +151,15 @@ Known divergences at the start: 214 records / 15 root causes (see
   2.58 ms -> 2.45 ms, 3.83 MB -> 3.05 MB, 32.9k -> 30.4k allocs; the remaining
   inline cost is the `html.Parse`/`html.Render` round-trip, tracked as a
   follow-up with numbers.
+- **T7 done**: validation no longer allocates on the accept path. The built-in
+  `AllowedAttributes` tables are package-level values (custom components keep
+  supplying their own table per call, and the context-dependent defaults stay in
+  `DefaultAttributes`), the unit validator counts and scans its value in place
+  instead of `strings.Split` plus a regexp, the type validators are shared values
+  instead of a closure per table entry, and the element path is built only when a
+  node is reported. Acceptance, error kinds and messages are unchanged.
+  `input_big.mjml` 37,259 -> 26,090 allocs and 3.70 MB -> 3.02 MB per render
+  (median of 3, `-benchmem`, Go 1.24), and the corpus budgets were re-measured.
 - **M2b includes done**: `mj-include` resolves through the caller's `fs.FS`.
   `type="mjml"` (the default) parses the included file, wraps a bare fragment in
   `mjml`/`mj-body` like MJML does, splices the children of its `mj-body` where the
@@ -202,11 +211,8 @@ Known divergences at the start: 214 records / 15 root causes (see
 Current state: full MJML 4.18 component and head coverage, zero divergences,
 `TestMJMLInvalid` covering fail-fast validation, custom components as leaves and
 containers with head styles, benchmarks and fuzz targets in
-place. Remaining roadmap: T6/T7 (inliner and validation allocations) and T8 (unit-test
-backfill) -
-the current implementation still uses the post-render HTML round-trip for inline
-CSS and rejects the full surface of MJML's attribute validation less strictly
-than planned.
+place. Remaining roadmap: T6 (inliner) and T8 (unit-test backfill) - the current
+implementation still uses the post-render HTML round-trip for inline CSS.
 
 ## Working with lanes
 

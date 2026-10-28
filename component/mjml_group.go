@@ -14,13 +14,15 @@ func (g MJMLGroup) Name() string {
 	return "mj-group"
 }
 
+var groupAllowedAttributes = map[string]AttributeValidator{
+	"background-color": validateColor(),
+	"direction":        validateEnum([]string{"ltr", "rtl"}),
+	"vertical-align":   validateEnum([]string{"top", "bottom", "middle"}),
+	"width":            validateUnit([]string{"px", "%"}, false),
+}
+
 func (g MJMLGroup) AllowedAttributes() map[string]AttributeValidator {
-	return map[string]AttributeValidator{
-		"background-color": validateColor(),
-		"direction":        validateEnum([]string{"ltr", "rtl"}),
-		"vertical-align":   validateEnum([]string{"top", "bottom", "middle"}),
-		"width":            validateUnit([]string{"px", "%"}, false),
-	}
+	return groupAllowedAttributes
 }
 
 func (g MJMLGroup) DefaultAttributes(ctx *RenderContext) map[string]string {

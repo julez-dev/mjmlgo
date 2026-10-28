@@ -14,37 +14,39 @@ func (i MJMLImage) Name() string {
 	return "mj-image"
 }
 
+var imageAllowedAttributes = map[string]AttributeValidator{
+	"alt":                        validateType("string"),
+	"href":                       validateType("string"),
+	"name":                       validateType("string"),
+	"src":                        validateType("string"),
+	"srcset":                     validateType("string"),
+	"sizes":                      validateType("string"),
+	"title":                      validateType("string"),
+	"rel":                        validateType("string"),
+	"align":                      validateEnum([]string{"left", "center", "right"}),
+	"border":                     validateType("string"),
+	"border-bottom":              validateType("string"),
+	"border-left":                validateType("string"),
+	"border-right":               validateType("string"),
+	"border-top":                 validateType("string"),
+	"border-radius":              validateUnit([]string{"px", "%"}, true),
+	"container-background-color": validateColor(),
+	"fluid-on-mobile":            validateType("boolean"),
+	"padding":                    validateUnit([]string{"px", "%"}, true),
+	"padding-bottom":             validateUnit([]string{"px", "%"}, false),
+	"padding-left":               validateUnit([]string{"px", "%"}, false),
+	"padding-right":              validateUnit([]string{"px", "%"}, false),
+	"padding-top":                validateUnit([]string{"px", "%"}, false),
+	"target":                     validateType("string"),
+	"width":                      validateUnit([]string{"px"}, false),
+	"height":                     validateUnit([]string{"px", "auto"}, false),
+	"max-height":                 validateUnit([]string{"px", "%"}, false),
+	"font-size":                  validateUnit([]string{"px"}, false),
+	"usemap":                     validateType("string"),
+}
+
 func (i MJMLImage) AllowedAttributes() map[string]AttributeValidator {
-	return map[string]AttributeValidator{
-		"alt":                        validateType("string"),
-		"href":                       validateType("string"),
-		"name":                       validateType("string"),
-		"src":                        validateType("string"),
-		"srcset":                     validateType("string"),
-		"sizes":                      validateType("string"),
-		"title":                      validateType("string"),
-		"rel":                        validateType("string"),
-		"align":                      validateEnum([]string{"left", "center", "right"}),
-		"border":                     validateType("string"),
-		"border-bottom":              validateType("string"),
-		"border-left":                validateType("string"),
-		"border-right":               validateType("string"),
-		"border-top":                 validateType("string"),
-		"border-radius":              validateUnit([]string{"px", "%"}, true),
-		"container-background-color": validateColor(),
-		"fluid-on-mobile":            validateType("boolean"),
-		"padding":                    validateUnit([]string{"px", "%"}, true),
-		"padding-bottom":             validateUnit([]string{"px", "%"}, false),
-		"padding-left":               validateUnit([]string{"px", "%"}, false),
-		"padding-right":              validateUnit([]string{"px", "%"}, false),
-		"padding-top":                validateUnit([]string{"px", "%"}, false),
-		"target":                     validateType("string"),
-		"width":                      validateUnit([]string{"px"}, false),
-		"height":                     validateUnit([]string{"px", "auto"}, false),
-		"max-height":                 validateUnit([]string{"px", "%"}, false),
-		"font-size":                  validateUnit([]string{"px"}, false),
-		"usemap":                     validateType("string"),
-	}
+	return imageAllowedAttributes
 }
 
 func (i MJMLImage) DefaultAttributes(_ *RenderContext) map[string]string {

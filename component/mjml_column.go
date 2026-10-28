@@ -13,31 +13,33 @@ func (c MJMLColumn) Name() string {
 	return "mj-column"
 }
 
+var columnAllowedAttributes = map[string]AttributeValidator{
+	"background-color":       validateColor(),
+	"border":                 validateType("string"),
+	"border-bottom":          validateType("string"),
+	"border-left":            validateType("string"),
+	"border-radius":          validateUnit([]string{"px", "%"}, true),
+	"border-right":           validateType("string"),
+	"border-top":             validateType("string"),
+	"direction":              validateEnum([]string{"ltr", "rtl"}),
+	"inner-background-color": validateColor(),
+	"padding-bottom":         validateUnit([]string{"px", "%"}, false),
+	"padding-left":           validateUnit([]string{"px", "%"}, false),
+	"padding-right":          validateUnit([]string{"px", "%"}, false),
+	"padding-top":            validateUnit([]string{"px", "%"}, false),
+	"padding":                validateUnit([]string{"px", "%"}, true),
+	"inner-border":           validateType("string"),
+	"inner-border-bottom":    validateType("string"),
+	"inner-border-left":      validateType("string"),
+	"inner-border-radius":    validateUnit([]string{"px", "%"}, true),
+	"inner-border-right":     validateType("string"),
+	"inner-border-top":       validateType("string"),
+	"vertical-align":         validateEnum([]string{"top", "bottom", "middle"}),
+	"width":                  validateUnit([]string{"px", "%"}, false),
+}
+
 func (c MJMLColumn) AllowedAttributes() map[string]AttributeValidator {
-	return map[string]AttributeValidator{
-		"background-color":       validateColor(),
-		"border":                 validateType("string"),
-		"border-bottom":          validateType("string"),
-		"border-left":            validateType("string"),
-		"border-radius":          validateUnit([]string{"px", "%"}, true),
-		"border-right":           validateType("string"),
-		"border-top":             validateType("string"),
-		"direction":              validateEnum([]string{"ltr", "rtl"}),
-		"inner-background-color": validateColor(),
-		"padding-bottom":         validateUnit([]string{"px", "%"}, false),
-		"padding-left":           validateUnit([]string{"px", "%"}, false),
-		"padding-right":          validateUnit([]string{"px", "%"}, false),
-		"padding-top":            validateUnit([]string{"px", "%"}, false),
-		"padding":                validateUnit([]string{"px", "%"}, true),
-		"inner-border":           validateType("string"),
-		"inner-border-bottom":    validateType("string"),
-		"inner-border-left":      validateType("string"),
-		"inner-border-radius":    validateUnit([]string{"px", "%"}, true),
-		"inner-border-right":     validateType("string"),
-		"inner-border-top":       validateType("string"),
-		"vertical-align":         validateEnum([]string{"top", "bottom", "middle"}),
-		"width":                  validateUnit([]string{"px", "%"}, false),
-	}
+	return columnAllowedAttributes
 }
 
 func (c MJMLColumn) DefaultAttributes(_ *RenderContext) map[string]string {

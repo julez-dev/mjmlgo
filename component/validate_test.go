@@ -78,22 +78,35 @@ func TestValidateUnit(t *testing.T) {
 		validator AttributeValidator
 		value     string
 		wantErr   bool
+		want      string
 	}{
 		{name: "single px", validator: validateUnit([]string{"px"}, false), value: "10px"},
 		{name: "zero without unit", validator: validateUnit([]string{"px"}, false), value: "0"},
-		{name: "wrong unit", validator: validateUnit([]string{"px"}, false), value: "10em", wantErr: true},
-		{name: "negative is rejected", validator: validateUnit([]string{"px"}, false), value: "-10px", wantErr: true},
+		{name: "wrong unit", validator: validateUnit([]string{"px"}, false), value: "10em", wantErr: true, want: `unit "em" from value "10em" is not one of [px]`},
+		{name: "negative is rejected", validator: validateUnit([]string{"px"}, false), value: "-10px", wantErr: true, want: `negative value "-10px" is not allowed`},
 		{name: "negative is allowed by unitWithNegative", validator: validateUnitWithNegative([]string{"px"}, false), value: "-10px"},
 		{name: "negative em is allowed by unitWithNegative", validator: validateUnitWithNegative([]string{"px", "em"}, false), value: "-1.5em"},
-		{name: "empty", validator: validateUnit([]string{"px"}, false), value: "", wantErr: true},
+		{name: "empty", validator: validateUnit([]string{"px"}, false), value: "", wantErr: true, want: "empty value is not a valid unit"},
 		{name: "auto without auto unit", validator: validateUnit([]string{"px"}, false), value: "auto", wantErr: true},
 		{name: "auto with auto unit", validator: validateUnit([]string{"px", "auto"}, false), value: "auto"},
 		{name: "shorthand one value", validator: validateUnit([]string{"px", "%"}, true), value: "10px"},
 		{name: "shorthand four values", validator: validateUnit([]string{"px", "%"}, true), value: "10px 20% 30px 40%"},
-		{name: "shorthand five values", validator: validateUnit([]string{"px", "%"}, true), value: "1px 2px 3px 4px 5px", wantErr: true},
+		{name: "shorthand five values", validator: validateUnit([]string{"px", "%"}, true), value: "1px 2px 3px 4px 5px", wantErr: true, want: `"1px 2px 3px 4px 5px" has 5 value(s), want 1 to 4`},
 		{name: "shorthand rejects auto", validator: validateUnit([]string{"px", "auto"}, true), value: "auto auto", wantErr: true},
 		{name: "line-height without unit", validator: validateUnit([]string{"px", "%", ""}, false), value: "1.5"},
 		{name: "line-height with em", validator: validateUnit([]string{"px", "%", ""}, false), value: "1em", wantErr: true},
+		// The value scanner reads the sign, number and unit in one pass, so the
+		// edge cases of MJML's permissive number part stay pinned here.
+		{name: "leading space is an empty value", validator: validateUnit([]string{"px"}, true), value: " 10px", wantErr: true, want: `empty value in " 10px"`},
+		{name: "trailing space is an empty value", validator: validateUnit([]string{"px"}, false), value: "10px ", wantErr: true},
+		{name: "double space is an empty value", validator: validateUnit([]string{"px"}, true), value: "10px  20px", wantErr: true},
+		{name: "unit without number", validator: validateUnit([]string{"px"}, false), value: "px", wantErr: true, want: "unable to parse CSS unit from: px"},
+		{name: "sign without number", validator: validateUnitWithNegative([]string{"px"}, false), value: "-px", wantErr: true},
+		{name: "character after unit", validator: validateUnit([]string{"px"}, false), value: "10px2", wantErr: true},
+		{name: "dots and commas form the number", validator: validateUnit([]string{"px"}, false), value: "1.2.3px"},
+		{name: "unit matching is case sensitive", validator: validateUnit([]string{"px"}, false), value: "10PX", wantErr: true},
+		{name: "negative shorthand value", validator: validateUnitWithNegative([]string{"px"}, true), value: "-1px -2px"},
+		{name: "negative shorthand value is rejected by unit", validator: validateUnit([]string{"px"}, true), value: "10px -2px", wantErr: true},
 	}
 
 	for _, tt := range tests {
@@ -101,6 +114,11 @@ func TestValidateUnit(t *testing.T) {
 			t.Parallel()
 
 			err := tt.validator(tt.value)
+			if tt.want != "" {
+				require.EqualError(t, err, tt.want)
+				return
+			}
+
 			if tt.wantErr {
 				require.Error(t, err)
 				return
@@ -131,7 +149,7 @@ func TestValidateInteger(t *testing.T) {
 		t.Run(tt.value, func(t *testing.T) {
 			t.Parallel()
 
-			err := validateInteger()(tt.value)
+			err := integerValue(tt.value)
 			if tt.wantErr {
 				require.Error(t, err)
 				return
