@@ -18,9 +18,12 @@ package and by the reference MJML CLI, then compared structurally:
 - elements, attributes (inline styles included) and text content must match;
 - attributes are sorted, CSS declaration order inside a `style` attribute is
   normalized, class tokens are sorted and whitespace is collapsed, so formatting
-  noise does not matter;
+  noise does not matter; empty `style`, `class` and `alt` attributes are treated
+  as absent (they carry no information);
 - comments are ignored except Outlook conditional comments, whose payload
-  (`<table><tr><td>` MSO markup) is parsed and compared as part of the tree;
+  (`<table><tr><td>` MSO markup) is parsed and compared as part of the tree.
+  Downlevel-reveal wrappers (`<!--[if !mso]><!-->`) have no payload but are kept,
+  so their presence and position are compared too;
 - `<style>` bodies are parsed as CSS and compared rule by rule. Rule **and**
   declaration order are preserved because the cascade depends on them;
   formatting and comments are dropped.
@@ -85,7 +88,9 @@ The test compares the *set* of differences, not just their count:
 - a recorded difference that disappeared also fails, so fixes must update the
   baseline and thereby shrink it.
 
-Fixtures without an entry must match MJML exactly. Re-record with:
+Fixtures without an entry must match MJML exactly. Baseline entries whose
+fixture no longer exists on disk fail the test, so renames cannot leave stale
+records behind. Re-record with:
 
 ```bash
 go test ./ -run TestMJMLParity -update
@@ -119,6 +124,10 @@ testdata/invalid/invalid-color.mjml.error.txt   ->  chartreuseish not a valid co
   fixtures small and focused: one fixture per feature area keeps each baseline
   entry interpretable. Fixtures that cannot render yet are still valuable — they
   record the missing feature.
+- `parity/input_big.mjml` is the deliberate exception: a 24 KB multi-feature
+  document kept as the end-to-end performance fixture
+  (`BenchmarkRenderMJML/input_big.mjml`). Its baseline entry is coarse on purpose;
+  add focused fixtures instead of extending it.
 - Invalid: add the fixture plus its `.error.txt`.
 
 `mj-include` works because the reference CLI runs on the fixture path itself, so

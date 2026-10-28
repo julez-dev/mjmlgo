@@ -3,7 +3,6 @@ package mjmlgo
 import (
 	"bytes"
 	"os"
-	"path/filepath"
 	"strings"
 	"testing"
 
@@ -57,9 +56,7 @@ func TestParse(t *testing.T) {
 
 // BenchmarkParse isolates the MJML parser.
 func BenchmarkParse(b *testing.B) {
-	for _, fixture := range mjmlFixtures(b, parityDir) {
-		name := strings.TrimPrefix(filepath.ToSlash(fixture), parityDir+"/")
-
+	forEachParityFixture(b, func(name, fixture string) {
 		b.Run(name, func(b *testing.B) {
 			input, err := os.ReadFile(fixture)
 			if err != nil {
@@ -75,7 +72,7 @@ func BenchmarkParse(b *testing.B) {
 				}
 			}
 		})
-	}
+	})
 }
 
 // FuzzParse asserts the parser never panics and either returns an error or a
@@ -89,9 +86,7 @@ func FuzzParse(f *testing.F) {
 	f.Add(`not mjml`)
 
 	f.Fuzz(func(t *testing.T, source string) {
-		if len(source) > 1<<20 {
-			t.Skip("input too large for a fuzz seed")
-		}
+		checkFuzzInput(t, source)
 
 		root, err := parse(bytes.NewReader([]byte(source)))
 		if err != nil {

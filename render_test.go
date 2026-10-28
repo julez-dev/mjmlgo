@@ -97,6 +97,10 @@ func TestMJMLParity(t *testing.T) {
 
 	baseline := loadBaseline(t, cli.Version)
 
+	if !*updateBaseline {
+		requireBaselineFixturesExist(t, baseline, fixtures)
+	}
+
 	reference := cli.RenderAll(t, fixtures)
 
 	updated := parityBaseline{
@@ -188,6 +192,27 @@ func loadBaseline(t testing.TB, version string) parityBaseline {
 	}
 
 	return baseline
+}
+
+// requireBaselineFixturesExist guards against baseline entries whose fixture was
+// renamed or deleted: only files on disk are rendered, so a stale key would
+// otherwise sit in the baseline forever.
+func requireBaselineFixturesExist(t testing.TB, baseline parityBaseline, fixtures []string) {
+	t.Helper()
+
+	onDisk := make(map[string]struct{}, len(fixtures))
+	for _, fixture := range fixtures {
+		onDisk[fixture] = struct{}{}
+	}
+
+	for fixture := range baseline.Fixtures {
+		if _, ok := onDisk[fixture]; !ok {
+			t.Fatalf(
+				"%s records %q but no such fixture exists; re-record the baseline with: go test ./ -run TestMJMLParity -update",
+				baselinePath, fixture,
+			)
+		}
+	}
 }
 
 func writeBaseline(t testing.TB, baseline parityBaseline) {
@@ -301,6 +326,26 @@ func TestMJMLInvalid(t *testing.T) {
 	}
 }
 
+// forEachParityFixture runs fn for every parity fixture, named after its path
+// relative to the parity directory.
+func forEachParityFixture(tb testing.TB, fn func(name, fixture string)) {
+	for _, fixture := range mjmlFixtures(tb, parityDir) {
+		fn(strings.TrimPrefix(filepath.ToSlash(fixture), parityDir+"/"), fixture)
+	}
+}
+
+// maxFuzzInput bounds fuzz input size so one case cannot dominate the run.
+const maxFuzzInput = 1 << 20
+
+// checkFuzzInput skips oversized fuzz inputs.
+func checkFuzzInput(t *testing.T, source string) {
+	t.Helper()
+
+	if len(source) > maxFuzzInput {
+		t.Skip("input too large for a fuzz case")
+	}
+}
+
 // mjmlFixtures returns all .mjml files below dir, sorted for stable output.
 func mjmlFixtures(t testing.TB, dir string) []string {
 	t.Helper()
@@ -331,18 +376,6 @@ func mjmlFixtures(t testing.TB, dir string) []string {
 	slices.Sort(fixtures)
 
 	return fixtures
-}
-
-func TestRender(t *testing.T) {
-	input, err := os.ReadFile("input_s.mjml")
-	require.NoError(t, err)
-
-	out, err := RenderMJML(bytes.NewReader(input))
-	require.NoError(t, err)
-
-	os.WriteFile("out.html", []byte(out), 0o644)
-	_ = out
-	//t.Log(out)
 }
 
 func TestInlineCSS(t *testing.T) {
@@ -407,9 +440,7 @@ func TestInlineCSS(t *testing.T) {
 //
 // Budgets live in benchmarks/BUDGETS.md.
 func BenchmarkRenderMJML(b *testing.B) {
-	for _, fixture := range mjmlFixtures(b, parityDir) {
-		name := strings.TrimPrefix(filepath.ToSlash(fixture), parityDir+"/")
-
+	forEachParityFixture(b, func(name, fixture string) {
 		b.Run(name, func(b *testing.B) {
 			input, err := os.ReadFile(fixture)
 			if err != nil {
@@ -431,15 +462,13 @@ func BenchmarkRenderMJML(b *testing.B) {
 				}
 			}
 		})
-	}
+	})
 }
 
 // BenchmarkParityComparison isolates the test harness cost (normalize both
 // documents and compare them), which gates how large the parity corpus can get.
 func BenchmarkParityComparison(b *testing.B) {
-	for _, fixture := range mjmlFixtures(b, parityDir) {
-		name := strings.TrimPrefix(filepath.ToSlash(fixture), parityDir+"/")
-
+	forEachParityFixture(b, func(name, fixture string) {
 		b.Run(name, func(b *testing.B) {
 			input, err := os.ReadFile(fixture)
 			if err != nil {
@@ -459,7 +488,7 @@ func BenchmarkParityComparison(b *testing.B) {
 				}
 			}
 		})
-	}
+	})
 }
 
 // FuzzRenderMJML asserts that the renderer never panics on arbitrary input and
@@ -484,9 +513,7 @@ func FuzzRenderMJML(f *testing.F) {
 	}
 
 	f.Fuzz(func(t *testing.T, source string) {
-		if len(source) > 1<<20 {
-			t.Skip("input too large for a fuzz seed")
-		}
+		checkFuzzInput(t, source)
 
 		html, err := RenderMJML(strings.NewReader(source))
 		if err != nil {

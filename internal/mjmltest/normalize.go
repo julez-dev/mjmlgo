@@ -149,8 +149,14 @@ func convertConditional(data string) *Node {
 	payload = strings.TrimSpace(payload)
 
 	if payload == "" {
-		// Empty conditionals are used as start/end markers (and are merged by
-		// the Go implementation), so they carry no comparable information.
+		// Downlevel-reveal wrappers (<!--[if !mso]><!--> ... <!--<![endif]-->) have
+		// an empty payload but still shape the document, so keep them. Plain end
+		// markers (<![endif]-->) never reach this point: they do not start with
+		// "[if" and are dropped as ordinary comments.
+		if strings.HasPrefix(strings.TrimSpace(condition), "!") {
+			return &Node{Kind: KindConditional, Name: condition}
+		}
+
 		return nil
 	}
 

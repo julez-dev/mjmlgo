@@ -5,7 +5,11 @@
       "mismatches": [
         {
           "path": "/#document/html[1]/head[1]",
-          "detail": "child count mismatch: want 12, got 10"
+          "detail": "child count mismatch: want 14, got 11"
+        },
+        {
+          "path": "/#document/html[1]/head[1]/#conditional[2]",
+          "detail": "node kind mismatch: want #conditional [if !mso], got \u003cstyle\u003e"
         },
         {
           "path": "/#document/html[1]/head[1]/link[1]",
@@ -13,23 +17,7 @@
         },
         {
           "path": "/#document/html[1]/head[1]/style[2]",
-          "detail": "attribute \"media\" unexpected, got \"screen and (min-width:480px)\""
-        },
-        {
-          "path": "/#document/html[1]/head[1]/style[2]",
-          "detail": "attribute \"type\" missing, want \"text/css\""
-        },
-        {
-          "path": "/#document/html[1]/head[1]/style[2]",
-          "detail": "stylesheet rule 1 mismatch: want \"@import url(https://fonts.googleapis.com/css?family=Ubuntu:300,400,500,700)\", got \".moz-text-html .mj-column-per-100{width:100% !important;max-width:100%}\""
-        },
-        {
-          "path": "/#document/html[1]/head[1]/style[2]",
-          "detail": "stylesheet rule 2 unexpected: got \".moz-text-html .mj-column-per-50{width:50% !important;max-width:50%}\""
-        },
-        {
-          "path": "/#document/html[1]/head[1]/style[3]",
-          "detail": "stylesheet rule 1 mismatch: want \"@media only screen and (min-width:480px){.mj-column-per-100{width:100% !important;max-width:100%}.mj-column-per-50{width:50% !important;max-width:50%}}\", got \".wrapper-style{border:2px dashed #cccccc;background-color:#f0f0f0}\""
+          "detail": "stylesheet rule 1 mismatch: want \"@import url(https://fonts.googleapis.com/css?family=Ubuntu:300,400,500,700)\", got \".wrapper-style{border:2px dashed #cccccc;background-color:#f0f0f0}\""
         },
         {
           "path": "/#document/html[1]/body[1]/div[1]",
@@ -237,7 +225,11 @@
       "mismatches": [
         {
           "path": "/#document/html[1]/head[1]",
-          "detail": "child count mismatch: want 12, got 10"
+          "detail": "child count mismatch: want 14, got 11"
+        },
+        {
+          "path": "/#document/html[1]/head[1]/#conditional[2]",
+          "detail": "node kind mismatch: want #conditional [if !mso], got \u003cstyle\u003e"
         },
         {
           "path": "/#document/html[1]/head[1]/link[1]",
@@ -245,19 +237,7 @@
         },
         {
           "path": "/#document/html[1]/head[1]/style[2]",
-          "detail": "attribute \"media\" unexpected, got \"screen and (min-width:480px)\""
-        },
-        {
-          "path": "/#document/html[1]/head[1]/style[2]",
-          "detail": "attribute \"type\" missing, want \"text/css\""
-        },
-        {
-          "path": "/#document/html[1]/head[1]/style[2]",
-          "detail": "stylesheet rule 1 mismatch: want \"@import url(https://fonts.googleapis.com/css?family=Ubuntu:300,400,500,700)\", got \".moz-text-html .mj-column-per-100{width:100% !important;max-width:100%}\""
-        },
-        {
-          "path": "/#document/html[1]/head[1]/style[3]",
-          "detail": "stylesheet rule 1 mismatch: want \"@media only screen and (min-width:480px){.mj-column-per-100{width:100% !important;max-width:100%}}\", got \"@media only screen and (max-width:479px){table.mj-full-width-mobile{width:100% !important}td.mj-full-width-mobile{width:auto !important}}\""
+          "detail": "stylesheet rule 1 mismatch: want \"@import url(https://fonts.googleapis.com/css?family=Ubuntu:300,400,500,700)\", got \"@media only screen and (max-width:479px){table.mj-full-width-mobile{width:100% !important}td.mj-full-width-mobile{width:auto !important}}\""
         },
         {
           "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]",
@@ -277,7 +257,7 @@
       "mismatches": [
         {
           "path": "/#document/html[1]/head[1]",
-          "detail": "child count mismatch: want 9, got 7"
+          "detail": "child count mismatch: want 11, got 8"
         },
         {
           "path": "/#document/html[1]/body[1]/div[1]/#conditional[1]/table[1]",
@@ -305,7 +285,11 @@
       "mismatches": [
         {
           "path": "/#document/html[1]/head[1]",
-          "detail": "child count mismatch: want 13, got 11"
+          "detail": "child count mismatch: want 15, got 12"
+        },
+        {
+          "path": "/#document/html[1]/head[1]/#conditional[2]",
+          "detail": "node kind mismatch: want #conditional [if !mso], got \u003cstyle\u003e"
         },
         {
           "path": "/#document/html[1]/head[1]/link[1]",
@@ -313,31 +297,11 @@
         },
         {
           "path": "/#document/html[1]/head[1]/style[2]",
-          "detail": "attribute \"media\" unexpected, got \"screen and (min-width:480px)\""
-        },
-        {
-          "path": "/#document/html[1]/head[1]/style[2]",
-          "detail": "attribute \"type\" missing, want \"text/css\""
-        },
-        {
-          "path": "/#document/html[1]/head[1]/style[2]",
-          "detail": "stylesheet rule 1 mismatch: want \"@import url(https://fonts.googleapis.com/css?family=Ubuntu:300,400,500,700)\", got \".moz-text-html .mj-column-per-100{width:100% !important;max-width:100%}\""
+          "detail": "stylesheet rule 1 mismatch: want \"@import url(https://fonts.googleapis.com/css?family=Ubuntu:300,400,500,700)\", got \"@media only screen and (max-width:479px){table.mj-full-width-mobile{width:100% !important}td.mj-full-width-mobile{width:auto !important}}\""
         },
         {
           "path": "/#document/html[1]/head[1]/style[3]",
-          "detail": "stylesheet rule 1 mismatch: want \"@media only screen and (min-width:480px){.mj-column-per-100{width:100% !important;max-width:100%}}\", got \"@media only screen and (max-width:479px){table.mj-full-width-mobile{width:100% !important}td.mj-full-width-mobile{width:auto !important}}\""
-        },
-        {
-          "path": "/#document/html[1]/head[1]/style[4]",
-          "detail": "attribute \"media\" missing, want \"screen and (min-width:480px)\""
-        },
-        {
-          "path": "/#document/html[1]/head[1]/style[4]",
-          "detail": "attribute \"type\" unexpected, got \"text/css\""
-        },
-        {
-          "path": "/#document/html[1]/head[1]/style[4]",
-          "detail": "stylesheet rule 1 mismatch: want \".moz-text-html .mj-column-per-100{width:100% !important;max-width:100%}\", got \".wrapper-style{border:2px dotted #ff5733;background-color:#fff5e1}\""
+          "detail": "stylesheet rule 1 mismatch: want \"@media only screen and (min-width:480px){.mj-column-per-100{width:100% !important;max-width:100%}}\", got \".wrapper-style{border:2px dotted #ff5733;background-color:#fff5e1}\""
         },
         {
           "path": "/#document/html[1]/body[1]/div[1]",
@@ -669,27 +633,15 @@
       "mismatches": [
         {
           "path": "/#document/html[1]/head[1]",
-          "detail": "child count mismatch: want 11, got 9"
+          "detail": "child count mismatch: want 13, got 10"
+        },
+        {
+          "path": "/#document/html[1]/head[1]/#conditional[2]",
+          "detail": "node kind mismatch: want #conditional [if !mso], got \u003cstyle\u003e"
         },
         {
           "path": "/#document/html[1]/head[1]/link[1]",
           "detail": "name mismatch: want \"link\", got \"style\""
-        },
-        {
-          "path": "/#document/html[1]/head[1]/style[2]",
-          "detail": "attribute \"media\" unexpected, got \"screen and (min-width:480px)\""
-        },
-        {
-          "path": "/#document/html[1]/head[1]/style[2]",
-          "detail": "attribute \"type\" missing, want \"text/css\""
-        },
-        {
-          "path": "/#document/html[1]/head[1]/style[2]",
-          "detail": "stylesheet rule 1 mismatch: want \"@import url(https://fonts.googleapis.com/css?family=Ubuntu:300,400,500,700)\", got \".moz-text-html .mj-column-per-100{width:100% !important;max-width:100%}\""
-        },
-        {
-          "path": "/#document/html[1]/head[1]/style[2]",
-          "detail": "stylesheet rule 2 unexpected: got \".moz-text-html .mj-column-per-25{width:25% !important;max-width:25%}\""
         },
         {
           "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]",
@@ -764,7 +716,7 @@
       "mismatches": [
         {
           "path": "/#document/html[1]/head[1]",
-          "detail": "child count mismatch: want 9, got 7"
+          "detail": "child count mismatch: want 11, got 8"
         },
         {
           "path": "/#document/html[1]/body[1]/div[1]/#conditional[1]/table[1]",
@@ -788,23 +740,15 @@
       "mismatches": [
         {
           "path": "/#document/html[1]/head[1]",
-          "detail": "child count mismatch: want 11, got 9"
+          "detail": "child count mismatch: want 13, got 10"
+        },
+        {
+          "path": "/#document/html[1]/head[1]/#conditional[2]",
+          "detail": "node kind mismatch: want #conditional [if !mso], got \u003cstyle\u003e"
         },
         {
           "path": "/#document/html[1]/head[1]/link[1]",
           "detail": "name mismatch: want \"link\", got \"style\""
-        },
-        {
-          "path": "/#document/html[1]/head[1]/style[2]",
-          "detail": "attribute \"media\" unexpected, got \"screen and (min-width:480px)\""
-        },
-        {
-          "path": "/#document/html[1]/head[1]/style[2]",
-          "detail": "attribute \"type\" missing, want \"text/css\""
-        },
-        {
-          "path": "/#document/html[1]/head[1]/style[2]",
-          "detail": "stylesheet rule 1 mismatch: want \"@import url(https://fonts.googleapis.com/css?family=Ubuntu:300,400,500,700)\", got \".moz-text-html .mj-column-per-100{width:100% !important;max-width:100%}\""
         },
         {
           "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]",
@@ -833,23 +777,15 @@
       "mismatches": [
         {
           "path": "/#document/html[1]/head[1]",
-          "detail": "child count mismatch: want 11, got 9"
+          "detail": "child count mismatch: want 13, got 10"
+        },
+        {
+          "path": "/#document/html[1]/head[1]/#conditional[2]",
+          "detail": "node kind mismatch: want #conditional [if !mso], got \u003cstyle\u003e"
         },
         {
           "path": "/#document/html[1]/head[1]/link[1]",
           "detail": "name mismatch: want \"link\", got \"style\""
-        },
-        {
-          "path": "/#document/html[1]/head[1]/style[2]",
-          "detail": "attribute \"media\" unexpected, got \"screen and (min-width:480px)\""
-        },
-        {
-          "path": "/#document/html[1]/head[1]/style[2]",
-          "detail": "attribute \"type\" missing, want \"text/css\""
-        },
-        {
-          "path": "/#document/html[1]/head[1]/style[2]",
-          "detail": "stylesheet rule 1 mismatch: want \"@import url(https://fonts.googleapis.com/css?family=Ubuntu:300,400,500,700)\", got \".moz-text-html .mj-column-per-100{width:100% !important;max-width:100%}\""
         },
         {
           "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]",
@@ -869,23 +805,15 @@
       "mismatches": [
         {
           "path": "/#document/html[1]/head[1]",
-          "detail": "child count mismatch: want 11, got 9"
+          "detail": "child count mismatch: want 13, got 10"
+        },
+        {
+          "path": "/#document/html[1]/head[1]/#conditional[2]",
+          "detail": "node kind mismatch: want #conditional [if !mso], got \u003cstyle\u003e"
         },
         {
           "path": "/#document/html[1]/head[1]/link[1]",
           "detail": "name mismatch: want \"link\", got \"style\""
-        },
-        {
-          "path": "/#document/html[1]/head[1]/style[2]",
-          "detail": "attribute \"media\" unexpected, got \"screen and (min-width:480px)\""
-        },
-        {
-          "path": "/#document/html[1]/head[1]/style[2]",
-          "detail": "attribute \"type\" missing, want \"text/css\""
-        },
-        {
-          "path": "/#document/html[1]/head[1]/style[2]",
-          "detail": "stylesheet rule 1 mismatch: want \"@import url(https://fonts.googleapis.com/css?family=Ubuntu:300,400,500,700)\", got \".moz-text-html .mj-column-per-100{width:100% !important;max-width:100%}\""
         },
         {
           "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]",
@@ -908,23 +836,15 @@
       "mismatches": [
         {
           "path": "/#document/html[1]/head[1]",
-          "detail": "child count mismatch: want 11, got 9"
+          "detail": "child count mismatch: want 13, got 10"
+        },
+        {
+          "path": "/#document/html[1]/head[1]/#conditional[2]",
+          "detail": "node kind mismatch: want #conditional [if !mso], got \u003cstyle\u003e"
         },
         {
           "path": "/#document/html[1]/head[1]/link[1]",
           "detail": "name mismatch: want \"link\", got \"style\""
-        },
-        {
-          "path": "/#document/html[1]/head[1]/style[2]",
-          "detail": "attribute \"media\" unexpected, got \"screen and (min-width:480px)\""
-        },
-        {
-          "path": "/#document/html[1]/head[1]/style[2]",
-          "detail": "attribute \"type\" missing, want \"text/css\""
-        },
-        {
-          "path": "/#document/html[1]/head[1]/style[2]",
-          "detail": "stylesheet rule 1 mismatch: want \"@import url(https://fonts.googleapis.com/css?family=Ubuntu:300,400,500,700)\", got \".moz-text-html .mj-column-per-100{width:100% !important;max-width:100%}\""
         },
         {
           "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]",
@@ -944,23 +864,15 @@
       "mismatches": [
         {
           "path": "/#document/html[1]/head[1]",
-          "detail": "child count mismatch: want 11, got 9"
+          "detail": "child count mismatch: want 13, got 10"
+        },
+        {
+          "path": "/#document/html[1]/head[1]/#conditional[2]",
+          "detail": "node kind mismatch: want #conditional [if !mso], got \u003cstyle\u003e"
         },
         {
           "path": "/#document/html[1]/head[1]/link[1]",
           "detail": "name mismatch: want \"link\", got \"style\""
-        },
-        {
-          "path": "/#document/html[1]/head[1]/style[2]",
-          "detail": "attribute \"media\" unexpected, got \"screen and (min-width:480px)\""
-        },
-        {
-          "path": "/#document/html[1]/head[1]/style[2]",
-          "detail": "attribute \"type\" missing, want \"text/css\""
-        },
-        {
-          "path": "/#document/html[1]/head[1]/style[2]",
-          "detail": "stylesheet rule 1 mismatch: want \"@import url(https://fonts.googleapis.com/css?family=Ubuntu:300,400,500,700)\", got \".moz-text-html .mj-column-per-100{width:100% !important;max-width:100%}\""
         },
         {
           "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]",
@@ -983,23 +895,15 @@
       "mismatches": [
         {
           "path": "/#document/html[1]/head[1]",
-          "detail": "child count mismatch: want 11, got 9"
+          "detail": "child count mismatch: want 13, got 10"
+        },
+        {
+          "path": "/#document/html[1]/head[1]/#conditional[2]",
+          "detail": "node kind mismatch: want #conditional [if !mso], got \u003cstyle\u003e"
         },
         {
           "path": "/#document/html[1]/head[1]/link[1]",
           "detail": "name mismatch: want \"link\", got \"style\""
-        },
-        {
-          "path": "/#document/html[1]/head[1]/style[2]",
-          "detail": "attribute \"media\" unexpected, got \"screen and (min-width:480px)\""
-        },
-        {
-          "path": "/#document/html[1]/head[1]/style[2]",
-          "detail": "attribute \"type\" missing, want \"text/css\""
-        },
-        {
-          "path": "/#document/html[1]/head[1]/style[2]",
-          "detail": "stylesheet rule 1 mismatch: want \"@import url(https://fonts.googleapis.com/css?family=Ubuntu:300,400,500,700)\", got \".moz-text-html .mj-column-per-100{width:100% !important;max-width:100%}\""
         },
         {
           "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]",
@@ -1022,23 +926,15 @@
       "mismatches": [
         {
           "path": "/#document/html[1]/head[1]",
-          "detail": "child count mismatch: want 11, got 9"
+          "detail": "child count mismatch: want 13, got 10"
+        },
+        {
+          "path": "/#document/html[1]/head[1]/#conditional[2]",
+          "detail": "node kind mismatch: want #conditional [if !mso], got \u003cstyle\u003e"
         },
         {
           "path": "/#document/html[1]/head[1]/link[1]",
           "detail": "name mismatch: want \"link\", got \"style\""
-        },
-        {
-          "path": "/#document/html[1]/head[1]/style[2]",
-          "detail": "attribute \"media\" unexpected, got \"screen and (min-width:480px)\""
-        },
-        {
-          "path": "/#document/html[1]/head[1]/style[2]",
-          "detail": "attribute \"type\" missing, want \"text/css\""
-        },
-        {
-          "path": "/#document/html[1]/head[1]/style[2]",
-          "detail": "stylesheet rule 1 mismatch: want \"@import url(https://fonts.googleapis.com/css?family=Ubuntu:300,400,500,700)\", got \".moz-text-html .mj-column-per-100{width:100% !important;max-width:100%}\""
         },
         {
           "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]",
@@ -1070,23 +966,15 @@
       "mismatches": [
         {
           "path": "/#document/html[1]/head[1]",
-          "detail": "child count mismatch: want 11, got 9"
+          "detail": "child count mismatch: want 13, got 10"
+        },
+        {
+          "path": "/#document/html[1]/head[1]/#conditional[2]",
+          "detail": "node kind mismatch: want #conditional [if !mso], got \u003cstyle\u003e"
         },
         {
           "path": "/#document/html[1]/head[1]/link[1]",
           "detail": "name mismatch: want \"link\", got \"style\""
-        },
-        {
-          "path": "/#document/html[1]/head[1]/style[2]",
-          "detail": "attribute \"media\" unexpected, got \"screen and (min-width:480px)\""
-        },
-        {
-          "path": "/#document/html[1]/head[1]/style[2]",
-          "detail": "attribute \"type\" missing, want \"text/css\""
-        },
-        {
-          "path": "/#document/html[1]/head[1]/style[2]",
-          "detail": "stylesheet rule 1 mismatch: want \"@import url(https://fonts.googleapis.com/css?family=Ubuntu:300,400,500,700)\", got \".moz-text-html .mj-column-per-100{width:100% !important;max-width:100%}\""
         },
         {
           "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]",
@@ -1106,23 +994,15 @@
       "mismatches": [
         {
           "path": "/#document/html[1]/head[1]",
-          "detail": "child count mismatch: want 11, got 9"
+          "detail": "child count mismatch: want 13, got 10"
+        },
+        {
+          "path": "/#document/html[1]/head[1]/#conditional[2]",
+          "detail": "node kind mismatch: want #conditional [if !mso], got \u003cstyle\u003e"
         },
         {
           "path": "/#document/html[1]/head[1]/link[1]",
           "detail": "name mismatch: want \"link\", got \"style\""
-        },
-        {
-          "path": "/#document/html[1]/head[1]/style[2]",
-          "detail": "attribute \"media\" unexpected, got \"screen and (min-width:480px)\""
-        },
-        {
-          "path": "/#document/html[1]/head[1]/style[2]",
-          "detail": "attribute \"type\" missing, want \"text/css\""
-        },
-        {
-          "path": "/#document/html[1]/head[1]/style[2]",
-          "detail": "stylesheet rule 1 mismatch: want \"@import url(https://fonts.googleapis.com/css?family=Ubuntu:300,400,500,700)\", got \".moz-text-html .mj-column-per-100{width:100% !important;max-width:100%}\""
         },
         {
           "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]",
@@ -1204,23 +1084,15 @@
       "mismatches": [
         {
           "path": "/#document/html[1]/head[1]",
-          "detail": "child count mismatch: want 11, got 9"
+          "detail": "child count mismatch: want 13, got 10"
+        },
+        {
+          "path": "/#document/html[1]/head[1]/#conditional[2]",
+          "detail": "node kind mismatch: want #conditional [if !mso], got \u003cstyle\u003e"
         },
         {
           "path": "/#document/html[1]/head[1]/link[1]",
           "detail": "name mismatch: want \"link\", got \"style\""
-        },
-        {
-          "path": "/#document/html[1]/head[1]/style[2]",
-          "detail": "attribute \"media\" unexpected, got \"screen and (min-width:480px)\""
-        },
-        {
-          "path": "/#document/html[1]/head[1]/style[2]",
-          "detail": "attribute \"type\" missing, want \"text/css\""
-        },
-        {
-          "path": "/#document/html[1]/head[1]/style[2]",
-          "detail": "stylesheet rule 1 mismatch: want \"@import url(https://fonts.googleapis.com/css?family=Ubuntu:300,400,500,700)\", got \".moz-text-html .mj-column-per-100{width:100% !important;max-width:100%}\""
         },
         {
           "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]",
@@ -1276,23 +1148,15 @@
       "mismatches": [
         {
           "path": "/#document/html[1]/head[1]",
-          "detail": "child count mismatch: want 11, got 9"
+          "detail": "child count mismatch: want 13, got 10"
+        },
+        {
+          "path": "/#document/html[1]/head[1]/#conditional[2]",
+          "detail": "node kind mismatch: want #conditional [if !mso], got \u003cstyle\u003e"
         },
         {
           "path": "/#document/html[1]/head[1]/link[1]",
           "detail": "name mismatch: want \"link\", got \"style\""
-        },
-        {
-          "path": "/#document/html[1]/head[1]/style[2]",
-          "detail": "attribute \"media\" unexpected, got \"screen and (min-width:480px)\""
-        },
-        {
-          "path": "/#document/html[1]/head[1]/style[2]",
-          "detail": "attribute \"type\" missing, want \"text/css\""
-        },
-        {
-          "path": "/#document/html[1]/head[1]/style[2]",
-          "detail": "stylesheet rule 1 mismatch: want \"@import url(https://fonts.googleapis.com/css?family=Ubuntu:300,400,500,700)\", got \".moz-text-html .mj-column-per-100{width:100% !important;max-width:100%}\""
         },
         {
           "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]",

@@ -63,6 +63,11 @@ Known divergences at the start: 214 records / 15 root causes (see
   debug output in the hero and social renderers, hex shorthand expansion with
   case preservation, and removal of the conditional-comment merging pass (which
   also removed a whole-output regexp). Divergences: 334 -> 288.
+- **Review follow-ups done** - baseline entries whose fixture disappeared now
+  fail the test; downlevel-reveal (`<!--[if !mso]><!-->`) wrappers are compared;
+  `.gitignore` anchored so fixtures such as `testdata/parity/input_big.mjml` are
+  tracked; do-nothing `TestRender` removed; hero `inner-div` emits `float` where
+  it used to emit a duplicate `background-color`.
 
 ## Roadmap
 

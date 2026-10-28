@@ -381,7 +381,7 @@ func (h MJMLHero) getStyles(ctx *RenderContext, n *node.Node) (map[string]inline
 		},
 		"inner-div": {
 			{Property: "background-color", Value: n.GetAttributeValueDefault("inner-background-color")},
-			{Property: "background-color", Value: n.GetAttributeValueDefault("align")},
+			{Property: "float", Value: n.GetAttributeValueDefault("align")},
 			{Property: "margin", Value: "0px auto"},
 			{Property: "width", Value: n.GetAttributeValueDefault("width")},
 		},

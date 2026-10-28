@@ -63,9 +63,9 @@ func TestParseHTMLNormalization(t *testing.T) {
 			b:    "<style>.a , .b { color: red; }</style>",
 		},
 		{
-			name: "conditional comment markers with empty payload",
+			name: "downlevel reveal wrapper on both sides",
 			a:    `<!--[if !mso]><!--><meta charset="utf-8"><!--<![endif]-->`,
-			b:    `<meta charset="utf-8">`,
+			b:    `<!--[if !mso]><!--><meta charset="utf-8"><!--<![endif]-->`,
 		},
 	}
 
@@ -123,6 +123,11 @@ func TestParseHTMLNormalization(t *testing.T) {
 			name: "media query condition",
 			a:    "<style>@media screen{.a{width:50%}}</style>",
 			b:    "<style>@media print{.a{width:50%}}</style>",
+		},
+		{
+			name: "downlevel reveal wrapper missing",
+			a:    `<!--[if !mso]><!--><meta charset="utf-8"><!--<![endif]-->`,
+			b:    `<meta charset="utf-8">`,
 		},
 		{
 			name: "conditional comment payload",
@@ -192,15 +197,15 @@ func TestParseHTMLStylesheet(t *testing.T) {
 			node, err := ParseHTML("<style>" + testCase.css + "</style>")
 			require.NoError(t, err)
 
-			if !assert.Equal(t, testCase.expected, Stylesheet(t, node)) {
+			if !assert.Equal(t, testCase.expected, firstStylesheet(t, node)) {
 				t.Log(Canonical(node))
 			}
 		})
 	}
 }
 
-// Stylesheet returns the canonical CSS of the first <style> element below node.
-func Stylesheet(t *testing.T, node *Node) string {
+// firstStylesheet returns the canonical CSS of the first <style> element below node.
+func firstStylesheet(t *testing.T, node *Node) string {
 	t.Helper()
 
 	if node.Kind == KindElement && node.Name == "style" {
@@ -208,7 +213,7 @@ func Stylesheet(t *testing.T, node *Node) string {
 	}
 
 	for _, child := range node.Children {
-		if sheet := Stylesheet(t, child); sheet != "" {
+		if sheet := firstStylesheet(t, child); sheet != "" {
 			return sheet
 		}
 	}
