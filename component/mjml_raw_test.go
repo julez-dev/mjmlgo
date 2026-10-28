@@ -12,7 +12,7 @@ import (
 // TestMJMLRawRender asserts raw content is written as the author wrote it: the
 // surrounding whitespace is trimmed, the payload itself is untouched, and
 // markup that looks like CDATA delimiters is not interpreted.
-func TestMJMLRawRender(t *testing.T) {
+func TestRawContentIsWrittenVerbatim(t *testing.T) {
 	t.Parallel()
 
 	assert.Equal(t, RawTagName, MJMLRaw{}.Name())
@@ -63,7 +63,7 @@ func TestMJMLRawRender(t *testing.T) {
 // TestRenderRawChildMarksTheTableBodyVariant asserts the two raw-child helpers
 // differ only by the markers: bare content outside a table body, marked content
 // directly inside one.
-func TestRenderRawChildMarksTheTableBodyVariant(t *testing.T) {
+func TestTableBodyRawChildrenAreMarkedAndOthersAreNot(t *testing.T) {
 	t.Parallel()
 
 	const content = "\n  <tr><td>raw row</td></tr>\n"
@@ -91,7 +91,7 @@ func TestRenderRawChildMarksTheTableBodyVariant(t *testing.T) {
 // TestRenderRawChildValidatesTheNode asserts raw children go through the same
 // attribute validation as any other component, so an invalid position is caught
 // during rendering too, not only by document validation.
-func TestRenderRawChildValidatesTheNode(t *testing.T) {
+func TestRawChildrenAreValidatedWhenRendered(t *testing.T) {
 	t.Parallel()
 
 	t.Run("a valid position renders", func(t *testing.T) {
@@ -119,7 +119,7 @@ func TestRenderRawChildValidatesTheNode(t *testing.T) {
 
 // TestStripRawBlockMarkers asserts marker removal is complete and idempotent, and
 // that html without markers is returned unchanged.
-func TestStripRawBlockMarkers(t *testing.T) {
+func TestRawBlockMarkersAreRemovedFromRenderedHTML(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {

@@ -2,6 +2,7 @@ package component
 
 import (
 	"encoding/xml"
+	"strings"
 	"testing"
 
 	"github.com/julez-dev/mjmlgo/node"
@@ -20,6 +21,38 @@ func attributes(pairs ...string) []xml.Attr {
 	}
 
 	return attrs
+}
+
+// testContainerWidth is the document width most component tests measure
+// against.
+const testContainerWidth = "600px"
+
+// renderComponent initialises n with comp and renders it, so tests read the
+// markup and the error from one call.
+func renderComponent(t *testing.T, ctx *RenderContext, comp Component, n *node.Node) (string, error) {
+	t.Helper()
+
+	if err := InitComponent(ctx, comp, n); err != nil {
+		return "", err
+	}
+
+	var out strings.Builder
+	err := comp.Render(ctx, &out, n)
+
+	return out.String(), err
+}
+
+// requireInvalidValue asserts err is a structured invalid-value failure for the
+// given attribute and value, so tests pin the classification a caller branches
+// on instead of the human-readable message.
+func requireInvalidValue(t *testing.T, err error, attribute, value string) {
+	t.Helper()
+
+	var structured *Error
+	require.ErrorAs(t, err, &structured)
+	require.Equal(t, KindInvalidValue, structured.Kind)
+	require.Equal(t, attribute, structured.Attribute)
+	require.Equal(t, value, structured.Value)
 }
 
 func headWithAttributes(children ...*node.Node) *node.Node {

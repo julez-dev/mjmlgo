@@ -1,27 +1,12 @@
 package component
 
 import (
-	"strings"
 	"testing"
 
 	"github.com/julez-dev/mjmlgo/node"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
-
-func renderMJMLButton(t *testing.T, ctx *RenderContext, n *node.Node) (string, error) {
-	t.Helper()
-
-	var button MJMLButton
-	if err := InitComponent(ctx, button, n); err != nil {
-		return "", err
-	}
-
-	var out strings.Builder
-	err := button.Render(ctx, &out, n)
-
-	return out.String(), err
-}
 
 // TestMJMLButtonDefaults asserts the markup a bare button produces: a paragraph,
 // not a link, with MJML's default colours, padding and vertical alignment.
@@ -30,7 +15,7 @@ func TestMJMLButtonDefaults(t *testing.T) {
 
 	assert.Equal(t, ButtonTagName, MJMLButton{}.Name())
 
-	out, err := renderMJMLButton(t, &RenderContext{ContainerWidth: "600px"}, &node.Node{Content: "Click"})
+	out, err := renderComponent(t, &RenderContext{ContainerWidth: testContainerWidth}, MJMLButton{}, &node.Node{Content: "Click"})
 	require.NoError(t, err)
 
 	assert.Contains(t, out, "<p ", "a button without href is a paragraph")
@@ -63,7 +48,7 @@ func TestMJMLButtonLink(t *testing.T) {
 		Content: "Visit",
 	}
 
-	out, err := renderMJMLButton(t, &RenderContext{ContainerWidth: "600px"}, n)
+	out, err := renderComponent(t, &RenderContext{ContainerWidth: testContainerWidth}, MJMLButton{}, n)
 	require.NoError(t, err)
 
 	assert.Contains(t, out, "<a ")
@@ -125,7 +110,7 @@ func TestMJMLButtonWidthAccountsForPaddingAndBorders(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			out, err := renderMJMLButton(t, &RenderContext{ContainerWidth: "600px"}, &node.Node{
+			out, err := renderComponent(t, &RenderContext{ContainerWidth: testContainerWidth}, MJMLButton{}, &node.Node{
 				Attributes: attributes(tt.attrs...),
 				Content:    "Click",
 			})
@@ -147,7 +132,7 @@ func TestMJMLButtonWidthAccountsForPaddingAndBorders(t *testing.T) {
 func TestMJMLButtonInnerPaddingDrivesBothPaddings(t *testing.T) {
 	t.Parallel()
 
-	out, err := renderMJMLButton(t, &RenderContext{ContainerWidth: "600px"}, &node.Node{
+	out, err := renderComponent(t, &RenderContext{ContainerWidth: testContainerWidth}, MJMLButton{}, &node.Node{
 		Attributes: attributes("inner-padding", "12px 34px"),
 		Content:    "Click",
 	})
@@ -158,15 +143,14 @@ func TestMJMLButtonInnerPaddingDrivesBothPaddings(t *testing.T) {
 }
 
 // TestMJMLButtonBackground asserts the background colour reaches the cell's
-// bgcolor attribute, expands a hex shortcut, and that "none" deliberately emits
-// no bgcolor.
+// bgcolor attribute and a hex shortcut is expanded.
 func TestMJMLButtonBackground(t *testing.T) {
 	t.Parallel()
 
 	t.Run("a hex shortcut is expanded", func(t *testing.T) {
 		t.Parallel()
 
-		out, err := renderMJMLButton(t, &RenderContext{ContainerWidth: "600px"}, &node.Node{
+		out, err := renderComponent(t, &RenderContext{ContainerWidth: testContainerWidth}, MJMLButton{}, &node.Node{
 			Attributes: attributes("background-color", "#f00"),
 			Content:    "Click",
 		})
@@ -175,7 +159,6 @@ func TestMJMLButtonBackground(t *testing.T) {
 		assert.Contains(t, out, `bgcolor="#ff0000"`)
 		assert.Contains(t, out, "background:#ff0000")
 	})
-
 }
 
 // TestMJMLButtonVerticalAlign asserts the author's vertical alignment reaches
@@ -183,7 +166,7 @@ func TestMJMLButtonBackground(t *testing.T) {
 func TestMJMLButtonVerticalAlign(t *testing.T) {
 	t.Parallel()
 
-	out, err := renderMJMLButton(t, &RenderContext{ContainerWidth: "600px"}, &node.Node{
+	out, err := renderComponent(t, &RenderContext{ContainerWidth: testContainerWidth}, MJMLButton{}, &node.Node{
 		Attributes: attributes("vertical-align", "top"),
 		Content:    "Click",
 	})
@@ -199,13 +182,14 @@ func TestMJMLButtonValidatesAuthorValues(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name  string
-		attrs []string
-		want  string
+		name     string
+		attrs    []string
+		badAttr  string
+		badValue string
 	}{
-		{name: "unknown alignment", attrs: []string{"align", "justify"}, want: "not one of"},
-		{name: "width in em", attrs: []string{"width", "10em"}, want: "not one of"},
-		{name: "unknown colour", attrs: []string{"background-color", "chartreuseish"}, want: "not a valid color"},
+		{name: "unknown alignment", attrs: []string{"align", "justify"}, badAttr: "align", badValue: "justify"},
+		{name: "width in em", attrs: []string{"width", "10em"}, badAttr: "width", badValue: "10em"},
+		{name: "unknown colour", attrs: []string{"background-color", "chartreuseish"}, badAttr: "background-color", badValue: "chartreuseish"},
 	}
 
 	for _, tt := range tests {
@@ -214,9 +198,7 @@ func TestMJMLButtonValidatesAuthorValues(t *testing.T) {
 
 			n := &node.Node{Attributes: attributes(tt.attrs...)}
 
-			err := InitComponent(&RenderContext{}, MJMLButton{}, n)
-			require.Error(t, err)
-			assert.Contains(t, err.Error(), tt.want)
+			requireInvalidValue(t, InitComponent(&RenderContext{}, MJMLButton{}, n), tt.badAttr, tt.badValue)
 		})
 	}
 
@@ -236,7 +218,7 @@ func TestMJMLButtonReportsABrokenContainerWidth(t *testing.T) {
 
 	n := &node.Node{Attributes: attributes("width", "200px"), Content: "Click"}
 
-	_, err := renderMJMLButton(t, &RenderContext{ContainerWidth: "wide"}, n)
+	_, err := renderComponent(t, &RenderContext{ContainerWidth: "wide"}, MJMLButton{}, n)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "invalid container width")
 }

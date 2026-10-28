@@ -38,20 +38,6 @@ func (p *bodyProbe) Render(ctx *RenderContext, w io.Writer, n *node.Node) error 
 	return err
 }
 
-func renderMJMLBody(t *testing.T, ctx *RenderContext, n *node.Node) (string, error) {
-	t.Helper()
-
-	var body MJMLBody
-	if err := InitComponent(ctx, body, n); err != nil {
-		return "", err
-	}
-
-	var out strings.Builder
-	err := body.Render(ctx, &out, n)
-
-	return out.String(), err
-}
-
 // TestMJMLBodyDefaults asserts the body's only default is the document width,
 // and that an author width survives it.
 func TestMJMLBodyDefaults(t *testing.T) {
@@ -83,16 +69,17 @@ func TestMJMLBodyValidatesWidthAndBackground(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name  string
-		attrs []string
-		want  string
+		name     string
+		attrs    []string
+		badAttr  string
+		badValue string
 	}{
 		{name: "pixel width", attrs: []string{"width", "480px"}},
 		{name: "hex background", attrs: []string{"background-color", "#ff0000"}},
 		{name: "named background", attrs: []string{"background-color", "red"}},
-		{name: "percentage width", attrs: []string{"width", "50%"}, want: "is not one of [px]"},
-		{name: "em width", attrs: []string{"width", "10em"}, want: "is not one of [px]"},
-		{name: "unknown colour", attrs: []string{"background-color", "chartreuseish"}, want: "not a valid color"},
+		{name: "percentage width", attrs: []string{"width", "50%"}, badAttr: "width", badValue: "50%"},
+		{name: "em width", attrs: []string{"width", "10em"}, badAttr: "width", badValue: "10em"},
+		{name: "unknown colour", attrs: []string{"background-color", "chartreuseish"}, badAttr: "background-color", badValue: "chartreuseish"},
 	}
 
 	for _, tt := range tests {
@@ -102,13 +89,12 @@ func TestMJMLBodyValidatesWidthAndBackground(t *testing.T) {
 			n := &node.Node{Type: BodyTagName, Attributes: attributes(tt.attrs...)}
 
 			err := InitComponent(&RenderContext{}, MJMLBody{}, n)
-			if tt.want == "" {
+			if tt.badAttr == "" {
 				require.NoError(t, err)
 				return
 			}
 
-			require.Error(t, err)
-			assert.Contains(t, err.Error(), tt.want)
+			requireInvalidValue(t, err, tt.badAttr, tt.badValue)
 		})
 	}
 }
@@ -132,7 +118,7 @@ func TestMJMLBodySeedsTheContainerWidth(t *testing.T) {
 			Children:   []*node.Node{{Type: "mj-probe"}},
 		}
 
-		out, err := renderMJMLBody(t, ctx, n)
+		out, err := renderComponent(t, ctx, MJMLBody{}, n)
 		require.NoError(t, err)
 		assert.Equal(t, "480px", probe.width, "the child renders at the body width")
 		assert.Equal(t, "480px", ctx.ContainerWidth)
@@ -146,7 +132,7 @@ func TestMJMLBodySeedsTheContainerWidth(t *testing.T) {
 		ctx := contextWith(probe)
 		n := &node.Node{Type: BodyTagName, Children: []*node.Node{{Type: "mj-probe"}}}
 
-		_, err := renderMJMLBody(t, ctx, n)
+		_, err := renderComponent(t, ctx, MJMLBody{}, n)
 		require.NoError(t, err)
 		assert.Equal(t, "600px", probe.width)
 		assert.Equal(t, "600px", ctx.ContainerWidth)
@@ -164,7 +150,7 @@ func TestMJMLBodyBackground(t *testing.T) {
 
 		n := &node.Node{Type: BodyTagName, Attributes: attributes("background-color", "#ff0000")}
 
-		out, err := renderMJMLBody(t, &RenderContext{}, n)
+		out, err := renderComponent(t, &RenderContext{}, MJMLBody{}, n)
 		require.NoError(t, err)
 
 		assert.Contains(t, out, `<body style="word-spacing:normal;background-color:#ff0000;">`)
@@ -174,7 +160,7 @@ func TestMJMLBodyBackground(t *testing.T) {
 	t.Run("no colour leaves the page style alone", func(t *testing.T) {
 		t.Parallel()
 
-		out, err := renderMJMLBody(t, &RenderContext{}, &node.Node{Type: BodyTagName})
+		out, err := renderComponent(t, &RenderContext{}, MJMLBody{}, &node.Node{Type: BodyTagName})
 		require.NoError(t, err)
 
 		assert.Contains(t, out, `<body style="word-spacing:normal;">`)
@@ -190,7 +176,7 @@ func TestMJMLBodyDocumentMetadata(t *testing.T) {
 	ctx := &RenderContext{Title: "Weekly digest", Language: "de", Direction: "rtl"}
 	n := &node.Node{Type: BodyTagName, Attributes: attributes("css-class", "page")}
 
-	out, err := renderMJMLBody(t, ctx, n)
+	out, err := renderComponent(t, ctx, MJMLBody{}, n)
 	require.NoError(t, err)
 
 	assert.Contains(t, out, `aria-label="Weekly digest"`)
@@ -209,7 +195,7 @@ func TestMJMLBodyPreviewText(t *testing.T) {
 	ctx := &RenderContext{PreviewText: "Open me"}
 	n := &node.Node{Type: BodyTagName}
 
-	out, err := renderMJMLBody(t, ctx, n)
+	out, err := renderComponent(t, ctx, MJMLBody{}, n)
 	require.NoError(t, err)
 
 	preview := strings.Index(out, "Open me")
@@ -237,7 +223,7 @@ func TestMJMLBodyRendersChildrenInDocumentOrder(t *testing.T) {
 		},
 	}
 
-	out, err := renderMJMLBody(t, ctx, n)
+	out, err := renderComponent(t, ctx, MJMLBody{}, n)
 	require.NoError(t, err)
 
 	first := strings.Index(out, "<div>first</div>")
@@ -271,7 +257,7 @@ func TestMJMLBodyDispatchesLayoutChildren(t *testing.T) {
 
 		n := &node.Node{Type: BodyTagName, Children: []*node.Node{section}}
 
-		out, err := renderMJMLBody(t, &RenderContext{}, n)
+		out, err := renderComponent(t, &RenderContext{}, MJMLBody{}, n)
 		require.NoError(t, err)
 		assert.Contains(t, out, `<div style="margin:0px auto;max-width:600px;">`)
 		assert.Contains(t, out, ">copy</div>")
@@ -283,7 +269,7 @@ func TestMJMLBodyDispatchesLayoutChildren(t *testing.T) {
 		wrapper := &node.Node{Type: WrapperTagName, Attributes: attributes("gap", "10px")}
 		n := &node.Node{Type: BodyTagName, Children: []*node.Node{wrapper}}
 
-		out, err := renderMJMLBody(t, &RenderContext{}, n)
+		out, err := renderComponent(t, &RenderContext{}, MJMLBody{}, n)
 		require.NoError(t, err, "gap is a wrapper attribute; a section renderer would reject it")
 		assert.NotEmpty(t, out)
 	})
@@ -299,7 +285,7 @@ func TestMJMLBodyDispatchesLayoutChildren(t *testing.T) {
 		)}
 		n := &node.Node{Type: BodyTagName, Children: []*node.Node{hero}}
 
-		out, err := renderMJMLBody(t, &RenderContext{}, n)
+		out, err := renderComponent(t, &RenderContext{}, MJMLBody{}, n)
 		require.NoError(t, err)
 		assert.Contains(t, out, "<v:image")
 	})
@@ -313,7 +299,7 @@ func TestMJMLBodyReportsAChildNoComponentCanRender(t *testing.T) {
 
 	n := &node.Node{Type: BodyTagName, Children: []*node.Node{{Type: "mj-mystery"}}}
 
-	_, err := renderMJMLBody(t, &RenderContext{}, n)
+	_, err := renderComponent(t, &RenderContext{}, MJMLBody{}, n)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "no component for allowed child <mj-mystery> in <mj-body>")
 }
@@ -329,7 +315,7 @@ func TestMJMLBodyWrapsCustomComponentErrors(t *testing.T) {
 	ctx := contextWith(probe)
 	n := &node.Node{Type: BodyTagName, Children: []*node.Node{{Type: "mj-probe"}}}
 
-	_, err := renderMJMLBody(t, ctx, n)
+	_, err := renderComponent(t, ctx, MJMLBody{}, n)
 	require.Error(t, err)
 	assert.ErrorIs(t, err, cause)
 	assert.Contains(t, err.Error(), "failed to render <mj-probe>: probe failed")

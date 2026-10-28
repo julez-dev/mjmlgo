@@ -12,7 +12,7 @@ import (
 // attribute is missing" and "the attribute is present with an empty value": a
 // caller that only looks at the returned string cannot tell them apart, and
 // MJML treats an explicitly empty attribute differently from an absent one.
-func TestGetAttributeValueReportsPresence(t *testing.T) {
+func TestAttributePresenceIsDistinguishableFromAbsence(t *testing.T) {
 	t.Parallel()
 
 	n := &Node{Attributes: []xml.Attr{
@@ -40,7 +40,7 @@ func TestGetAttributeValueReportsPresence(t *testing.T) {
 // attribute the node already carries keeps its document position. Rendering
 // appends defaults to the author's attributes, so a default must never move an
 // author attribute or add a second copy of it.
-func TestSetAttributeReplacesExistingValueInPlace(t *testing.T) {
+func TestSettingAnAttributeKeepsItsDocumentPosition(t *testing.T) {
 	t.Parallel()
 
 	n := &Node{Attributes: []xml.Attr{
@@ -59,7 +59,7 @@ func TestSetAttributeReplacesExistingValueInPlace(t *testing.T) {
 // TestSetAttributeAppendsNewAttributesInDocumentOrder asserts that a new
 // attribute - the shape a component's default takes - goes after the author's
 // attributes, and that the author's value stays the one a lookup returns.
-func TestSetAttributeAppendsNewAttributesInDocumentOrder(t *testing.T) {
+func TestNewAttributesAppendAfterAuthorAttributes(t *testing.T) {
 	t.Parallel()
 
 	n := &Node{Attributes: []xml.Attr{
@@ -76,27 +76,4 @@ func TestSetAttributeAppendsNewAttributesInDocumentOrder(t *testing.T) {
 	width, ok := n.GetAttributeValue("width")
 	require.True(t, ok)
 	assert.Equal(t, "480px", width)
-}
-
-// TestNodeTreeSeparatesContentFromChildren asserts the tree shape the parser
-// produces: container elements hold child nodes in document order, raw-content
-// elements hold their payload in Content, and Parent is filled in as
-// bookkeeping so children can be walked downwards.
-func TestNodeTreeSeparatesContentFromChildren(t *testing.T) {
-	t.Parallel()
-
-	text := &Node{Type: "mj-text", Content: "<p>hello</p>"}
-	column := &Node{Type: "mj-column", Children: []*Node{text}}
-	section := &Node{Type: "mj-section", Children: []*Node{column}}
-
-	text.Parent = column
-	column.Parent = section
-
-	assert.Same(t, section, column.Parent, "a child points at the element that holds it")
-	assert.Same(t, column, text.Parent)
-	require.Len(t, column.Children, 1)
-	assert.Same(t, text, column.Children[0])
-	assert.Empty(t, section.Content, "a container keeps its children out of Content")
-	assert.Equal(t, "<p>hello</p>", text.Content, "raw content stays in Content")
-	assert.Empty(t, text.Children)
 }

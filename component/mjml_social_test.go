@@ -22,20 +22,6 @@ func socialWithChildren(attrs []string, children ...*node.Node) *node.Node {
 	return social
 }
 
-func renderMJMLSocial(t *testing.T, ctx *RenderContext, n *node.Node) (string, error) {
-	t.Helper()
-
-	var social MJMLSocial
-	if err := InitComponent(ctx, social, n); err != nil {
-		return "", err
-	}
-
-	var out strings.Builder
-	err := social.Render(ctx, &out, n)
-
-	return out.String(), err
-}
-
 // TestMJMLSocialDefaults asserts the social block's defaults are applied and an
 // author value keeps its place.
 func TestMJMLSocialDefaults(t *testing.T) {
@@ -73,7 +59,7 @@ func TestMJMLSocialHorizontalLayout(t *testing.T) {
 
 	social := socialWithChildren([]string{"align", "right"}, first, raw, second, notSocial)
 
-	out, err := renderMJMLSocial(t, &RenderContext{}, social)
+	out, err := renderComponent(t, &RenderContext{}, MJMLSocial{}, social)
 	require.NoError(t, err)
 
 	assert.True(t, strings.HasPrefix(out, `<!--[if mso | IE]><table align="right"`), "the layout opens with an Outlook table")
@@ -86,8 +72,8 @@ func TestMJMLSocialHorizontalLayout(t *testing.T) {
 
 	assert.NotContains(t, out, "not a social element", "other children are ignored, not rendered")
 
-	elementHTML := `style="float:none;display:inline-table;"`
-	assert.Equal(t, 2, strings.Count(out, elementHTML))
+	elementTable := `<table align="right" border="0" cellpadding="0" cellspacing="0" role="presentation" style="float:none;display:inline-table;">`
+	assert.Equal(t, 2, strings.Count(out, elementTable), "each element table inherits the block's alignment")
 }
 
 // TestMJMLSocialVerticalLayout asserts the vertical mode renders one table body
@@ -98,15 +84,16 @@ func TestMJMLSocialVerticalLayout(t *testing.T) {
 
 	raw := &node.Node{Type: RawTagName, Content: "<tr><td class=\"raw-row\">raw</td></tr>"}
 	element := &node.Node{Type: SocialElementTagName, Attributes: attributes("name", "github")}
-	social := socialWithChildren([]string{"mode", "vertical"}, raw, element)
+	social := socialWithChildren([]string{"mode", "vertical", "align", "right"}, raw, element)
 
-	out, err := renderMJMLSocial(t, &RenderContext{}, social)
+	out, err := renderComponent(t, &RenderContext{}, MJMLSocial{}, social)
 	require.NoError(t, err)
 
 	assert.True(t, strings.HasPrefix(out, "<table "), "vertical mode is a plain table")
 	assert.Contains(t, out, "<tbody>")
 	assert.True(t, strings.HasSuffix(out, "</tbody></table>"))
 	assert.NotContains(t, out, "<!--[if mso | IE]><td>", "the vertical layout has no per-element Outlook cells")
+	assert.NotContains(t, out, `align="right"`, "the vertical layout ignores the block alignment")
 
 	assert.Contains(t, out, "<tbody>"+RawBlockStartMarker+`<tr><td class="raw-row">raw</td></tr>`+RawBlockEndMarker)
 }
@@ -120,7 +107,7 @@ func TestMJMLSocialPropagatesIconSizing(t *testing.T) {
 	element := &node.Node{Type: SocialElementTagName, Attributes: attributes("name", "facebook")}
 	social := socialWithChildren([]string{"icon-size", "30px", "icon-height", "40px"}, element)
 
-	out, err := renderMJMLSocial(t, &RenderContext{}, social)
+	out, err := renderComponent(t, &RenderContext{}, MJMLSocial{}, social)
 	require.NoError(t, err)
 
 	requireAttribute(t, element, "icon-size", "30px")
@@ -146,7 +133,7 @@ func TestMJMLSocialPropagatesTextStyle(t *testing.T) {
 		"inner-padding", "2px 6px",
 	}, element)
 
-	out, err := renderMJMLSocial(t, &RenderContext{}, social)
+	out, err := renderComponent(t, &RenderContext{}, MJMLSocial{}, social)
 	require.NoError(t, err)
 
 	requireAttribute(t, element, "padding", "2px 6px")
@@ -167,7 +154,6 @@ func TestMJMLSocialReportsInvalidElementAttributes(t *testing.T) {
 	element := &node.Node{Type: SocialElementTagName, Attributes: attributes("name", "facebook", "align", "justify")}
 	social := socialWithChildren(nil, element)
 
-	_, err := renderMJMLSocial(t, &RenderContext{}, social)
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "align")
+	_, err := renderComponent(t, &RenderContext{}, MJMLSocial{}, social)
+	requireInvalidValue(t, err, "align", "justify")
 }
