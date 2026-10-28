@@ -68,6 +68,26 @@ func TestParseHTMLNormalization(t *testing.T) {
 			b:    `<html><body><input id="0000000000000000" type="checkbox"><label for="0000000000000000">menu</label></body></html>`,
 		},
 		{
+			name: "generated carousel ids embedded in id, name and for",
+			a:    `<html><body><input id="mj-carousel-610029845a079c0e-radio-1" name="mj-carousel-radio-610029845a079c0e"><label for="mj-carousel-610029845a079c0e-radio-1">x</label></body></html>`,
+			b:    `<html><body><input id="mj-carousel-0000000000000000-radio-1" name="mj-carousel-radio-0000000000000000"><label for="mj-carousel-0000000000000000-radio-1">x</label></body></html>`,
+		},
+		{
+			name: "generated carousel ids inside class names",
+			a:    `<html><body><a class="mj-carousel-thumbnail mj-carousel-610029845a079c0e-thumbnail mj-carousel-610029845a079c0e-thumbnail-1">x</a></body></html>`,
+			b:    `<html><body><a class="mj-carousel-0000000000000000-thumbnail mj-carousel-0000000000000000-thumbnail-1 mj-carousel-thumbnail">x</a></body></html>`,
+		},
+		{
+			name: "generated carousel ids inside selectors",
+			a:    `<html><head><style>.mj-carousel-610029845a079c0e-radio-1:checked+.x .mj-carousel-610029845a079c0e-thumbnail-1{border-color:red}</style></head></html>`,
+			b:    `<html><head><style>.mj-carousel-0000000000000000-radio-1:checked + .x .mj-carousel-0000000000000000-thumbnail-1 { border-color: red }</style></head></html>`,
+		},
+		{
+			name: "non-generated hex runs are kept",
+			a:    `<html><body><div class="deadbeef deadbeefdeadbeef1"></div></body></html>`,
+			b:    `<html><body><div class="deadbeef deadbeefdeadbeef1"></div></body></html>`,
+		},
+		{
 			name: "downlevel reveal wrapper on both sides",
 			a:    `<!--[if !mso]><!--><meta charset="utf-8"><!--<![endif]-->`,
 			b:    `<!--[if !mso]><!--><meta charset="utf-8"><!--<![endif]-->`,
@@ -144,6 +164,16 @@ func TestParseHTMLNormalization(t *testing.T) {
 			a:    `<!--[if mso]><table></table><![endif]-->`,
 			b:    `<!--[if mso | IE]><table></table><![endif]-->`,
 		},
+		{
+			name: "carousel class name suffix",
+			a:    `<html><body><a class="mj-carousel-610029845a079c0e-thumbnail-1">x</a></body></html>`,
+			b:    `<html><body><a class="mj-carousel-610029845a079c0e-thumbnail-2">x</a></body></html>`,
+		},
+		{
+			name: "hex run that is not a generated id",
+			a:    `<html><body><div class="deadbeefdeadbeef"></div></body></html>`,
+			b:    `<html><body><div class="deadbeefdeadbeeg"></div></body></html>`,
+		},
 	}
 
 	for _, testCase := range different {
@@ -192,6 +222,11 @@ func TestParseHTMLStylesheet(t *testing.T) {
 			name:     "comments dropped",
 			css:      "/* header */\n.a /* inline */ { color: red }",
 			expected: ".a{color:red}",
+		},
+		{
+			name:     "generated carousel id in selector",
+			css:      ".mj-carousel-610029845a079c0e-thumbnail-1:checked + * + .mj-carousel-content .mj-carousel-image-1 { display: block !important; }",
+			expected: ".mj-carousel-mjml-generated-id-thumbnail-1:checked+*+.mj-carousel-content .mj-carousel-image-1{display:block !important}",
 		},
 	}
 

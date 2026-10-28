@@ -187,8 +187,11 @@ func normalizeAttrs(attrs []html.Attribute) []Attr {
 		val := strings.TrimSpace(attr.Val)
 
 		switch key {
-		case "id", "for":
-			val = normalizeGeneratedID(val)
+		case "id", "for", "name":
+			// Generated ids are also embedded in longer values, e.g. the
+			// carousel radios use id="mj-carousel-<id>-radio-1" and a shared
+			// name="mj-carousel-radio-<id>".
+			val = normalizeGeneratedIDs(val)
 		case "style":
 			val = normalizeStyle(val)
 			if val == "" {
@@ -219,25 +222,58 @@ func normalizeAttrs(attrs []html.Attribute) []Attr {
 	return out
 }
 
-// generatedIDPattern matches the 16-character hex ids MJML generates for
+// generatedIDPlaceholder replaces the 16-character hex ids MJML generates for
 // navbar hamburger labels and carousels. They are random on every reference
 // render, so the harness treats them as opaque identifiers.
-var generatedIDPattern = regexp.MustCompile(`^[0-9a-f]{16}$`)
+const generatedIDPlaceholder = "mjml-generated-id"
 
-// normalizeGeneratedID replaces a generated id with a stable placeholder. Only
-// id and for values are passed here, so the substitution cannot hide a real
-// difference elsewhere.
-func normalizeGeneratedID(val string) string {
-	if generatedIDPattern.MatchString(val) {
-		return "mjml-generated-id"
+// normalizeGeneratedIDs replaces generated ids that are embedded in a longer
+// value. MJML also puts the random carousel id inside class names
+// (mj-carousel-<id>-thumbnail-1) and inside the generated CSS selectors, so the
+// substitution has to work on substrings and not only on whole attribute
+// values. Only maximal runs of exactly 16 lowercase hex characters are
+// replaced, so ordinary names are left alone.
+func normalizeGeneratedIDs(val string) string {
+	if len(val) < 16 {
+		return val
 	}
 
-	return val
+	var b strings.Builder
+
+	for i := 0; i < len(val); {
+		if !isHexDigit(val[i]) {
+			b.WriteByte(val[i])
+			i++
+
+			continue
+		}
+
+		end := i
+		for end < len(val) && isHexDigit(val[end]) {
+			end++
+		}
+
+		if end-i == 16 {
+			b.WriteString(generatedIDPlaceholder)
+		} else {
+			b.WriteString(val[i:end])
+		}
+
+		i = end
+	}
+
+	return b.String()
 }
 
-// normalizeClass sorts class tokens and collapses whitespace.
+func isHexDigit(c byte) bool {
+	return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f')
+}
+
+// normalizeClass sorts class tokens and collapses whitespace. Generated ids
+// embedded in class names are replaced so two renders of the same document
+// compare equal.
 func normalizeClass(val string) string {
-	tokens := strings.Fields(val)
+	tokens := strings.Fields(normalizeGeneratedIDs(val))
 	sort.Strings(tokens)
 
 	return strings.Join(tokens, " ")
@@ -452,9 +488,12 @@ var (
 	cssCombinatorSpacing = regexp.MustCompile(`\s*([>+~])\s*`)
 )
 
-// normalizeCSSSelector collapses whitespace and drops it around combinators.
+// normalizeCSSSelector collapses whitespace, drops it around combinators and
+// replaces generated ids, which appear in the carousel selectors.
 func normalizeCSSSelector(selector string) string {
-	return cssCombinatorSpacing.ReplaceAllString(normalizeText(selector), "$1")
+	selector = normalizeGeneratedIDs(normalizeText(selector))
+
+	return cssCombinatorSpacing.ReplaceAllString(selector, "$1")
 }
 
 // normalizeCSSValue collapses runs of whitespace.

@@ -41,4 +41,6 @@ const (
 	AccordionElementTagName MJMLComponentName = "mj-accordion-element"
 	AccordionTitleTagName   MJMLComponentName = "mj-accordion-title"
 	AccordionTextTagName    MJMLComponentName = "mj-accordion-text"
+	CarouselTagName         MJMLComponentName = "mj-carousel"
+	CarouselImageTagName    MJMLComponentName = "mj-carousel-image"
 )

@@ -49,6 +49,8 @@ func (h MJMLHead) Render(ctx *RenderContext, w io.Writer, n *node.Node) error {
 		"Breakpoint":                  ctx.Breakpoint,
 		"MJMLStyles":                  ctx.MJMLStylesheet,
 		"MJMLStyleOrder":              ctx.orderedMJMLStyles(),
+		"ComponentHeadStyles":         ctx.renderedComponentHeadStyles(),
+		"InstanceComponentHeadStyles": ctx.renderedInstanceComponentHeadStyles(),
 		"UserStyles":                  headStylesheets,
 		"IncludeMobileFullWidthStyle": ctx.IncludeMobileFullWidthStyle,
 		"ForceOWADesktop":             ctx.ForceOWADesktop,
