@@ -724,18 +724,6 @@
     "testdata/parity/raw-in-column.mjml": {
       "mismatches": [
         {
-          "path": "/#document/html[1]/head[1]",
-          "detail": "child count mismatch: want 13, got 10"
-        },
-        {
-          "path": "/#document/html[1]/head[1]/#conditional[2]",
-          "detail": "node kind mismatch: want #conditional [if !mso], got \u003cstyle\u003e"
-        },
-        {
-          "path": "/#document/html[1]/head[1]/link[1]",
-          "detail": "name mismatch: want \"link\", got \"style\""
-        },
-        {
           "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]",
           "detail": "child count mismatch: want 3, got 7"
         },
@@ -751,18 +739,6 @@
     },
     "testdata/parity/raw-in-group.mjml": {
       "mismatches": [
-        {
-          "path": "/#document/html[1]/head[1]",
-          "detail": "child count mismatch: want 13, got 10"
-        },
-        {
-          "path": "/#document/html[1]/head[1]/#conditional[2]",
-          "detail": "node kind mismatch: want #conditional [if !mso], got \u003cstyle\u003e"
-        },
-        {
-          "path": "/#document/html[1]/head[1]/link[1]",
-          "detail": "name mismatch: want \"link\", got \"style\""
-        },
         {
           "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]",
           "detail": "child count mismatch: want 3, got 5"
@@ -783,18 +759,6 @@
     },
     "testdata/parity/raw-in-section.mjml": {
       "mismatches": [
-        {
-          "path": "/#document/html[1]/head[1]",
-          "detail": "child count mismatch: want 13, got 10"
-        },
-        {
-          "path": "/#document/html[1]/head[1]/#conditional[2]",
-          "detail": "node kind mismatch: want #conditional [if !mso], got \u003cstyle\u003e"
-        },
-        {
-          "path": "/#document/html[1]/head[1]/link[1]",
-          "detail": "name mismatch: want \"link\", got \"style\""
-        },
         {
           "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]",
           "detail": "child count mismatch: want 11, got 13"
@@ -848,18 +812,6 @@
     "testdata/parity/raw-position-file-start.mjml": {
       "mismatches": [
         {
-          "path": "/#document/html[1]/head[1]",
-          "detail": "child count mismatch: want 13, got 10"
-        },
-        {
-          "path": "/#document/html[1]/head[1]/#conditional[2]",
-          "detail": "node kind mismatch: want #conditional [if !mso], got \u003cstyle\u003e"
-        },
-        {
-          "path": "/#document/html[1]/head[1]/link[1]",
-          "detail": "name mismatch: want \"link\", got \"style\""
-        },
-        {
           "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]",
           "detail": "child count mismatch: want 3, got 7"
         },
@@ -875,18 +827,6 @@
     },
     "testdata/parity/raw.mjml": {
       "mismatches": [
-        {
-          "path": "/#document/html[1]/head[1]",
-          "detail": "child count mismatch: want 13, got 10"
-        },
-        {
-          "path": "/#document/html[1]/head[1]/#conditional[2]",
-          "detail": "node kind mismatch: want #conditional [if !mso], got \u003cstyle\u003e"
-        },
-        {
-          "path": "/#document/html[1]/head[1]/link[1]",
-          "detail": "name mismatch: want \"link\", got \"style\""
-        },
         {
           "path": "/#document/html[1]/body[1]/div[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]",
           "detail": "child count mismatch: want 3, got 7"
@@ -939,18 +879,6 @@
     },
     "testdata/parity/table-width-auto.mjml": {
       "mismatches": [
-        {
-          "path": "/#document/html[1]/head[1]",
-          "detail": "child count mismatch: want 13, got 10"
-        },
-        {
-          "path": "/#document/html[1]/head[1]/#conditional[2]",
-          "detail": "node kind mismatch: want #conditional [if !mso], got \u003cstyle\u003e"
-        },
-        {
-          "path": "/#document/html[1]/head[1]/link[1]",
-          "detail": "name mismatch: want \"link\", got \"style\""
-        },
         {
           "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]",
           "detail": "child count mismatch: want 3, got 7"
@@ -1076,22 +1004,6 @@
     "testdata/parity/upstream/mjml--html-attributes--00.mjml": {
       "mismatches": [
         {
-          "path": "/#document/html[1]/head[1]",
-          "detail": "child count mismatch: want 14, got 11"
-        },
-        {
-          "path": "/#document/html[1]/head[1]/#conditional[2]",
-          "detail": "node kind mismatch: want #conditional [if !mso], got \u003cstyle\u003e"
-        },
-        {
-          "path": "/#document/html[1]/head[1]/link[1]",
-          "detail": "name mismatch: want \"link\", got \"style\""
-        },
-        {
-          "path": "/#document/html[1]/head[1]/style[2]",
-          "detail": "stylesheet rule 1 mismatch: want \"@import url(https://fonts.googleapis.com/css?family=Ubuntu:300,400,500,700)\", got \"@media only screen and (max-width:479px){table.mj-full-width-mobile{width:100% !important}td.mj-full-width-mobile{width:auto !important}}\""
-        },
-        {
           "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]",
           "detail": "child count mismatch: want 3, got 7"
         },
@@ -1207,18 +1119,6 @@
     "testdata/parity/upstream/mjml--table-cellspacing--00.mjml": {
       "mismatches": [
         {
-          "path": "/#document/html[1]/head[1]",
-          "detail": "child count mismatch: want 13, got 10"
-        },
-        {
-          "path": "/#document/html[1]/head[1]/#conditional[2]",
-          "detail": "node kind mismatch: want #conditional [if !mso], got \u003cstyle\u003e"
-        },
-        {
-          "path": "/#document/html[1]/head[1]/link[1]",
-          "detail": "name mismatch: want \"link\", got \"style\""
-        },
-        {
           "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]",
           "detail": "child count mismatch: want 3, got 7"
         },
@@ -1234,18 +1134,6 @@
     },
     "testdata/parity/upstream/mjml--tableWidth--00.mjml": {
       "mismatches": [
-        {
-          "path": "/#document/html[1]/head[1]",
-          "detail": "child count mismatch: want 13, got 10"
-        },
-        {
-          "path": "/#document/html[1]/head[1]/#conditional[2]",
-          "detail": "node kind mismatch: want #conditional [if !mso], got \u003cstyle\u003e"
-        },
-        {
-          "path": "/#document/html[1]/head[1]/link[1]",
-          "detail": "name mismatch: want \"link\", got \"style\""
-        },
         {
           "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]",
           "detail": "child count mismatch: want 9, got 22"
