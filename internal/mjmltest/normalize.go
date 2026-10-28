@@ -1,0 +1,326 @@
+package mjmltest
+
+import (
+	"fmt"
+	"regexp"
+	"sort"
+	"strings"
+
+	"golang.org/x/net/html"
+	"golang.org/x/net/html/atom"
+)
+
+// Kind describes the type of a normalized node.
+type Kind int
+
+const (
+	// KindDocument is the document root.
+	KindDocument Kind = iota
+	// KindDoctype is a doctype declaration.
+	KindDoctype
+	// KindElement is a regular HTML element.
+	KindElement
+	// KindText is non-empty, whitespace-normalized text.
+	KindText
+	// KindConditional is an Outlook conditional comment (<!--[if mso]>...<![endif]-->).
+	// Name holds the normalized condition, Children the parsed payload.
+	KindConditional
+)
+
+// Attr is a normalized HTML attribute.
+type Attr struct {
+	Key string
+	Val string
+}
+
+// Node is a normalized HTML tree. Two documents that render the same in a mail
+// client produce equal Node trees, regardless of formatting, attribute order or
+// CSS declaration order.
+type Node struct {
+	Kind     Kind
+	Name     string // element tag name, or the condition of a conditional comment
+	Text     string // doctype value or text content
+	Attrs    []Attr
+	Children []*Node
+}
+
+// ParseHTML parses an HTML document into its normalized tree form.
+//
+// Normalization rules:
+//   - comments are dropped, except Outlook conditional comments, whose payload
+//     is parsed and compared as part of the tree;
+//   - whitespace-only text nodes are dropped and all other text has runs of
+//     whitespace collapsed to a single space;
+//   - <style> element contents are ignored (they are covered by a separate
+//     dedicated comparison if needed);
+//   - attributes are sorted by name, style declarations are parsed and sorted,
+//     class tokens are sorted, and empty style/class/alt attributes are dropped.
+func ParseHTML(document string) (*Node, error) {
+	doc, err := html.Parse(strings.NewReader(document))
+	if err != nil {
+		return nil, err
+	}
+
+	node := convert(doc)
+	if node == nil {
+		return nil, fmt.Errorf("empty HTML document")
+	}
+
+	return node, nil
+}
+
+func convert(n *html.Node) *Node {
+	switch n.Type {
+	case html.DocumentNode:
+		out := &Node{Kind: KindDocument, Name: "#document"}
+		for child := range n.ChildNodes() {
+			out.Children = appendConverted(out.Children, child)
+		}
+		return out
+
+	case html.DoctypeNode:
+		return &Node{Kind: KindDoctype, Text: strings.ToLower(strings.Join(strings.Fields(n.Data), " "))}
+
+	case html.ElementNode:
+		name := strings.ToLower(n.Data)
+		out := &Node{
+			Kind:  KindElement,
+			Name:  name,
+			Attrs: normalizeAttrs(n.Attr),
+		}
+
+		if name == "style" {
+			return out
+		}
+
+		for child := range n.ChildNodes() {
+			out.Children = appendConverted(out.Children, child)
+		}
+
+		return out
+
+	case html.TextNode:
+		text := normalizeText(n.Data)
+		if text == "" {
+			return nil
+		}
+		return &Node{Kind: KindText, Text: text}
+
+	case html.CommentNode:
+		return convertConditional(n.Data)
+
+	default:
+		return nil
+	}
+}
+
+func appendConverted(dst []*Node, n *html.Node) []*Node {
+	converted := convert(n)
+	if converted == nil {
+		return dst
+	}
+
+	return append(dst, converted)
+}
+
+var (
+	conditionalStart = regexp.MustCompile(`^\[if\s+([^\]]*)\]>\s*`)
+	conditionalEnd   = regexp.MustCompile(`\s*<!\[endif\]\s*$`)
+)
+
+func convertConditional(data string) *Node {
+	m := conditionalStart.FindStringSubmatch(data)
+	if m == nil {
+		return nil
+	}
+
+	condition := normalizeText(m[1])
+
+	payload := data[len(m[0]):]
+	payload = conditionalEnd.ReplaceAllString(payload, "")
+	// Handles the split `<!--[if !mso]><!-->` form.
+	payload = strings.TrimSuffix(strings.TrimSpace(payload), "<!")
+	payload = strings.TrimSpace(payload)
+
+	if payload == "" {
+		// Empty conditionals are used as start/end markers (and are merged by
+		// the Go implementation), so they carry no comparable information.
+		return nil
+	}
+
+	out := &Node{Kind: KindConditional, Name: condition}
+
+	contextNode := &html.Node{Type: html.ElementNode, Data: "body", DataAtom: atom.Body}
+
+	nodes, err := html.ParseFragment(strings.NewReader(payload), contextNode)
+	if err != nil {
+		// Fall back to comparing the raw payload.
+		out.Children = append(out.Children, &Node{Kind: KindText, Text: normalizeText(payload)})
+		return out
+	}
+
+	for _, fragment := range nodes {
+		out.Children = appendConverted(out.Children, fragment)
+	}
+
+	return out
+}
+
+// normalizeAttrs returns the attributes sorted by name with values normalized.
+func normalizeAttrs(attrs []html.Attribute) []Attr {
+	out := make([]Attr, 0, len(attrs))
+
+	for _, attr := range attrs {
+		key := strings.ToLower(attr.Key)
+		val := strings.TrimSpace(attr.Val)
+
+		switch key {
+		case "style":
+			val = normalizeStyle(val)
+			if val == "" {
+				continue
+			}
+		case "class":
+			val = normalizeClass(val)
+			if val == "" {
+				continue
+			}
+		case "alt":
+			if val == "" {
+				continue
+			}
+		}
+
+		out = append(out, Attr{Key: key, Val: val})
+	}
+
+	sort.SliceStable(out, func(i, j int) bool {
+		if out[i].Key != out[j].Key {
+			return out[i].Key < out[j].Key
+		}
+
+		return out[i].Val < out[j].Val
+	})
+
+	return out
+}
+
+// normalizeClass sorts class tokens and collapses whitespace.
+func normalizeClass(val string) string {
+	tokens := strings.Fields(val)
+	sort.Strings(tokens)
+
+	return strings.Join(tokens, " ")
+}
+
+// normalizeStyle parses an inline style attribute and serializes it with sorted
+// declarations so that declaration order does not matter.
+func normalizeStyle(val string) string {
+	declarations := make(map[string]string)
+
+	for _, declaration := range strings.Split(val, ";") {
+		declaration = strings.TrimSpace(declaration)
+		if declaration == "" {
+			continue
+		}
+
+		property, value, ok := strings.Cut(declaration, ":")
+		if !ok {
+			// Keep malformed declarations visible instead of dropping them.
+			declarations[declaration] = ""
+			continue
+		}
+
+		property = strings.ToLower(strings.TrimSpace(property))
+		value = normalizeText(value)
+		if property == "" {
+			continue
+		}
+
+		declarations[property] = value
+	}
+
+	if len(declarations) == 0 {
+		return ""
+	}
+
+	properties := make([]string, 0, len(declarations))
+	for property := range declarations {
+		properties = append(properties, property)
+	}
+
+	sort.Strings(properties)
+
+	var b strings.Builder
+	for _, property := range properties {
+		value := declarations[property]
+		if value == "" {
+			b.WriteString(property)
+			b.WriteString(";")
+			continue
+		}
+
+		b.WriteString(property)
+		b.WriteString(":")
+		b.WriteString(value)
+		b.WriteString(";")
+	}
+
+	return b.String()
+}
+
+// normalizeText collapses all whitespace runs into single spaces and trims.
+func normalizeText(val string) string {
+	return strings.Join(strings.Fields(val), " ")
+}
+
+// CanonicalMust is Canonical for an HTML document, ignoring parse errors.
+func CanonicalMust(document string) string {
+	node, err := ParseHTML(document)
+	if err != nil {
+		return "parse error: " + err.Error()
+	}
+
+	return Canonical(node)
+}
+
+// Canonical renders the normalized tree as indented text. It is used for
+// readable failure output and debugging.
+func Canonical(n *Node) string {
+	var b strings.Builder
+	writeCanonical(&b, n, 0)
+
+	return b.String()
+}
+
+func writeCanonical(b *strings.Builder, n *Node, depth int) {
+	indent := strings.Repeat("  ", depth)
+
+	switch n.Kind {
+	case KindDocument:
+		b.WriteString(indent + "#document\n")
+	case KindDoctype:
+		b.WriteString(indent + "<!doctype " + n.Text + ">\n")
+	case KindText:
+		b.WriteString(indent + "#text " + n.Text + "\n")
+	case KindConditional:
+		b.WriteString(indent + "#conditional [if " + n.Name + "]\n")
+	case KindElement:
+		b.WriteString(indent + "<" + n.Name)
+
+		for _, attr := range n.Attrs {
+			b.WriteString(" " + attr.Key + `="` + attr.Val + `"`)
+		}
+
+		if len(n.Children) == 0 {
+			b.WriteString(">\n")
+			return
+		}
+
+		b.WriteString(">\n")
+	}
+
+	for _, child := range n.Children {
+		writeCanonical(b, child, depth+1)
+	}
+}

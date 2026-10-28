@@ -1,0 +1,29 @@
+<mjml lang="en" dir="ltr">
+  <mj-head>
+    <mj-title>Head Features</mj-title>
+    <mj-preview>Preview text for the parity tests</mj-preview>
+    <mj-font name="Raleway" href="https://fonts.googleapis.com/css?family=Raleway" />
+    <mj-breakpoint width="320px" />
+    <mj-attributes>
+      <mj-all font-family="Arial, Helvetica, sans-serif" />
+      <mj-text color="#333333" font-size="14px" line-height="20px" />
+    </mj-attributes>
+    <mj-style>
+      .custom-class { color: #ff0000; }
+    </mj-style>
+    <mj-style inline="inline">
+      .inline-class { font-weight: bold; }
+    </mj-style>
+    <mj-raw>
+      <meta name="x-parity-test" content="head-raw" />
+    </mj-raw>
+  </mj-head>
+  <mj-body background-color="#f0f0f0">
+    <mj-section background-color="#ffffff">
+      <mj-column>
+        <mj-text css-class="inline-class">Inline styled text</mj-text>
+        <mj-text css-class="custom-class" font-family="Raleway">Head styled text</mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

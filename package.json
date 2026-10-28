@@ -1,0 +1,16 @@
+{
+  "name": "mjmlgo",
+  "private": true,
+  "description": "Reference MJML implementation for the HTML parity tests. Bump the devDependency to test against a newer MJML release.",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "go test ./...",
+    "test:parity": "go test ./ -run TestMJMLParity -v",
+    "test:parity:update": "go test ./ -run TestMJMLParity -update -v"
+  },
+  "devDependencies": {
+    "mjml": "4.18.0"
+  }
+}

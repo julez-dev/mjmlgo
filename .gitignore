@@ -3,3 +3,5 @@ out.html
 input_big.mjml
 input_s.mjml
 *fail.html
+node_modules
+testdata/.failures

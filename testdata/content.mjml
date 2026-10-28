@@ -1,0 +1,22 @@
+<mjml>
+  <mj-body>
+    <mj-section padding="0">
+      <mj-column background-color="#fafafa" padding="10px">
+        <mj-text font-size="18px" font-weight="bold" color="#222222">
+          <h1>Heading</h1>
+          <p>Paragraph with <a href="https://mjml.io">a link</a> and <b>bold</b> text.</p>
+        </mj-text>
+        <mj-divider border-color="#ff0000" border-width="2px" border-style="dashed" width="80%" />
+        <mj-spacer height="24px" />
+        <mj-table cellpadding="4" color="#444444">
+          <tr><th>Item</th><th>Price</th></tr>
+          <tr><td>Widget</td><td>9.99</td></tr>
+        </mj-table>
+        <mj-image src="https://example.com/image.png" alt="Example" width="300px" href="https://example.com" />
+        <mj-button background-color="#0a7d33" border-radius="6px" inner-padding="12px 24px" href="https://example.com">
+          Click me
+        </mj-button>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

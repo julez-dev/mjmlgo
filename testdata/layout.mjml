@@ -1,0 +1,37 @@
+<mjml>
+  <mj-body background-color="#eeeeee">
+    <mj-wrapper background-color="#dddddd" padding="10px 20px" border="1px solid #cccccc">
+      <mj-section background-color="#ffffff" padding="15px">
+        <mj-column width="33%">
+          <mj-text align="center">One third</mj-text>
+        </mj-column>
+        <mj-column width="67%" vertical-align="middle">
+          <mj-text align="right">Two thirds</mj-text>
+        </mj-column>
+      </mj-section>
+      <mj-section padding="0">
+        <mj-group>
+          <mj-column width="25%">
+            <mj-text>Group A</mj-text>
+          </mj-column>
+          <mj-column width="25%">
+            <mj-text>Group B</mj-text>
+          </mj-column>
+          <mj-column width="50%">
+            <mj-text>Group C</mj-text>
+          </mj-column>
+        </mj-group>
+      </mj-section>
+    </mj-wrapper>
+    <mj-section full-width="full-width" background-color="#333333">
+      <mj-column>
+        <mj-text color="#ffffff">Full width section</mj-text>
+      </mj-column>
+    </mj-section>
+    <mj-section text-align="left" direction="rtl">
+      <mj-column>
+        <mj-text>RTL section</mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

@@ -1,0 +1,15 @@
+<mjml>
+  <mj-body>
+    <mj-section>
+      <mj-column>
+        <mj-social mode="horizontal" icon-size="24px" font-size="13px">
+          <mj-social-element name="facebook" href="https://facebook.com">Facebook</mj-social-element>
+          <mj-social-element name="twitter" href="https://twitter.com">Twitter</mj-social-element>
+          <mj-social-element name="custom" src="https://example.com/icon.png" href="https://example.com">
+            Custom
+          </mj-social-element>
+        </mj-social>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

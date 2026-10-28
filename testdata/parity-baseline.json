@@ -1,0 +1,912 @@
+{
+  "mjmlVersion": "4.18.0",
+  "fixtures": {
+    "testdata/button-complex.mjml": {
+      "mismatches": [
+        {
+          "path": "/#document/html[1]/head[1]",
+          "detail": "child count mismatch: want 12, got 10"
+        },
+        {
+          "path": "/#document/html[1]/head[1]/link[1]",
+          "detail": "name mismatch: want \"link\", got \"style\""
+        },
+        {
+          "path": "/#document/html[1]/head[1]/style[2]",
+          "detail": "attribute \"media\" unexpected, got \"screen and (min-width:480px)\""
+        },
+        {
+          "path": "/#document/html[1]/head[1]/style[2]",
+          "detail": "attribute \"type\" missing, want \"text/css\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]",
+          "detail": "attribute \"aria-label\" missing, want \"MJML Button Test Document\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]",
+          "detail": "attribute \"aria-roledescription\" missing, want \"email\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]",
+          "detail": "attribute \"role\" missing, want \"article\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:24px;font-weight:bold;line-height:1;text-align:center;\", got \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:24px;font-weight:bold;line-height:1;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;font-weight:bold;line-height:1;text-align:left;\", got \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;font-weight:bold;line-height:1;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[3]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[2]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;font-weight:bold;line-height:1;text-align:left;\", got \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;font-weight:bold;line-height:1;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[3]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[3]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;\", got \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[3]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[5]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;\", got \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[3]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[7]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;\", got \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[4]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[2]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;font-weight:bold;line-height:1;text-align:left;\", got \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;font-weight:bold;line-height:1;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[5]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[2]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;font-weight:bold;line-height:1;text-align:left;\", got \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;font-weight:bold;line-height:1;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[6]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[2]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;font-weight:bold;line-height:1;text-align:left;\", got \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;font-weight:bold;line-height:1;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[7]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[1]/table[1]/tbody[1]/tr[1]/td[1]",
+          "detail": "attribute \"style\" mismatch: want \"vertical-align:top;width:300px;\", got \"vertical-align:top;width:600px;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[7]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;font-weight:bold;line-height:1;text-align:left;\", got \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;font-weight:bold;line-height:1;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[7]/table[1]/tbody[1]/tr[1]/td[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;\", got \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[8]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[2]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;font-weight:bold;line-height:1;text-align:left;\", got \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;font-weight:bold;line-height:1;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[9]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[2]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;font-weight:bold;line-height:1;text-align:left;\", got \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;font-weight:bold;line-height:1;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[10]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:20px;font-weight:bold;line-height:1;text-align:center;\", got \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:20px;font-weight:bold;line-height:1;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[10]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[2]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;\", got \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[10]/table[1]/tbody[1]/tr[1]/td[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[1]/table[1]/tbody[1]/tr[1]/td[1]",
+          "detail": "attribute \"style\" mismatch: want \"vertical-align:top;width:300px;\", got \"vertical-align:top;width:600px;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[10]/table[1]/tbody[1]/tr[1]/td[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;font-weight:bold;line-height:1;text-align:left;\", got \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;font-weight:bold;line-height:1;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[10]/table[1]/tbody[1]/tr[1]/td[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;font-weight:bold;line-height:1;text-align:left;\", got \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;font-weight:bold;line-height:1;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[10]/table[1]/tbody[1]/tr[1]/td[1]/div[3]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;font-weight:bold;line-height:1;text-align:left;\", got \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;font-weight:bold;line-height:1;\""
+        }
+      ]
+    },
+    "testdata/button.mjml": {
+      "mismatches": [
+        {
+          "path": "/#document/html[1]/body[1]/div[1]",
+          "detail": "attribute \"aria-roledescription\" missing, want \"email\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]",
+          "detail": "attribute \"role\" missing, want \"article\""
+        }
+      ]
+    },
+    "testdata/content.mjml": {
+      "mismatches": [
+        {
+          "path": "/#document/html[1]/head[1]",
+          "detail": "child count mismatch: want 12, got 10"
+        },
+        {
+          "path": "/#document/html[1]/head[1]/link[1]",
+          "detail": "name mismatch: want \"link\", got \"style\""
+        },
+        {
+          "path": "/#document/html[1]/head[1]/style[2]",
+          "detail": "attribute \"media\" unexpected, got \"screen and (min-width:480px)\""
+        },
+        {
+          "path": "/#document/html[1]/head[1]/style[2]",
+          "detail": "attribute \"type\" missing, want \"text/css\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]",
+          "detail": "attribute \"aria-roledescription\" missing, want \"email\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]",
+          "detail": "attribute \"role\" missing, want \"article\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]",
+          "detail": "attribute \"style\" mismatch: want \"background-color:#fafafa;padding:10px;vertical-align:top;\", got \"padding:10px;vertical-align:top;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#222222;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:18px;font-weight:bold;line-height:1;text-align:left;\", got \"color:#222222;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:18px;font-weight:bold;line-height:1;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[2]/td[1]/#conditional[1]/table[1]",
+          "detail": "attribute \"style\" mismatch: want \"border-top:dashed 2px #ff0000;font-size:1px;margin:0px auto;width:424px;\", got \"border-top:dashed 2px #ff0000;font-size:1px;margin:0px auto;width:0px;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[2]/td[1]/#conditional[1]/table[1]",
+          "detail": "attribute \"width\" mismatch: want \"424px\", got \"0px\""
+        }
+      ]
+    },
+    "testdata/fluid-height-hero.mjml": {
+      "mismatches": [
+        {
+          "path": "/#document/html[1]/head[1]",
+          "detail": "child count mismatch: want 9, got 7"
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]",
+          "detail": "attribute \"aria-roledescription\" missing, want \"email\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]",
+          "detail": "attribute \"role\" missing, want \"article\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/#conditional[1]/table[1]",
+          "detail": "attribute \"cellspacing\" missing, want \"0\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[2]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#ffffff;font-family:Helvetica;font-size:45px;font-weight:900;line-height:45px;text-align:center;\", got \"color:#ffffff;font-family:Helvetica;font-size:45px;font-weight:900;line-height:45px;\""
+        }
+      ]
+    },
+    "testdata/head.mjml": {
+      "mismatches": [
+        {
+          "path": "/#document/html[1]/head[1]",
+          "detail": "child count mismatch: want 13, got 9"
+        },
+        {
+          "path": "/#document/html[1]/body[1]",
+          "detail": "child count mismatch: want 2, got 7"
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]",
+          "detail": "node kind mismatch: want \u003cdiv\u003e, got \"}\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]",
+          "detail": "name mismatch: want \"div\", got \"style\""
+        }
+      ]
+    },
+    "testdata/image-complex.mjml": {
+      "mismatches": [
+        {
+          "path": "/#document/html[1]/head[1]",
+          "detail": "child count mismatch: want 13, got 11"
+        },
+        {
+          "path": "/#document/html[1]/head[1]/link[1]",
+          "detail": "name mismatch: want \"link\", got \"style\""
+        },
+        {
+          "path": "/#document/html[1]/head[1]/style[2]",
+          "detail": "attribute \"media\" unexpected, got \"screen and (min-width:480px)\""
+        },
+        {
+          "path": "/#document/html[1]/head[1]/style[2]",
+          "detail": "attribute \"type\" missing, want \"text/css\""
+        },
+        {
+          "path": "/#document/html[1]/head[1]/style[4]",
+          "detail": "attribute \"media\" missing, want \"screen and (min-width:480px)\""
+        },
+        {
+          "path": "/#document/html[1]/head[1]/style[4]",
+          "detail": "attribute \"type\" unexpected, got \"text/css\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]",
+          "detail": "attribute \"aria-label\" missing, want \"MJML Image Property Test\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]",
+          "detail": "attribute \"aria-roledescription\" missing, want \"email\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]",
+          "detail": "attribute \"role\" missing, want \"article\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:24px;font-weight:bold;line-height:1;text-align:center;\", got \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:24px;font-weight:bold;line-height:1;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;font-weight:bold;line-height:1;text-align:left;\", got \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;font-weight:bold;line-height:1;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[3]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[2]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;font-weight:bold;line-height:1;text-align:left;\", got \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;font-weight:bold;line-height:1;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[3]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[3]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;\", got \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[3]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[5]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;\", got \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[4]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[2]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;font-weight:bold;line-height:1;text-align:left;\", got \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;font-weight:bold;line-height:1;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[4]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[3]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;\", got \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[4]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[5]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;\", got \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[4]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[7]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;\", got \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[5]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[2]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;font-weight:bold;line-height:1;text-align:left;\", got \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;font-weight:bold;line-height:1;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[6]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[2]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;font-weight:bold;line-height:1;text-align:left;\", got \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;font-weight:bold;line-height:1;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[6]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[4]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;\", got \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[6]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[5]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/img[1]",
+          "detail": "attribute \"style\" mismatch: want \"border:0;border-radius:25px;display:block;font-size:13px;height:auto;outline:none;text-decoration:none;width:100%;\", got \"border:0;display:block;font-size:13px;height:auto;outline:none;text-decoration:none;width:100%;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[7]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[2]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;font-weight:bold;line-height:1;text-align:left;\", got \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;font-weight:bold;line-height:1;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[7]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[3]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;\", got \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[8]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[2]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;font-weight:bold;line-height:1;text-align:left;\", got \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;font-weight:bold;line-height:1;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[8]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[3]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;\", got \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[9]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:20px;font-weight:bold;line-height:1;text-align:center;\", got \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:20px;font-weight:bold;line-height:1;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[9]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[2]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;\", got \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[9]/table[1]/tbody[1]/tr[1]/td[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;font-weight:bold;line-height:1;text-align:left;\", got \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;font-weight:bold;line-height:1;\""
+        }
+      ]
+    },
+    "testdata/image.mjml": {
+      "mismatches": [
+        {
+          "path": "/#document/html[1]/body[1]/div[1]",
+          "detail": "attribute \"aria-roledescription\" missing, want \"email\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]",
+          "detail": "attribute \"role\" missing, want \"article\""
+        }
+      ]
+    },
+    "testdata/input_big.mjml": {
+      "mismatches": [
+        {
+          "path": "/#document/html[1]/body[1]/div[2]",
+          "detail": "attribute \"aria-roledescription\" missing, want \"email\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]",
+          "detail": "attribute \"role\" missing, want \"article\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[2]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#3C3C3C;font-family:Helvetica;font-size:0px;font-weight:400;line-height:10px;text-align:center;\", got \"color:#3C3C3C;font-family:Helvetica;font-size:0px;font-weight:400;line-height:10px;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/#conditional[4]/table[1]",
+          "detail": "attribute \"bgcolor\" mismatch: want \"#FFFFFF\", got \"#FFF\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[4]",
+          "detail": "attribute \"style\" mismatch: want \"background:#FFFFFF;background-color:#FFFFFF;border-radius:12px;margin:0px auto;max-width:600px;overflow:hidden;\", got \"background:#FFFFFF;background-color:#FFFFFF;border-radius:12px;margin:0px auto;max-width:600px;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[4]/table[1]",
+          "detail": "attribute \"style\" mismatch: want \"background:#FFFFFF;background-color:#FFFFFF;border-collapse:separate;width:100%;\", got \"background:#FFFFFF;background-color:#FFFFFF;border-radius:12px;width:100%;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[4]/table[1]/tbody[1]/tr[1]/td[1]",
+          "detail": "attribute \"style\" mismatch: want \"border-radius:12px;direction:ltr;font-size:0px;padding:20px;text-align:center;\", got \"direction:ltr;font-size:0px;padding:20px;text-align:center;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[4]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/img[1]",
+          "detail": "attribute \"height\" unexpected, got \"20\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[4]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[2]",
+          "detail": "attribute \"style\" mismatch: want \"padding:0px 20px;text-align:left;vertical-align:middle;\", got \"padding:0px 20px;vertical-align:middle;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[4]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[3]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/img[1]",
+          "detail": "attribute \"height\" unexpected, got \"20\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[4]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[3]/td[1]/table[1]/tbody[1]/tr[1]/td[2]",
+          "detail": "attribute \"style\" mismatch: want \"padding:0px 20px;text-align:left;vertical-align:middle;\", got \"padding:0px 20px;vertical-align:middle;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/#conditional[6]/table[1]",
+          "detail": "attribute \"bgcolor\" mismatch: want \"#FFFFFF\", got \"#FFF\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[6]",
+          "detail": "attribute \"style\" mismatch: want \"background:#FFFFFF;background-color:#FFFFFF;border-radius:12px;margin:0px auto;max-width:600px;overflow:hidden;\", got \"background:#FFFFFF;background-color:#FFFFFF;border-radius:12px;margin:0px auto;max-width:600px;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[6]/table[1]",
+          "detail": "attribute \"style\" mismatch: want \"background:#FFFFFF;background-color:#FFFFFF;border-collapse:separate;width:100%;\", got \"background:#FFFFFF;background-color:#FFFFFF;border-radius:12px;width:100%;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[6]/table[1]/tbody[1]/tr[1]/td[1]",
+          "detail": "attribute \"style\" mismatch: want \"border-radius:12px;direction:ltr;font-size:0px;padding:20px;text-align:center;\", got \"direction:ltr;font-size:0px;padding:20px;text-align:center;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[6]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#3C3C3C;font-family:Helvetica;font-size:14px;font-weight:400;line-height:21px;text-align:left;\", got \"color:#3C3C3C;font-family:Helvetica;font-size:14px;font-weight:400;line-height:21px;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[6]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[2]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#3C3C3C;font-family:Helvetica;font-size:14px;font-weight:400;line-height:21px;text-align:left;\", got \"color:#3C3C3C;font-family:Helvetica;font-size:14px;font-weight:400;line-height:21px;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[6]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[3]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#3C3C3C;font-family:Helvetica;font-size:14px;font-weight:400;line-height:24px;text-align:left;\", got \"color:#3C3C3C;font-family:Helvetica;font-size:14px;font-weight:400;line-height:24px;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[6]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[4]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#3C3C3C;font-family:Helvetica;font-size:14px;font-weight:400;line-height:21px;text-align:left;\", got \"color:#3C3C3C;font-family:Helvetica;font-size:14px;font-weight:400;line-height:21px;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[6]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[5]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#3C3C3C;font-family:Helvetica;font-size:14px;font-weight:400;line-height:21px;text-align:left;\", got \"color:#3C3C3C;font-family:Helvetica;font-size:14px;font-weight:400;line-height:21px;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/#conditional[8]/table[1]",
+          "detail": "attribute \"bgcolor\" mismatch: want \"#FFFFFF\", got \"#FFF\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[8]",
+          "detail": "attribute \"style\" mismatch: want \"background:#FFFFFF;background-color:#FFFFFF;border-radius:12px;margin:0px auto;max-width:600px;overflow:hidden;\", got \"background:#FFFFFF;background-color:#FFFFFF;border-radius:12px;margin:0px auto;max-width:600px;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[8]/table[1]",
+          "detail": "attribute \"style\" mismatch: want \"background:#FFFFFF;background-color:#FFFFFF;border-collapse:separate;width:100%;\", got \"background:#FFFFFF;background-color:#FFFFFF;border-radius:12px;width:100%;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[8]/table[1]/tbody[1]/tr[1]/td[1]",
+          "detail": "attribute \"style\" mismatch: want \"border-radius:12px;direction:ltr;font-size:0px;padding:20px;text-align:center;\", got \"direction:ltr;font-size:0px;padding:20px;text-align:center;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[8]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#3C3C3C;font-family:Helvetica;font-size:14px;font-weight:400;line-height:21px;text-align:left;\", got \"color:#3C3C3C;font-family:Helvetica;font-size:14px;font-weight:400;line-height:21px;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[8]/table[1]/tbody[1]/tr[1]/td[1]/div[3]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[1]/table[1]",
+          "detail": "attribute \"style\" mismatch: want \"border-top:solid 1px #E5E5E5;font-size:1px;margin:0px auto;width:518px;\", got \"border-top:solid 1px #E5E5E5;font-size:1px;margin:0px auto;width:560px;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[8]/table[1]/tbody[1]/tr[1]/td[1]/div[3]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[1]/table[1]",
+          "detail": "attribute \"width\" mismatch: want \"518px\", got \"560px\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[8]/table[1]/tbody[1]/tr[1]/td[1]/div[5]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[1]/table[1]",
+          "detail": "attribute \"style\" mismatch: want \"border-top:solid 1px #E5E5E5;font-size:1px;margin:0px auto;width:518px;\", got \"border-top:solid 1px #E5E5E5;font-size:1px;margin:0px auto;width:560px;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[8]/table[1]/tbody[1]/tr[1]/td[1]/div[5]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[1]/table[1]",
+          "detail": "attribute \"width\" mismatch: want \"518px\", got \"560px\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[8]/table[1]/tbody[1]/tr[1]/td[1]/div[7]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[1]/table[1]",
+          "detail": "attribute \"style\" mismatch: want \"border-top:solid 1px #E5E5E5;font-size:1px;margin:0px auto;width:518px;\", got \"border-top:solid 1px #E5E5E5;font-size:1px;margin:0px auto;width:560px;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[8]/table[1]/tbody[1]/tr[1]/td[1]/div[7]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[1]/table[1]",
+          "detail": "attribute \"width\" mismatch: want \"518px\", got \"560px\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[8]/table[1]/tbody[1]/tr[1]/td[1]/div[8]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[1]/table[1]/tbody[1]/tr[1]",
+          "detail": "child count mismatch: want 1, got 0"
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[8]/table[1]/tbody[1]/tr[1]/td[1]/div[8]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/#conditional[1]/table[1]/tbody[1]/tr[1]/td[1]",
+          "detail": "attribute \"style\" mismatch: want \"vertical-align:top;width:362px;\", got \"vertical-align:top;width:392px;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[8]/table[1]/tbody[1]/tr[1]/td[1]/div[8]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#3C3C3C;font-family:Helvetica;font-size:14px;font-weight:400;line-height:21px;text-align:left;\", got \"color:#3C3C3C;font-family:Helvetica;font-size:14px;font-weight:400;line-height:21px;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[8]/table[1]/tbody[1]/tr[1]/td[1]/div[8]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#3C3C3C;font-family:Helvetica;font-size:14px;font-weight:400;line-height:21px;text-align:right;\", got \"color:#3C3C3C;font-family:Helvetica;font-size:14px;font-weight:400;line-height:21px;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[8]/table[1]/tbody[1]/tr[1]/td[1]/div[9]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[1]/table[1]/tbody[1]/tr[1]",
+          "detail": "child count mismatch: want 1, got 0"
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[8]/table[1]/tbody[1]/tr[1]/td[1]/div[9]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/#conditional[1]/table[1]/tbody[1]/tr[1]/td[1]",
+          "detail": "attribute \"style\" mismatch: want \"vertical-align:top;width:362px;\", got \"vertical-align:top;width:392px;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[8]/table[1]/tbody[1]/tr[1]/td[1]/div[9]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#3C3C3C;font-family:Helvetica;font-size:14px;font-weight:400;line-height:21px;text-align:left;\", got \"color:#3C3C3C;font-family:Helvetica;font-size:14px;font-weight:400;line-height:21px;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[8]/table[1]/tbody[1]/tr[1]/td[1]/div[9]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#3C3C3C;font-family:Helvetica;font-size:14px;font-weight:400;line-height:21px;text-align:right;\", got \"color:#3C3C3C;font-family:Helvetica;font-size:14px;font-weight:400;line-height:21px;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[8]/table[1]/tbody[1]/tr[1]/td[1]/div[11]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[1]/table[1]",
+          "detail": "attribute \"style\" mismatch: want \"border-top:solid 1px #E5E5E5;font-size:1px;margin:0px auto;width:518px;\", got \"border-top:solid 1px #E5E5E5;font-size:1px;margin:0px auto;width:560px;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[8]/table[1]/tbody[1]/tr[1]/td[1]/div[11]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[1]/table[1]",
+          "detail": "attribute \"width\" mismatch: want \"518px\", got \"560px\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[8]/table[1]/tbody[1]/tr[1]/td[1]/div[12]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[1]/table[1]/tbody[1]/tr[1]",
+          "detail": "child count mismatch: want 1, got 0"
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[8]/table[1]/tbody[1]/tr[1]/td[1]/div[12]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/#conditional[1]/table[1]/tbody[1]/tr[1]/td[1]",
+          "detail": "attribute \"style\" mismatch: want \"vertical-align:top;width:362px;\", got \"vertical-align:top;width:392px;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[8]/table[1]/tbody[1]/tr[1]/td[1]/div[12]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#3C3C3C;font-family:Helvetica;font-size:14px;font-weight:700;line-height:21px;text-align:left;\", got \"color:#3C3C3C;font-family:Helvetica;font-size:14px;font-weight:700;line-height:21px;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[8]/table[1]/tbody[1]/tr[1]/td[1]/div[12]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#3C3C3C;font-family:Helvetica;font-size:14px;font-weight:700;line-height:21px;text-align:right;\", got \"color:#3C3C3C;font-family:Helvetica;font-size:14px;font-weight:700;line-height:21px;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[8]/table[1]/tbody[1]/tr[1]/td[1]/div[13]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[1]/table[1]/tbody[1]/tr[1]",
+          "detail": "child count mismatch: want 1, got 0"
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[8]/table[1]/tbody[1]/tr[1]/td[1]/div[13]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/#conditional[1]/table[1]/tbody[1]/tr[1]/td[1]",
+          "detail": "attribute \"style\" mismatch: want \"vertical-align:top;width:362px;\", got \"vertical-align:top;width:392px;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[8]/table[1]/tbody[1]/tr[1]/td[1]/div[13]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#3C3C3C;font-family:Helvetica;font-size:14px;font-weight:400;line-height:21px;text-align:left;\", got \"color:#3C3C3C;font-family:Helvetica;font-size:14px;font-weight:400;line-height:21px;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[8]/table[1]/tbody[1]/tr[1]/td[1]/div[13]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#3C3C3C;font-family:Helvetica;font-size:14px;font-weight:400;line-height:21px;text-align:right;\", got \"color:#3C3C3C;font-family:Helvetica;font-size:14px;font-weight:400;line-height:21px;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/#conditional[10]/table[1]",
+          "detail": "attribute \"bgcolor\" mismatch: want \"#FFFFFF\", got \"#FFF\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[10]",
+          "detail": "attribute \"style\" mismatch: want \"background:#FFFFFF;background-color:#FFFFFF;border-radius:12px;margin:0px auto;max-width:600px;overflow:hidden;\", got \"background:#FFFFFF;background-color:#FFFFFF;border-radius:12px;margin:0px auto;max-width:600px;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[10]/table[1]",
+          "detail": "attribute \"style\" mismatch: want \"background:#FFFFFF;background-color:#FFFFFF;border-collapse:separate;width:100%;\", got \"background:#FFFFFF;background-color:#FFFFFF;border-radius:12px;width:100%;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[10]/table[1]/tbody[1]/tr[1]/td[1]",
+          "detail": "attribute \"style\" mismatch: want \"border-radius:12px;direction:ltr;font-size:0px;padding:20px;text-align:center;\", got \"direction:ltr;font-size:0px;padding:20px;text-align:center;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[10]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#3C3C3C;font-family:Helvetica;font-size:14px;font-weight:400;line-height:21px;text-align:left;\", got \"color:#3C3C3C;font-family:Helvetica;font-size:14px;font-weight:400;line-height:21px;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[10]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[2]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#3C3C3C;font-family:Helvetica;font-size:14px;font-weight:400;line-height:21px;text-align:left;\", got \"color:#3C3C3C;font-family:Helvetica;font-size:14px;font-weight:400;line-height:21px;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/#conditional[12]/table[1]",
+          "detail": "attribute \"bgcolor\" mismatch: want \"#FFFFFF\", got \"#FFF\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[12]",
+          "detail": "attribute \"style\" mismatch: want \"background:#FFFFFF;background-color:#FFFFFF;border-radius:12px;margin:0px auto;max-width:600px;overflow:hidden;\", got \"background:#FFFFFF;background-color:#FFFFFF;border-radius:12px;margin:0px auto;max-width:600px;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[12]/table[1]",
+          "detail": "attribute \"style\" mismatch: want \"background:#FFFFFF;background-color:#FFFFFF;border-collapse:separate;width:100%;\", got \"background:#FFFFFF;background-color:#FFFFFF;border-radius:12px;width:100%;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[12]/table[1]/tbody[1]/tr[1]/td[1]",
+          "detail": "attribute \"style\" mismatch: want \"border-radius:12px;direction:ltr;font-size:0px;padding:20px;text-align:center;\", got \"direction:ltr;font-size:0px;padding:20px;text-align:center;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[12]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#3C3C3C;font-family:Helvetica;font-size:14px;font-weight:400;line-height:21px;text-align:left;\", got \"color:#3C3C3C;font-family:Helvetica;font-size:14px;font-weight:400;line-height:21px;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[12]/table[1]/tbody[1]/tr[1]/td[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#3C3C3C;font-family:Helvetica;font-size:14px;font-weight:400;line-height:21px;text-align:left;\", got \"color:#3C3C3C;font-family:Helvetica;font-size:14px;font-weight:400;line-height:21px;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[12]/table[1]/tbody[1]/tr[1]/td[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[2]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#3C3C3C;font-family:Helvetica;font-size:14px;font-weight:400;line-height:21px;text-align:left;\", got \"color:#3C3C3C;font-family:Helvetica;font-size:14px;font-weight:400;line-height:21px;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[12]/table[1]/tbody[1]/tr[1]/td[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[3]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#3C3C3C;font-family:Helvetica;font-size:14px;font-weight:400;line-height:21px;text-align:left;\", got \"color:#3C3C3C;font-family:Helvetica;font-size:14px;font-weight:400;line-height:21px;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[12]/table[1]/tbody[1]/tr[1]/td[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[4]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#3C3C3C;font-family:Helvetica;font-size:14px;font-weight:400;line-height:21px;text-align:left;\", got \"color:#3C3C3C;font-family:Helvetica;font-size:14px;font-weight:400;line-height:21px;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[12]/table[1]/tbody[1]/tr[1]/td[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[5]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#3C3C3C;font-family:Helvetica;font-size:14px;font-weight:400;line-height:21px;text-align:left;\", got \"color:#3C3C3C;font-family:Helvetica;font-size:14px;font-weight:400;line-height:21px;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[12]/table[1]/tbody[1]/tr[1]/td[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[6]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#3C3C3C;font-family:Helvetica;font-size:14px;font-weight:400;line-height:21px;text-align:left;\", got \"color:#3C3C3C;font-family:Helvetica;font-size:14px;font-weight:400;line-height:21px;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[12]/table[1]/tbody[1]/tr[1]/td[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[7]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#3C3C3C;font-family:Helvetica;font-size:14px;font-weight:400;line-height:21px;text-align:left;\", got \"color:#3C3C3C;font-family:Helvetica;font-size:14px;font-weight:400;line-height:21px;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[12]/table[1]/tbody[1]/tr[1]/td[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[8]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#3C3C3C;font-family:Helvetica;font-size:14px;font-weight:400;line-height:21px;text-align:left;\", got \"color:#3C3C3C;font-family:Helvetica;font-size:14px;font-weight:400;line-height:21px;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[12]/table[1]/tbody[1]/tr[1]/td[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[9]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#3C3C3C;font-family:Helvetica;font-size:14px;font-weight:400;line-height:21px;text-align:left;\", got \"color:#3C3C3C;font-family:Helvetica;font-size:14px;font-weight:400;line-height:21px;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[12]/table[1]/tbody[1]/tr[1]/td[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[10]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#3C3C3C;font-family:Helvetica;font-size:14px;font-weight:400;line-height:21px;text-align:left;\", got \"color:#3C3C3C;font-family:Helvetica;font-size:14px;font-weight:400;line-height:21px;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[12]/table[1]/tbody[1]/tr[1]/td[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[11]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#3C3C3C;font-family:Helvetica;font-size:14px;font-weight:400;line-height:21px;text-align:left;\", got \"color:#3C3C3C;font-family:Helvetica;font-size:14px;font-weight:400;line-height:21px;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[12]/table[1]/tbody[1]/tr[1]/td[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[12]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#3C3C3C;font-family:Helvetica;font-size:14px;font-weight:400;line-height:21px;text-align:left;\", got \"color:#3C3C3C;font-family:Helvetica;font-size:14px;font-weight:400;line-height:21px;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[12]/table[1]/tbody[1]/tr[1]/td[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[13]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#3C3C3C;font-family:Helvetica;font-size:14px;font-weight:400;line-height:21px;text-align:left;\", got \"color:#3C3C3C;font-family:Helvetica;font-size:14px;font-weight:400;line-height:21px;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[12]/table[1]/tbody[1]/tr[1]/td[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[14]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#3C3C3C;font-family:Helvetica;font-size:14px;font-weight:400;line-height:21px;text-align:left;\", got \"color:#3C3C3C;font-family:Helvetica;font-size:14px;font-weight:400;line-height:21px;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/#conditional[14]/table[1]",
+          "detail": "attribute \"bgcolor\" mismatch: want \"#FFFFFF\", got \"#FFF\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[14]",
+          "detail": "attribute \"style\" mismatch: want \"background:#FFFFFF;background-color:#FFFFFF;border-radius:12px;margin:0px auto;max-width:600px;overflow:hidden;\", got \"background:#FFFFFF;background-color:#FFFFFF;border-radius:12px;margin:0px auto;max-width:600px;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[14]/table[1]",
+          "detail": "attribute \"style\" mismatch: want \"background:#FFFFFF;background-color:#FFFFFF;border-collapse:separate;width:100%;\", got \"background:#FFFFFF;background-color:#FFFFFF;border-radius:12px;width:100%;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[14]/table[1]/tbody[1]/tr[1]/td[1]",
+          "detail": "attribute \"style\" mismatch: want \"border-radius:12px;direction:ltr;font-size:0px;padding:20px;text-align:center;\", got \"direction:ltr;font-size:0px;padding:20px;text-align:center;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[14]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#3C3C3C;font-family:Helvetica;font-size:14px;font-weight:400;line-height:21px;text-align:left;\", got \"color:#3C3C3C;font-family:Helvetica;font-size:14px;font-weight:400;line-height:21px;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[14]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[2]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#3C3C3C;font-family:Helvetica;font-size:14px;font-weight:400;line-height:21px;text-align:left;\", got \"color:#3C3C3C;font-family:Helvetica;font-size:14px;font-weight:400;line-height:21px;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[14]/table[1]/tbody[1]/tr[1]/td[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[1]/table[1]/tbody[1]/tr[1]/td[1]",
+          "detail": "attribute \"style\" mismatch: want \"vertical-align:middle;width:280px;\", got \"vertical-align:middle;width:560px;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[14]/table[1]/tbody[1]/tr[1]/td[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/img[1]",
+          "detail": "attribute \"height\" unexpected, got \"18\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[14]/table[1]/tbody[1]/tr[1]/td[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[2]",
+          "detail": "attribute \"style\" mismatch: want \"padding:0px 0px 0px 16px;text-align:left;vertical-align:middle;\", got \"padding:0px 0px 0px 16px;vertical-align:middle;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[14]/table[1]/tbody[1]/tr[1]/td[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/img[1]",
+          "detail": "attribute \"height\" unexpected, got \"18\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[14]/table[1]/tbody[1]/tr[1]/td[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[2]",
+          "detail": "attribute \"style\" mismatch: want \"padding:0px 0px 0px 16px;text-align:left;vertical-align:middle;\", got \"padding:0px 0px 0px 16px;vertical-align:middle;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[14]/table[1]/tbody[1]/tr[1]/td[1]/div[3]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#666666;font-family:Helvetica;font-size:12px;font-weight:400;line-height:18px;text-align:left;\", got \"color:#666666;font-family:Helvetica;font-size:12px;font-weight:400;line-height:18px;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[1]/table[1]",
+          "detail": "attribute \"bgcolor\" mismatch: want \"#FFFFFF\", got \"#FFF\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[2]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#3C3C3C;font-family:Helvetica;font-size:0px;font-weight:400;line-height:10px;text-align:left;\", got \"color:#3C3C3C;font-family:Helvetica;font-size:0px;font-weight:400;line-height:10px;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[3]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#666666;font-family:Helvetica;font-size:12px;font-weight:400;line-height:18px;text-align:left;\", got \"color:#666666;font-family:Helvetica;font-size:12px;font-weight:400;line-height:18px;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[4]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#666666;font-family:Helvetica;font-size:12px;font-weight:400;line-height:18px;text-align:left;\", got \"color:#666666;font-family:Helvetica;font-size:12px;font-weight:400;line-height:18px;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[5]/td[1]/#conditional[1]/table[1]",
+          "detail": "attribute \"style\" mismatch: want \"border-top:solid 2px #F5F5F5;font-size:1px;margin:0px auto;width:568px;\", got \"border-top:solid 2px #F5F5F5;font-size:1px;margin:0px auto;width:600px;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[5]/td[1]/#conditional[1]/table[1]",
+          "detail": "attribute \"width\" mismatch: want \"568px\", got \"600px\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[6]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#666666;font-family:Helvetica;font-size:12px;font-weight:400;line-height:18px;text-align:left;\", got \"color:#666666;font-family:Helvetica;font-size:12px;font-weight:400;line-height:18px;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[7]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#666666;font-family:Helvetica;font-size:12px;font-weight:400;line-height:18px;text-align:left;\", got \"color:#666666;font-family:Helvetica;font-size:12px;font-weight:400;line-height:18px;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[8]/td[1]/#conditional[1]/table[1]",
+          "detail": "attribute \"style\" mismatch: want \"border-top:solid 2px #F5F5F5;font-size:1px;margin:0px auto;width:568px;\", got \"border-top:solid 2px #F5F5F5;font-size:1px;margin:0px auto;width:600px;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[8]/td[1]/#conditional[1]/table[1]",
+          "detail": "attribute \"width\" mismatch: want \"568px\", got \"600px\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[9]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#666666;font-family:Helvetica;font-size:12px;font-weight:400;line-height:18px;text-align:left;text-decoration:underline;\", got \"color:#666666;font-family:Helvetica;font-size:12px;font-weight:400;line-height:18px;text-decoration:underline;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[10]/td[1]/#conditional[1]/table[1]",
+          "detail": "attribute \"style\" mismatch: want \"border-top:solid 2px #F5F5F5;font-size:1px;margin:0px auto;width:568px;\", got \"border-top:solid 2px #F5F5F5;font-size:1px;margin:0px auto;width:600px;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[10]/td[1]/#conditional[1]/table[1]",
+          "detail": "attribute \"width\" mismatch: want \"568px\", got \"600px\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[11]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#666666;font-family:Helvetica;font-size:12px;font-weight:400;line-height:18px;text-align:left;\", got \"color:#666666;font-family:Helvetica;font-size:12px;font-weight:400;line-height:18px;\""
+        }
+      ]
+    },
+    "testdata/layout.mjml": {
+      "mismatches": [
+        {
+          "path": "/#document/html[1]/head[1]",
+          "detail": "child count mismatch: want 11, got 9"
+        },
+        {
+          "path": "/#document/html[1]/head[1]/link[1]",
+          "detail": "name mismatch: want \"link\", got \"style\""
+        },
+        {
+          "path": "/#document/html[1]/head[1]/style[2]",
+          "detail": "attribute \"media\" unexpected, got \"screen and (min-width:480px)\""
+        },
+        {
+          "path": "/#document/html[1]/head[1]/style[2]",
+          "detail": "attribute \"type\" missing, want \"text/css\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]",
+          "detail": "attribute \"aria-roledescription\" missing, want \"email\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]",
+          "detail": "attribute \"role\" missing, want \"article\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[1]/table[1]/tbody[1]/tr[1]/td[1]",
+          "detail": "attribute \"style\" mismatch: want \"vertical-align:top;width:174.24px;\", got \"vertical-align:top;width:528px;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:center;\", got \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:right;\", got \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[1]/table[1]/tbody[1]/tr[1]",
+          "detail": "child count mismatch: want 1, got 0"
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;\", got \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;\", got \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/div[3]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;\", got \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#ffffff;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;\", got \"color:#ffffff;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;\", got \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;\""
+        }
+      ]
+    },
+    "testdata/raw.mjml": {
+      "error": "failed to render column: invalid child type mj-raw in column, allowed types are: [mj-divider mj-spacer mj-image mj-text mj-social mj-table mj-button]"
+    },
+    "testdata/simple-hero.mjml": {
+      "mismatches": [
+        {
+          "path": "/#document/html[1]/head[1]",
+          "detail": "child count mismatch: want 9, got 7"
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]",
+          "detail": "attribute \"aria-roledescription\" missing, want \"email\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]",
+          "detail": "attribute \"role\" missing, want \"article\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/#conditional[1]/table[1]",
+          "detail": "attribute \"cellspacing\" missing, want \"0\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#ffffff;font-family:Helvetica;font-size:45px;font-weight:900;line-height:45px;text-align:center;\", got \"color:#ffffff;font-family:Helvetica;font-size:45px;font-weight:900;line-height:45px;\""
+        }
+      ]
+    },
+    "testdata/simple.mjml": {
+      "mismatches": [
+        {
+          "path": "/#document/html[1]/body[1]/div[1]",
+          "detail": "attribute \"aria-roledescription\" missing, want \"email\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]",
+          "detail": "attribute \"role\" missing, want \"article\""
+        }
+      ]
+    },
+    "testdata/social.mjml": {
+      "mismatches": [
+        {
+          "path": "/#document/html[1]/head[1]",
+          "detail": "child count mismatch: want 11, got 9"
+        },
+        {
+          "path": "/#document/html[1]/head[1]/link[1]",
+          "detail": "name mismatch: want \"link\", got \"style\""
+        },
+        {
+          "path": "/#document/html[1]/head[1]/style[2]",
+          "detail": "attribute \"media\" unexpected, got \"screen and (min-width:480px)\""
+        },
+        {
+          "path": "/#document/html[1]/head[1]/style[2]",
+          "detail": "attribute \"type\" missing, want \"text/css\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]",
+          "detail": "attribute \"aria-roledescription\" missing, want \"email\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]",
+          "detail": "attribute \"role\" missing, want \"article\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[1]/table[1]/tbody[1]/tr[1]",
+          "detail": "attribute \"mjml-social-test\" unexpected, got \"\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/a[1]/img[1]",
+          "detail": "attribute \"height\" unexpected, got \"24\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[2]",
+          "detail": "attribute \"style\" mismatch: want \"padding:4px 4px 4px 0;text-align:left;vertical-align:middle;\", got \"padding:4px 4px 4px 0;vertical-align:middle;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[2]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/a[1]/img[1]",
+          "detail": "attribute \"height\" unexpected, got \"24\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[2]/tbody[1]/tr[1]/td[2]",
+          "detail": "attribute \"style\" mismatch: want \"padding:4px 4px 4px 0;text-align:left;vertical-align:middle;\", got \"padding:4px 4px 4px 0;vertical-align:middle;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[3]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/a[1]/img[1]",
+          "detail": "attribute \"height\" unexpected, got \"24\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[3]/tbody[1]/tr[1]/td[2]",
+          "detail": "attribute \"style\" mismatch: want \"padding:4px 4px 4px 0;text-align:left;vertical-align:middle;\", got \"padding:4px 4px 4px 0;vertical-align:middle;\""
+        }
+      ]
+    }
+  }
+}
