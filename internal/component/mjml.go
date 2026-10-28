@@ -51,6 +51,31 @@ func (m MJML) Render(ctx *RenderContext, w io.Writer, n *node.Node) error {
 		return err
 	}
 
+	// The head preparse may replace the breakpoint with <mj-breakpoint>, so set
+	// the default before it runs (validation and rendering must see the same one).
+	ctx.Breakpoint = "480px"
+
+	var headNode *node.Node
+	for _, child := range n.Children {
+		if child.Type == HeadTagName {
+			headNode = child
+			break
+		}
+	}
+
+	// Parse the head before validating so mj-class references can be resolved
+	// against the classes the document declares. Validation still runs before
+	// any body attribute default is applied.
+	if headNode != nil {
+		if err := m.preparseHeadMetaValues(ctx, headNode); err != nil {
+			return err
+		}
+	}
+
+	if err := ValidateDocument(ctx, n); err != nil {
+		return err
+	}
+
 	ctx.Language = n.GetAttributeValueDefault("lang")
 	ctx.ForceOWADesktop = n.GetAttributeValueDefault("owa") == "desktop"
 
@@ -62,10 +87,7 @@ func (m MJML) Render(ctx *RenderContext, w io.Writer, n *node.Node) error {
 	}
 
 	ctx.Direction = n.GetAttributeValueDefault("dir")
-	ctx.Breakpoint = "480px"
 	ctx.IncludeMobileFullWidthStyle = hasNodeType(n, "mj-image")
-
-	var headNode *node.Node
 
 	var headTextBuilder strings.Builder
 	var bodyTextBuilder strings.Builder
@@ -74,10 +96,6 @@ func (m MJML) Render(ctx *RenderContext, w io.Writer, n *node.Node) error {
 	for _, child := range n.Children {
 		switch child.Type {
 		case HeadTagName:
-			if err := m.preparseHeadMetaValues(ctx, child); err != nil {
-				return err
-			}
-
 			headNode = child
 		case BodyTagName:
 			m.setAttributeDefaults(ctx, child, "")

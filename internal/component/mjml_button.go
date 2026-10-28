@@ -34,7 +34,7 @@ func (b MJMLButton) AllowedAttributes() map[string]validateAttributeFunc {
 		"name":                       validateType("string"),
 		"title":                      validateType("string"),
 		"inner-padding":              validateUnit([]string{"px", "%"}, true),
-		"letter-spacing":             validateUnit([]string{"px", "em"}, false),
+		"letter-spacing":             validateUnitWithNegative([]string{"px", "em"}, false),
 		"line-height":                validateUnit([]string{"px", "%", ""}, false),
 		"padding-bottom":             validateUnit([]string{"px", "%"}, false),
 		"padding-left":               validateUnit([]string{"px", "%"}, false),

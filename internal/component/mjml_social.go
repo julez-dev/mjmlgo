@@ -26,7 +26,7 @@ func (s MJMLSocial) AllowedAttributes() map[string]validateAttributeFunc {
 		"icon-height":                validateUnit([]string{"px", "%"}, false),
 		"icon-padding":               validateUnit([]string{"px", "%"}, true),
 		"inner-padding":              validateUnit([]string{"px", "%"}, true),
-		"line-height":                validateUnit([]string{"px", "%"}, false),
+		"line-height":                validateUnit([]string{"px", "%", ""}, false),
 		"mode":                       validateEnum([]string{"horizontal", "vertical"}),
 		"padding-bottom":             validateUnit([]string{"px", "%"}, false),
 		"padding-left":               validateUnit([]string{"px", "%"}, false),

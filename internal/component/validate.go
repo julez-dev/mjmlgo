@@ -12,13 +12,23 @@ import (
 var ErrValidation = errors.New("failed validation")
 
 var (
-	// Regex for different color formats
-	rgbaRegex = regexp.MustCompile(`(?i)^rgba\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d(\.\d+)?\s*\)$`)
-	rgbRegex  = regexp.MustCompile(`(?i)^rgb\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}\s*\)$`)
+	// Regex for different color formats. These mirror the type matchers of
+	// mjml-core/lib/types/color.js, including the fact that the rgb/rgba forms
+	// are not anchored there.
+	rgbaRegex = regexp.MustCompile(`(?i)rgba\(\d{1,3},\s?\d{1,3},\s?\d{1,3},\s?\d(\.\d{1,3})?\)`)
+	rgbRegex  = regexp.MustCompile(`(?i)rgb\(\d{1,3},\s?\d{1,3},\s?\d{1,3}\)`)
 	hexRegex  = regexp.MustCompile(`^#([0-9a-fA-F]{3}){1,2}$`)
 
 	// Regex for expanding shorthand hex values
 	shorthandHexRegex = regexp.MustCompile(`^#([0-9a-fA-F])([0-9a-fA-F])([0-9a-fA-F])$`)
+
+	// unitValueRegex splits a single unit value into its optional sign, numeric
+	// part and unit. It mirrors the permissive number part of MJML's unit type,
+	// which accepts any sequence of digits, dots and commas.
+	unitValueRegex = regexp.MustCompile(`^(-?)([\d.,]+)([A-Za-z%]*)$`)
+
+	// integerRegex mirrors MJML's integer type, which is an unanchored \d+.
+	integerRegex = regexp.MustCompile(`\d+`)
 )
 
 var cssColorNames = map[string]struct{}{
@@ -48,9 +58,6 @@ type validateAttributeFunc func(value string) error
 
 func validateEnum(valid []string) validateAttributeFunc {
 	return func(value string) error {
-		if value == "" {
-			return nil
-		}
 		if !slices.Contains(valid, value) {
 			return fmt.Errorf("%w: %s not one of %v", ErrValidation, value, valid)
 		}
@@ -60,9 +67,6 @@ func validateEnum(valid []string) validateAttributeFunc {
 
 func validateColor() validateAttributeFunc {
 	return func(value string) error {
-		if value == "" {
-			return nil
-		}
 		if rgbaRegex.MatchString(value) || rgbRegex.MatchString(value) || hexRegex.MatchString(value) {
 			return nil
 		}
@@ -75,36 +79,85 @@ func validateColor() validateAttributeFunc {
 	}
 }
 
+// validateUnit validates a unit(units) or unit(units){1,4} attribute. Multiple
+// values are space separated and, like MJML's shorthand types, limited to one
+// to four values.
 func validateUnit(validUnits []string, isMultipleValues bool) validateAttributeFunc {
+	maxValues := 1
+	if isMultipleValues {
+		maxValues = 4
+	}
+
+	return validateUnitValues(validUnits, 1, maxValues, false)
+}
+
+// validateUnitWithNegative is the unitWithNegative type: identical to unit,
+// except that a negative numeric part is allowed. MJML uses it for
+// letter-spacing on text, button, navbar-link and accordion-text.
+func validateUnitWithNegative(validUnits []string, isMultipleValues bool) validateAttributeFunc {
+	maxValues := 1
+	if isMultipleValues {
+		maxValues = 4
+	}
+
+	return validateUnitValues(validUnits, 1, maxValues, true)
+}
+
+func validateUnitValues(validUnits []string, minValues, maxValues int, allowNegative bool) validateAttributeFunc {
 	return func(value string) error {
 		if value == "" {
-			return nil
+			return fmt.Errorf("%w: empty value is not a valid unit", ErrValidation)
 		}
 
-		var splits []string
-		if isMultipleValues {
-			splits = strings.Split(value, " ")
-		} else {
-			if strings.Contains(strings.TrimSpace(value), " ") {
-				return fmt.Errorf("%w: did not expect attribute value with multiple units in %s", ErrValidation, value)
+		values := strings.Split(value, " ")
+		if len(values) < minValues || len(values) > maxValues {
+			return fmt.Errorf("%w: %q has %d value(s), want %d to %d", ErrValidation, value, len(values), minValues, maxValues)
+		}
+
+		for _, s := range values {
+			if s == "" {
+				return fmt.Errorf("%w: empty value in %q", ErrValidation, value)
 			}
 
-			splits = append(splits, value)
-		}
-
-		for _, s := range splits {
 			if s == "0" {
 				continue
 			}
 
-			matches := valueAndUnitRegex.FindStringSubmatch(s)
-			if len(matches) < 3 {
-				return fmt.Errorf("%w: unable to pares CSS unit from: %s", ErrValidation, s)
+			if s == "auto" {
+				if !slices.Contains(validUnits, "auto") || len(values) != 1 {
+					return fmt.Errorf("%w: unit %q from value %q is not one of %v", ErrValidation, s, value, validUnits)
+				}
+
+				continue
 			}
 
-			if !slices.Contains(validUnits, matches[2]) {
-				return fmt.Errorf("%w: unit %q from value %q is not one of %v", ErrValidation, matches[2], s, validUnits)
+			matches := unitValueRegex.FindStringSubmatch(s)
+			if matches == nil {
+				return fmt.Errorf("%w: unable to parse CSS unit from: %s", ErrValidation, s)
 			}
+
+			negative, number, unit := matches[1], matches[2], matches[3]
+			if negative != "" && !allowNegative {
+				return fmt.Errorf("%w: negative value %q is not allowed", ErrValidation, s)
+			}
+
+			if number == "" {
+				return fmt.Errorf("%w: unable to parse CSS unit from: %s", ErrValidation, s)
+			}
+
+			if !slices.Contains(validUnits, unit) {
+				return fmt.Errorf("%w: unit %q from value %q is not one of %v", ErrValidation, unit, s, validUnits)
+			}
+		}
+
+		return nil
+	}
+}
+
+func validateInteger() validateAttributeFunc {
+	return func(value string) error {
+		if !integerRegex.MatchString(value) {
+			return fmt.Errorf("%w: value %q is not an integer", ErrValidation, value)
 		}
 		return nil
 	}
@@ -112,24 +165,19 @@ func validateUnit(validUnits []string, isMultipleValues bool) validateAttributeF
 
 func validateType(expectedType string) validateAttributeFunc {
 	return func(value string) error {
-		if value == "" {
+		switch expectedType {
+		case "string":
 			return nil
-		}
-
-		if expectedType == "string" {
-			return nil
-		}
-
-		if expectedType == "number" {
+		case "boolean":
+			if !strings.EqualFold(value, "true") && !strings.EqualFold(value, "false") {
+				return fmt.Errorf("%w: value %q is not a boolean", ErrValidation, value)
+			}
+		case "number":
 			if _, err := strconv.ParseFloat(value, 64); err != nil {
 				return fmt.Errorf("%w: value %q is not a valid number", ErrValidation, value)
 			}
-		}
-
-		if expectedType == "boolean" {
-			if value != "true" && value != "false" {
-				return fmt.Errorf("%w: value %q is not a boolean", ErrValidation, value)
-			}
+		case "integer":
+			return validateInteger()(value)
 		}
 
 		return nil

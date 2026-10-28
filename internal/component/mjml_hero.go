@@ -17,13 +17,13 @@ func (h MJMLHero) Name() string {
 
 func (h MJMLHero) AllowedAttributes() map[string]validateAttributeFunc {
 	return map[string]validateAttributeFunc{
-		"mode":                       validateEnum([]string{"fluid-height", "fixed-height"}),
+		"mode":                       validateType("string"),
 		"height":                     validateUnit([]string{"px", "%"}, false),
 		"background-url":             validateType("string"),
 		"background-width":           validateUnit([]string{"px", "%"}, false),
 		"background-height":          validateUnit([]string{"px", "%"}, false),
 		"background-position":        validateType("string"),
-		"border-radius":              validateUnit([]string{"px", "%"}, true),
+		"border-radius":              validateType("string"),
 		"container-background-color": validateColor(),
 		"inner-background-color":     validateColor(),
 		"inner-padding":              validateUnit([]string{"px", "%"}, true),
@@ -38,7 +38,6 @@ func (h MJMLHero) AllowedAttributes() map[string]validateAttributeFunc {
 		"padding-right":              validateUnit([]string{"px", "%"}, false),
 		"background-color":           validateColor(),
 		"vertical-align":             validateEnum([]string{"top", "middle", "bottom"}),
-		"width":                      validateUnit([]string{"px", "%"}, false),
 	}
 }
 
