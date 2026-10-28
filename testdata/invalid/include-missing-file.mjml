@@ -1,0 +1,5 @@
+<mjml>
+  <mj-body>
+    <mj-include path="partials/does-not-exist.mjml" />
+  </mj-body>
+</mjml>

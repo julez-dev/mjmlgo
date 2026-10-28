@@ -17,6 +17,11 @@
 // where documents come from and the renderer performs no implicit filesystem
 // or network access. A Renderer is safe for concurrent use.
 //
+// mj-include is resolved through the same fs.FS: paths are relative to the
+// directory of the file that contains the include, and type="html", type="css"
+// and the default type="mjml" are supported. Include cycles, paths that would
+// leave the filesystem and unknown include types are errors.
+//
 // RenderMJML is kept for existing callers and is deprecated in favour of the
-// Renderer API.
+// Renderer API; it has no filesystem, so documents with mj-include are rejected.
 package mjmlgo

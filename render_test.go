@@ -2,6 +2,7 @@ package mjmlgo
 
 import (
 	"bytes"
+	"context"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -44,13 +45,10 @@ func TestMJMLParity(t *testing.T) {
 	reference := cli.RenderAll(t, fixtures)
 
 	for _, fixture := range fixtures {
-		input, err := os.ReadFile(fixture)
-		require.NoError(t, err)
-
 		want, ok := reference[fixture]
 		require.True(t, ok, "no reference output for %s", fixture)
 
-		got, renderErr := RenderMJML(bytes.NewReader(input))
+		got, renderErr := renderFixture(fixture)
 
 		t.Run(filepath.ToSlash(fixture), func(t *testing.T) {
 			if renderErr != nil {
@@ -72,6 +70,19 @@ func TestMJMLParity(t *testing.T) {
 			)
 		})
 	}
+}
+
+// fixtureRenderer renders fixtures. It holds no per-render state, so the tests
+// can share one instance.
+var fixtureRenderer = NewRenderer()
+
+// renderFixture renders fixture the way a caller would: the fixture's directory
+// is the root of the filesystem, so mj-include resolves relative includes inside
+// the corpus. That is exactly what the reference CLI does with a file path.
+func renderFixture(fixture string) (string, error) {
+	fsys := os.DirFS(filepath.Dir(fixture))
+
+	return fixtureRenderer.RenderString(context.Background(), fsys, filepath.Base(fixture))
 }
 
 func formatMismatches(mismatches []mjmltest.Mismatch) string {
@@ -130,10 +141,7 @@ func TestMJMLInvalid(t *testing.T) {
 		t.Run(filepath.ToSlash(fixture), func(t *testing.T) {
 			t.Parallel()
 
-			input, err := os.ReadFile(fixture)
-			require.NoError(t, err)
-
-			html, err := RenderMJML(bytes.NewReader(input))
+			html, err := renderFixture(fixture)
 
 			expectedPath := fixture + ".error.txt"
 			expected, readErr := os.ReadFile(expectedPath)
@@ -228,7 +236,13 @@ func checkFuzzInput(t *testing.T, source string) {
 	}
 }
 
+// includeTargetDir holds files that are only read through mj-include. They are
+// not fixtures of their own; see testdata/README.md.
+const includeTargetDir = "partials"
+
 // mjmlFixtures returns all .mjml files below dir, sorted for stable output.
+// Include targets below a "partials" directory are skipped: they are fragments or
+// full documents meant to be included, not rendered on their own.
 func mjmlFixtures(t testing.TB, dir string) []string {
 	t.Helper()
 
@@ -240,7 +254,7 @@ func mjmlFixtures(t testing.TB, dir string) []string {
 		}
 
 		if d.IsDir() {
-			if path != dir && strings.HasPrefix(d.Name(), ".") {
+			if path != dir && (strings.HasPrefix(d.Name(), ".") || d.Name() == includeTargetDir) {
 				return filepath.SkipDir
 			}
 
@@ -258,6 +272,22 @@ func mjmlFixtures(t testing.TB, dir string) []string {
 	slices.Sort(fixtures)
 
 	return fixtures
+}
+
+// TestRenderMJMLRejectsIncludes asserts that the deprecated entry point, which
+// has no filesystem of its own, fails loudly instead of dropping included content
+// on the floor.
+func TestRenderMJMLRejectsIncludes(t *testing.T) {
+	t.Parallel()
+
+	const input = `<mjml><mj-body><mj-include path="partials/header.mjml" /></mj-body></mjml>`
+
+	_, err := RenderMJML(strings.NewReader(input))
+	require.ErrorIs(t, err, ErrIncludeNoFS)
+
+	// A document without includes renders through the same entry point as before.
+	_, err = RenderMJML(strings.NewReader(`<mjml><mj-body><mj-raw>raw</mj-raw></mj-body></mjml>`))
+	require.NoError(t, err)
 }
 
 func TestRenderFileStartRaw(t *testing.T) {
@@ -379,7 +409,24 @@ func BenchmarkRenderMJML(b *testing.B) {
 				b.Fatal(err)
 			}
 
-			if _, err := RenderMJML(bytes.NewReader(input)); err != nil {
+			render := func() error {
+				_, err := RenderMJML(bytes.NewReader(input))
+
+				return err
+			}
+
+			if err := render(); err != nil {
+				// Fixtures with mj-include cannot be rendered without a
+				// filesystem. Measure the caller-visible path instead, which
+				// includes reading the fixture and its includes from disk.
+				render = func() error {
+					_, err := renderFixture(fixture)
+
+					return err
+				}
+			}
+
+			if err := render(); err != nil {
 				b.Skipf("fixture does not render: %v", err)
 			}
 
@@ -387,7 +434,7 @@ func BenchmarkRenderMJML(b *testing.B) {
 			b.SetBytes(int64(len(input)))
 
 			for b.Loop() {
-				if _, err := RenderMJML(bytes.NewReader(input)); err != nil {
+				if err := render(); err != nil {
 					b.Fatal(err)
 				}
 			}
@@ -400,12 +447,7 @@ func BenchmarkRenderMJML(b *testing.B) {
 func BenchmarkParityComparison(b *testing.B) {
 	forEachParityFixture(b, func(name, fixture string) {
 		b.Run(name, func(b *testing.B) {
-			input, err := os.ReadFile(fixture)
-			if err != nil {
-				b.Fatal(err)
-			}
-
-			html, err := RenderMJML(bytes.NewReader(input))
+			html, err := renderFixture(fixture)
 			if err != nil {
 				b.Skipf("fixture does not render: %v", err)
 			}

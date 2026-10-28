@@ -1,0 +1,15 @@
+<mjml>
+  <mj-head>
+    <mj-preview>Preview from full document include</mj-preview>
+    <mj-style>
+      .full-document-style { color: #00ff00; }
+    </mj-style>
+  </mj-head>
+  <mj-body>
+    <mj-section>
+      <mj-column>
+        <mj-text>Body from full document include</mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

@@ -4,12 +4,12 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"regexp"
 	"strings"
 
 	"github.com/ericchiang/css"
 	"github.com/julez-dev/mjmlgo/internal/component"
-	"github.com/julez-dev/mjmlgo/internal/node"
 	"golang.org/x/net/html"
 )
 
@@ -24,14 +24,16 @@ var defaultRenderer = NewRenderer()
 //
 // Deprecated: use NewRenderer and Renderer.Render, Renderer.RenderString,
 // Renderer.RenderBytes or Renderer.RenderFile instead. RenderMJML is a thin
-// wrapper around the default Renderer and cannot read includes from a caller's
-// filesystem.
+// wrapper around the default Renderer; it has no filesystem, so documents that
+// use mj-include are rejected with an error.
 func RenderMJML(input io.Reader) (string, error) {
-	return defaultRenderer.renderDocument(input)
+	return defaultRenderer.renderDocument(nil, "", input)
 }
 
 // renderDocument is the single rendering pipeline shared by every entry point.
-func (r *Renderer) renderDocument(input io.Reader) (string, error) {
+// fsys and name identify the document for mj-include resolution; fsys is nil
+// when the caller has no filesystem of its own.
+func (r *Renderer) renderDocument(fsys fs.FS, name string, input io.Reader) (string, error) {
 	node, err := parse(input)
 	if err != nil {
 		return "", err
@@ -41,7 +43,7 @@ func (r *Renderer) renderDocument(input io.Reader) (string, error) {
 		return "", fmt.Errorf("%w: %s", ErrUnknownStartingTag, node.Type)
 	}
 
-	if err := checkUnsupportedTags(node); err != nil {
+	if err := resolveIncludes(fsys, name, node); err != nil {
 		return "", err
 	}
 
@@ -119,26 +121,6 @@ func restoreRawBlocks(output string, blocks []string) string {
 	}
 
 	return output
-}
-
-// unsupportedTags are MJML features this implementation does not provide yet.
-// Failing loudly beats silently dropping the user's content.
-var unsupportedTags = map[string]string{
-	"mj-include": "mj-include is not implemented; resolve includes before rendering (see PLAN.md, M2)",
-}
-
-func checkUnsupportedTags(n *node.Node) error {
-	if message, ok := unsupportedTags[n.Type]; ok {
-		return fmt.Errorf("mjml: %s", message)
-	}
-
-	for _, child := range n.Children {
-		if err := checkUnsupportedTags(child); err != nil {
-			return err
-		}
-	}
-
-	return nil
 }
 
 func inlineCSS(ctx *component.RenderContext, r io.Reader, w io.Writer) error {

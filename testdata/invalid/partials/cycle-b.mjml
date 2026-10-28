@@ -1,0 +1,2 @@
+<mj-text>Cycle between two partials</mj-text>
+<mj-include path="cycle-a.mjml" />

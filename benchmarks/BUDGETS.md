@@ -9,7 +9,9 @@ Policy: CI prints benchmark results but does not fail on them. Update this table
 in the same commit as a change that moves a budget materially.
 
 Measured with Go 1.24 on an AMD Ryzen 9 9950X3D, `-benchmem -count=3`, medians,
-over the whole parity corpus.
+over the whole parity corpus. Fixtures with `mj-include` need the caller's
+filesystem, so they are measured through `Renderer.RenderString` and their
+numbers include reading the fixture and its includes from disk.
 
 | Fixture | Budget ns/op | Budget B/op | Budget allocs/op | Measured ns/op | Measured B/op | Measured allocs/op |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -29,6 +31,7 @@ over the whole parity corpus.
 | `head.mjml` | 156,325 | 256,858 | 2,095 | 97,703 | 160,536 | 1,309 |
 | `image-complex.mjml` | 836,314 | 1,190,664 | 13,861 | 522,696 | 744,165 | 8,663 |
 | `image.mjml` | 59,810 | 100,391 | 1,151 | 37,381 | 62,744 | 719 |
+| `includes/main.mjml` | 471,290 | 680,517 | 5,656 | 294,556 | 425,323 | 3,535 |
 | `input_big.mjml` | 4,277,055 | 6,158,615 | 52,706 | 2,673,159 | 3,849,134 | 32,941 |
 | `layout.mjml` | 265,868 | 427,703 | 4,772 | 166,167 | 267,314 | 2,982 |
 | `navbar.mjml` | 88,293 | 152,002 | 1,485 | 55,183 | 95,001 | 928 |
