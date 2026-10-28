@@ -19,11 +19,14 @@ Single-context repo (this repo):
 ├── GLOSSARY.md
 ├── docs/adr/
 │   ├── 0001-reference-implementation-is-the-npm-cli.md
-│   └── 0002-hard-validation-is-an-intentional-divergence.md
+│   ├── 0002-hard-validation-is-an-intentional-divergence.md
+│   ├── 0003-compact-output-only.md
+│   └── 0004-exported-internals-freeze.md
 ├── api.go, render.go, parser.go    ← public package mjmlgo
+├── node/                           ← public element tree (frozen fields)
+├── component/                      ← public MJML components, head features,
+│                                     validation, render context (frozen fields)
 └── internal/
-    ├── component/                  ← MJML components, head features, validation
-    ├── node/
     └── mjmltest/                   ← parity harness
 ```
 

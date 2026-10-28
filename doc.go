@@ -22,6 +22,11 @@
 // and the default type="mjml" are supported. Include cycles, paths that would
 // leave the filesystem and unknown include types are errors.
 //
+// The tree the renderer walks and the components it dispatches to live in the
+// public node and component packages, so that custom components can receive the
+// same values. Their exported shape is frozen; see their package documentation
+// and docs/adr/0004-exported-internals-freeze.md.
+//
 // RenderMJML is kept for existing callers and is deprecated in favour of the
 // Renderer API; it has no filesystem, so documents with mj-include are rejected.
 package mjmlgo

@@ -11,7 +11,7 @@ import (
 	"testing"
 	"testing/fstest"
 
-	"github.com/julez-dev/mjmlgo/internal/component"
+	"github.com/julez-dev/mjmlgo/component"
 	"github.com/julez-dev/mjmlgo/internal/mjmltest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
