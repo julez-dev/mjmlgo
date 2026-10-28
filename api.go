@@ -82,8 +82,9 @@ func NewRenderer(opts ...Option) *Renderer {
 // resulting HTML to w. Cancellation is honoured before any work starts.
 //
 // The document is read through fsys, so rendering never touches the filesystem
-// on its own. mj-include is not implemented yet and is rejected with an
-// explicit error rather than being silently dropped.
+// on its own. mj-include is resolved through the same fsys: include paths are
+// relative to the directory of the file that contains them, and include cycles,
+// paths escaping the filesystem root and unknown include types are hard errors.
 func (r *Renderer) Render(ctx context.Context, fsys fs.FS, name string, w io.Writer) error {
 	if ctx == nil {
 		return errNilCtx
@@ -106,7 +107,7 @@ func (r *Renderer) Render(ctx context.Context, fsys fs.FS, name string, w io.Wri
 		return fmt.Errorf("mjml: read %s: %w", name, err)
 	}
 
-	rendered, err := r.renderDocument(bytes.NewReader(input))
+	rendered, err := r.renderDocument(fsys, name, bytes.NewReader(input))
 	if err != nil {
 		return err
 	}
