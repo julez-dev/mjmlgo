@@ -3,6 +3,9 @@ package component
 import (
 	"fmt"
 	"io"
+	"strconv"
+	"strings"
+	"unicode"
 
 	"github.com/julez-dev/mjmlgo/node"
 )
@@ -33,7 +36,19 @@ func (t MJMLTable) AllowedAttributes() map[string]validateAttributeFunc {
 		"role":                       validateEnum([]string{"none", "presentation"}),
 		"table-layout":               validateEnum([]string{"auto", "fixed", "initial", "inherit"}),
 		"vertical-align":             validateEnum([]string{"top", "bottom", "middle"}),
-		"width":                      validateUnit([]string{"px", "%"}, false),
+		"width":                      validateTableWidth(),
+	}
+}
+
+func validateTableWidth() validateAttributeFunc {
+	validateUnits := validateUnit([]string{"px", "%"}, false)
+
+	return func(value string) error {
+		if value == "auto" {
+			return nil
+		}
+
+		return validateUnits(value)
 	}
 }
 
@@ -80,7 +95,7 @@ func (t MJMLTable) Render(ctx *RenderContext, w io.Writer, n *node.Node) error {
 }
 
 func (t MJMLTable) getStyle(_ *RenderContext, n *node.Node) inlineStyle {
-	return inlineStyle{
+	style := inlineStyle{
 		{Property: "color", Value: n.GetAttributeValueDefault("color")},
 		{Property: "font-family", Value: n.GetAttributeValueDefault("font-family")},
 		{Property: "font-size", Value: n.GetAttributeValueDefault("font-size")},
@@ -89,10 +104,33 @@ func (t MJMLTable) getStyle(_ *RenderContext, n *node.Node) inlineStyle {
 		{Property: "width", Value: n.GetAttributeValueDefault("width")},
 		{Property: "border", Value: n.GetAttributeValueDefault("border")},
 	}
+
+	if t.hasCellspacing(n) {
+		style = append(style, Style{Property: "border-collapse", Value: "separate"})
+	}
+
+	return style
+}
+
+func (t MJMLTable) hasCellspacing(n *node.Node) bool {
+	numeric := strings.Map(func(r rune) rune {
+		if unicode.IsDigit(r) || r == '.' {
+			return r
+		}
+
+		return -1
+	}, n.GetAttributeValueDefault("cellspacing"))
+
+	value, err := strconv.ParseFloat(numeric, 64)
+	return err == nil && value > 0
 }
 
 func (t MJMLTable) getWidth(n *node.Node) (string, error) {
 	width := n.GetAttributeValueDefault("width")
+	if width == "auto" {
+		return width, nil
+	}
+
 	parsedWidth, unit, err := parseWidth(width)
 	if err != nil {
 		return "", err

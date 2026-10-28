@@ -709,8 +709,185 @@
         }
       ]
     },
+    "testdata/parity/raw-in-column.mjml": {
+      "mismatches": [
+        {
+          "path": "/#document/html[1]/head[1]",
+          "detail": "child count mismatch: want 13, got 10"
+        },
+        {
+          "path": "/#document/html[1]/head[1]/#conditional[2]",
+          "detail": "node kind mismatch: want #conditional [if !mso], got \u003cstyle\u003e"
+        },
+        {
+          "path": "/#document/html[1]/head[1]/link[1]",
+          "detail": "name mismatch: want \"link\", got \"style\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]",
+          "detail": "child count mismatch: want 3, got 7"
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[1]/table[1]",
+          "detail": "child count mismatch: want 1, got 0"
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
+          "detail": "node kind mismatch: want \u003cdiv\u003e, got #conditional [if mso | IE]"
+        }
+      ]
+    },
+    "testdata/parity/raw-in-group.mjml": {
+      "mismatches": [
+        {
+          "path": "/#document/html[1]/head[1]",
+          "detail": "child count mismatch: want 13, got 10"
+        },
+        {
+          "path": "/#document/html[1]/head[1]/#conditional[2]",
+          "detail": "node kind mismatch: want #conditional [if !mso], got \u003cstyle\u003e"
+        },
+        {
+          "path": "/#document/html[1]/head[1]/link[1]",
+          "detail": "name mismatch: want \"link\", got \"style\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]",
+          "detail": "child count mismatch: want 3, got 5"
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[1]/table[1]",
+          "detail": "child count mismatch: want 1, got 0"
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
+          "detail": "node kind mismatch: want \u003cdiv\u003e, got #conditional [if mso | IE]"
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[2]",
+          "detail": "node kind mismatch: want #conditional [if mso | IE], got \u003cdiv\u003e"
+        }
+      ]
+    },
+    "testdata/parity/raw-in-section.mjml": {
+      "mismatches": [
+        {
+          "path": "/#document/html[1]/head[1]",
+          "detail": "child count mismatch: want 13, got 10"
+        },
+        {
+          "path": "/#document/html[1]/head[1]/#conditional[2]",
+          "detail": "node kind mismatch: want #conditional [if !mso], got \u003cstyle\u003e"
+        },
+        {
+          "path": "/#document/html[1]/head[1]/link[1]",
+          "detail": "name mismatch: want \"link\", got \"style\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]",
+          "detail": "child count mismatch: want 11, got 13"
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[1]/table[1]",
+          "detail": "child count mismatch: want 1, got 0"
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
+          "detail": "node kind mismatch: want \u003cdiv\u003e, got #conditional [if mso | IE]"
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[2]",
+          "detail": "node kind mismatch: want #conditional [if mso | IE], got \u003cdiv\u003e"
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[2]",
+          "detail": "node kind mismatch: want \u003cdiv\u003e, got #conditional [if mso | IE]"
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[3]",
+          "detail": "node kind mismatch: want #conditional [if mso | IE], got \u003cdiv\u003e"
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[3]",
+          "detail": "node kind mismatch: want \u003cdiv\u003e, got #conditional [if mso | IE]"
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[4]",
+          "detail": "node kind mismatch: want #conditional [if mso | IE], got \u003cdiv\u003e"
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[4]",
+          "detail": "node kind mismatch: want \u003cdiv\u003e, got #conditional [if mso | IE]"
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[5]",
+          "detail": "node kind mismatch: want #conditional [if mso | IE], got \u003cdiv\u003e"
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[5]",
+          "detail": "node kind mismatch: want \u003cdiv\u003e, got #conditional [if mso | IE]"
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[6]",
+          "detail": "node kind mismatch: want #conditional [if mso | IE], got \u003cdiv\u003e"
+        }
+      ]
+    },
+    "testdata/parity/raw-position-file-start.mjml": {
+      "mismatches": [
+        {
+          "path": "/#document/html[1]/head[1]",
+          "detail": "child count mismatch: want 13, got 10"
+        },
+        {
+          "path": "/#document/html[1]/head[1]/#conditional[2]",
+          "detail": "node kind mismatch: want #conditional [if !mso], got \u003cstyle\u003e"
+        },
+        {
+          "path": "/#document/html[1]/head[1]/link[1]",
+          "detail": "name mismatch: want \"link\", got \"style\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]",
+          "detail": "child count mismatch: want 3, got 7"
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[1]/table[1]",
+          "detail": "child count mismatch: want 1, got 0"
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
+          "detail": "node kind mismatch: want \u003cdiv\u003e, got #conditional [if mso | IE]"
+        }
+      ]
+    },
     "testdata/parity/raw.mjml": {
-      "error": "failed to render column: invalid child type mj-raw in column, allowed types are: [mj-divider mj-spacer mj-image mj-text mj-social mj-table mj-button]"
+      "mismatches": [
+        {
+          "path": "/#document/html[1]/head[1]",
+          "detail": "child count mismatch: want 13, got 10"
+        },
+        {
+          "path": "/#document/html[1]/head[1]/#conditional[2]",
+          "detail": "node kind mismatch: want #conditional [if !mso], got \u003cstyle\u003e"
+        },
+        {
+          "path": "/#document/html[1]/head[1]/link[1]",
+          "detail": "name mismatch: want \"link\", got \"style\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]",
+          "detail": "child count mismatch: want 3, got 7"
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[1]/table[1]",
+          "detail": "child count mismatch: want 1, got 0"
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
+          "detail": "node kind mismatch: want \u003cdiv\u003e, got #conditional [if mso | IE]"
+        }
+      ]
     },
     "testdata/parity/simple-hero.mjml": {
       "mismatches": [
@@ -764,14 +941,42 @@
         }
       ]
     },
+    "testdata/parity/table-width-auto.mjml": {
+      "mismatches": [
+        {
+          "path": "/#document/html[1]/head[1]",
+          "detail": "child count mismatch: want 13, got 10"
+        },
+        {
+          "path": "/#document/html[1]/head[1]/#conditional[2]",
+          "detail": "node kind mismatch: want #conditional [if !mso], got \u003cstyle\u003e"
+        },
+        {
+          "path": "/#document/html[1]/head[1]/link[1]",
+          "detail": "name mismatch: want \"link\", got \"style\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]",
+          "detail": "child count mismatch: want 3, got 7"
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[1]/table[1]",
+          "detail": "child count mismatch: want 1, got 0"
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
+          "detail": "node kind mismatch: want \u003cdiv\u003e, got #conditional [if mso | IE]"
+        }
+      ]
+    },
     "testdata/parity/upstream/mjml--accordion-fontFamily--00.mjml": {
-      "error": "failed to render column: invalid child type mj-accordion in column, allowed types are: [mj-divider mj-spacer mj-image mj-text mj-social mj-table mj-button]"
+      "error": "failed to render column: invalid child type mj-accordion in column, allowed types are: [mj-divider mj-spacer mj-image mj-text mj-social mj-table mj-button mj-raw]"
     },
     "testdata/parity/upstream/mjml--accordion-padding--00.mjml": {
-      "error": "failed to render column: invalid child type mj-accordion in column, allowed types are: [mj-divider mj-spacer mj-image mj-text mj-social mj-table mj-button]"
+      "error": "failed to render column: invalid child type mj-accordion in column, allowed types are: [mj-divider mj-spacer mj-image mj-text mj-social mj-table mj-button mj-raw]"
     },
     "testdata/parity/upstream/mjml--accordionTitle-fontWeight--00.mjml": {
-      "error": "failed to render column: invalid child type mj-accordion in column, allowed types are: [mj-divider mj-spacer mj-image mj-text mj-social mj-table mj-button]"
+      "error": "failed to render column: invalid child type mj-accordion in column, allowed types are: [mj-divider mj-spacer mj-image mj-text mj-social mj-table mj-button mj-raw]"
     },
     "testdata/parity/upstream/mjml--beautify-output--00.mjml": {
       "mismatches": [
@@ -830,7 +1035,20 @@
       ]
     },
     "testdata/parity/upstream/mjml--beautify-output--02.mjml": {
-      "error": "failed to render column: invalid child type mj-raw in column, allowed types are: [mj-divider mj-spacer mj-image mj-text mj-social mj-table mj-button]"
+      "mismatches": [
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]",
+          "detail": "child count mismatch: want 3, got 7"
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[1]/table[1]",
+          "detail": "child count mismatch: want 1, got 0"
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
+          "detail": "node kind mismatch: want \u003cdiv\u003e, got #conditional [if mso | IE]"
+        }
+      ]
     },
     "testdata/parity/upstream/mjml--beautify-output--03.mjml": {
       "mismatches": [
@@ -889,7 +1107,7 @@
       ]
     },
     "testdata/parity/upstream/mjml--carousel-hoverSupported--00.mjml": {
-      "error": "failed to render column: invalid child type mj-carousel in column, allowed types are: [mj-divider mj-spacer mj-image mj-text mj-social mj-table mj-button]"
+      "error": "failed to render column: invalid child type mj-carousel in column, allowed types are: [mj-divider mj-spacer mj-image mj-text mj-social mj-table mj-button mj-raw]"
     },
     "testdata/parity/upstream/mjml--column-border-radius--00.mjml": {
       "mismatches": [
@@ -920,7 +1138,36 @@
       ]
     },
     "testdata/parity/upstream/mjml--html-attributes--00.mjml": {
-      "error": "failed to render column: invalid child type mj-raw in column, allowed types are: [mj-divider mj-spacer mj-image mj-text mj-social mj-table mj-button]"
+      "mismatches": [
+        {
+          "path": "/#document/html[1]/head[1]",
+          "detail": "child count mismatch: want 14, got 11"
+        },
+        {
+          "path": "/#document/html[1]/head[1]/#conditional[2]",
+          "detail": "node kind mismatch: want #conditional [if !mso], got \u003cstyle\u003e"
+        },
+        {
+          "path": "/#document/html[1]/head[1]/link[1]",
+          "detail": "name mismatch: want \"link\", got \"style\""
+        },
+        {
+          "path": "/#document/html[1]/head[1]/style[2]",
+          "detail": "stylesheet rule 1 mismatch: want \"@import url(https://fonts.googleapis.com/css?family=Ubuntu:300,400,500,700)\", got \"@media only screen and (max-width:479px){table.mj-full-width-mobile{width:100% !important}td.mj-full-width-mobile{width:auto !important}}\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]",
+          "detail": "child count mismatch: want 3, got 7"
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[1]/table[1]",
+          "detail": "child count mismatch: want 1, got 0"
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
+          "detail": "node kind mismatch: want \u003cdiv\u003e, got #conditional [if mso | IE]"
+        }
+      ]
     },
     "testdata/parity/upstream/mjml--html-comments--00.mjml": {
       "mismatches": [
@@ -951,16 +1198,55 @@
       ]
     },
     "testdata/parity/upstream/mjml--htmlmin-ignore--00.mjml": {
-      "error": "failed to render column: invalid child type mj-raw in column, allowed types are: [mj-divider mj-spacer mj-image mj-text mj-social mj-table mj-button]"
+      "mismatches": [
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]",
+          "detail": "child count mismatch: want 3, got 7"
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[1]/table[1]",
+          "detail": "child count mismatch: want 1, got 0"
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
+          "detail": "node kind mismatch: want \u003cdiv\u003e, got #conditional [if mso | IE]"
+        }
+      ]
     },
     "testdata/parity/upstream/mjml--htmlmin-ignore--01.mjml": {
-      "error": "failed to render column: invalid child type mj-raw in column, allowed types are: [mj-divider mj-spacer mj-image mj-text mj-social mj-table mj-button]"
+      "mismatches": [
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]",
+          "detail": "child count mismatch: want 3, got 7"
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[1]/table[1]",
+          "detail": "child count mismatch: want 1, got 0"
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
+          "detail": "node kind mismatch: want \u003cdiv\u003e, got #conditional [if mso | IE]"
+        }
+      ]
     },
     "testdata/parity/upstream/mjml--htmlmin-ignore--02.mjml": {
-      "error": "failed to render column: invalid child type mj-raw in column, allowed types are: [mj-divider mj-spacer mj-image mj-text mj-social mj-table mj-button]"
+      "mismatches": [
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]",
+          "detail": "child count mismatch: want 3, got 7"
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[1]/table[1]",
+          "detail": "child count mismatch: want 1, got 0"
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
+          "detail": "node kind mismatch: want \u003cdiv\u003e, got #conditional [if mso | IE]"
+        }
+      ]
     },
     "testdata/parity/upstream/mjml--navbar-ico-padding--00.mjml": {
-      "error": "failed to render column: invalid child type mj-navbar in column, allowed types are: [mj-divider mj-spacer mj-image mj-text mj-social mj-table mj-button]"
+      "error": "failed to render column: invalid child type mj-navbar in column, allowed types are: [mj-divider mj-spacer mj-image mj-text mj-social mj-table mj-button mj-raw]"
     },
     "testdata/parity/upstream/mjml--social-align--00.mjml": {
       "mismatches": [
@@ -1019,34 +1305,194 @@
       ]
     },
     "testdata/parity/upstream/mjml--table-cellspacing--00.mjml": {
-      "error": "failed to render column: failed to validate field width in \u003cmj-table\u003e: failed validation: unit \"auto\" from value \"auto\" is not one of [px %]"
+      "mismatches": [
+        {
+          "path": "/#document/html[1]/head[1]",
+          "detail": "child count mismatch: want 13, got 10"
+        },
+        {
+          "path": "/#document/html[1]/head[1]/#conditional[2]",
+          "detail": "node kind mismatch: want #conditional [if !mso], got \u003cstyle\u003e"
+        },
+        {
+          "path": "/#document/html[1]/head[1]/link[1]",
+          "detail": "name mismatch: want \"link\", got \"style\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]",
+          "detail": "child count mismatch: want 3, got 7"
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[1]/table[1]",
+          "detail": "child count mismatch: want 1, got 0"
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
+          "detail": "node kind mismatch: want \u003cdiv\u003e, got #conditional [if mso | IE]"
+        }
+      ]
     },
     "testdata/parity/upstream/mjml--tableWidth--00.mjml": {
-      "error": "failed to render column: failed to validate field width in \u003cmj-table\u003e: failed validation: unit \"auto\" from value \"auto\" is not one of [px %]"
+      "mismatches": [
+        {
+          "path": "/#document/html[1]/head[1]",
+          "detail": "child count mismatch: want 13, got 10"
+        },
+        {
+          "path": "/#document/html[1]/head[1]/#conditional[2]",
+          "detail": "node kind mismatch: want #conditional [if !mso], got \u003cstyle\u003e"
+        },
+        {
+          "path": "/#document/html[1]/head[1]/link[1]",
+          "detail": "name mismatch: want \"link\", got \"style\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]",
+          "detail": "child count mismatch: want 9, got 22"
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[1]/table[1]",
+          "detail": "child count mismatch: want 1, got 0"
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
+          "detail": "node kind mismatch: want \u003cdiv\u003e, got #conditional [if mso | IE]"
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]",
+          "detail": "child count mismatch: want 3, got 7"
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[1]/table[1]",
+          "detail": "child count mismatch: want 1, got 0"
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
+          "detail": "node kind mismatch: want \u003cdiv\u003e, got #conditional [if mso | IE]"
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[3]",
+          "detail": "child count mismatch: want 1, got 0"
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[3]",
+          "detail": "node kind mismatch: want \u003cdiv\u003e, got #conditional [if mso | IE]"
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[4]",
+          "detail": "child count mismatch: want 1, got 0"
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[4]",
+          "detail": "node kind mismatch: want \u003cdiv\u003e, got #conditional [if mso | IE]"
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[5]",
+          "detail": "node kind mismatch: want #conditional [if mso | IE], got \u003cdiv\u003e"
+        }
+      ]
     },
     "testdata/parity/upstream/mjml--template-syntax-sanitization--00.mjml": {
-      "error": "failed to render column: invalid child type mj-raw in column, allowed types are: [mj-divider mj-spacer mj-image mj-text mj-social mj-table mj-button]"
+      "mismatches": [
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]",
+          "detail": "child count mismatch: want 3, got 7"
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[1]/table[1]",
+          "detail": "child count mismatch: want 1, got 0"
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
+          "detail": "node kind mismatch: want \u003cdiv\u003e, got #conditional [if mso | IE]"
+        }
+      ]
     },
     "testdata/parity/upstream/mjml--template-syntax-sanitization--01.mjml": {
       "error": "error rendering \u003cmj-head\u003e: error parsing CSS: Unexpected } character: CHAR (line: 1, column: 33): \"}\""
     },
     "testdata/parity/upstream/mjml--template-syntax-sanitization--02.mjml": {
-      "error": "failed to render column: invalid child type mj-raw in column, allowed types are: [mj-divider mj-spacer mj-image mj-text mj-social mj-table mj-button]"
+      "mismatches": [
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]",
+          "detail": "child count mismatch: want 3, got 7"
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[1]/table[1]",
+          "detail": "child count mismatch: want 1, got 0"
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
+          "detail": "node kind mismatch: want \u003cdiv\u003e, got #conditional [if mso | IE]"
+        }
+      ]
     },
     "testdata/parity/upstream/mjml--template-syntax-sanitization--03.mjml": {
-      "error": "failed to render column: invalid child type mj-raw in column, allowed types are: [mj-divider mj-spacer mj-image mj-text mj-social mj-table mj-button]"
+      "mismatches": [
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]",
+          "detail": "child count mismatch: want 3, got 7"
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[1]/table[1]",
+          "detail": "child count mismatch: want 1, got 0"
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
+          "detail": "node kind mismatch: want \u003cdiv\u003e, got #conditional [if mso | IE]"
+        }
+      ]
     },
     "testdata/parity/upstream/mjml--template-syntax-sanitization--04.mjml": {
-      "error": "failed to render column: invalid child type mj-raw in column, allowed types are: [mj-divider mj-spacer mj-image mj-text mj-social mj-table mj-button]"
+      "error": "error rendering \u003cmj-head\u003e: error parsing CSS: Unexpected } character: CHAR (line: 1, column: 37): \"}\""
     },
     "testdata/parity/upstream/mjml--template-syntax-sanitization--05.mjml": {
-      "error": "failed to render column: invalid child type mj-raw in column, allowed types are: [mj-divider mj-spacer mj-image mj-text mj-social mj-table mj-button]"
+      "mismatches": [
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]",
+          "detail": "child count mismatch: want 3, got 7"
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[1]/table[1]",
+          "detail": "child count mismatch: want 1, got 0"
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
+          "detail": "node kind mismatch: want \u003cdiv\u003e, got #conditional [if mso | IE]"
+        }
+      ]
     },
     "testdata/parity/upstream/mjml--template-syntax-sanitization--06.mjml": {
-      "error": "failed to render column: invalid child type mj-raw in column, allowed types are: [mj-divider mj-spacer mj-image mj-text mj-social mj-table mj-button]"
+      "mismatches": [
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]",
+          "detail": "child count mismatch: want 3, got 7"
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[1]/table[1]",
+          "detail": "child count mismatch: want 1, got 0"
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
+          "detail": "node kind mismatch: want \u003cdiv\u003e, got #conditional [if mso | IE]"
+        }
+      ]
     },
     "testdata/parity/upstream/mjml--template-syntax-sanitization--07.mjml": {
-      "error": "failed to render column: invalid child type mj-raw in column, allowed types are: [mj-divider mj-spacer mj-image mj-text mj-social mj-table mj-button]"
+      "mismatches": [
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]",
+          "detail": "child count mismatch: want 3, got 7"
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[1]/table[1]",
+          "detail": "child count mismatch: want 1, got 0"
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
+          "detail": "node kind mismatch: want \u003cdiv\u003e, got #conditional [if mso | IE]"
+        }
+      ]
     },
     "testdata/parity/upstream/mjml--wrapper-border-radius--00.mjml": {
       "mismatches": [

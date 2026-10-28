@@ -132,6 +132,17 @@ func (g MJMLGroup) Render(ctx *RenderContext, w io.Writer, n *node.Node) error {
 	_, _ = io.WriteString(w, "<!--[if mso | IE]><table "+tableAttr.InlineString()+"><tr><![endif]-->")
 
 	for _, child := range n.Children {
+		if child.Type == RawTagName {
+			var raw MJMLRaw
+			if err := InitComponent(ctx, raw, child); err != nil {
+				return err
+			}
+			if err := raw.Render(ctx, w, child); err != nil {
+				return fmt.Errorf("failed to render raw: %w", err)
+			}
+			continue
+		}
+
 		if child.Type != ColumnTagName {
 			continue
 		}

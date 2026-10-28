@@ -18,9 +18,16 @@ import (
 // rawContentPlaceholderFormat defines the structure for the placeholder comment.
 const rawContentPlaceholderFormat = "RAW_PLACEHOLDER_%d"
 
-// rawTagRegex is used to find <mj-raw> blocks and capture their inner content.
-// The (?s) flag allows '.' to match newline characters.
-var rawTagRegex = regexp.MustCompile(`(?s)<mj-raw>(.*?)</mj-raw>`)
+// rawTagRegex is used to find <mj-raw> blocks and capture their attributes and
+// inner content. The (?s) flag allows '.' to match newline characters.
+var rawTagRegex = regexp.MustCompile(`(?s)<mj-raw(\s[^>]*)?>(.*?)</mj-raw>`)
+
+// rawBlock is an extracted <mj-raw> element. Its content is kept verbatim
+// because it is arbitrary markup, not necessarily well-formed XML.
+type rawBlock struct {
+	attributes []xml.Attr
+	content    string
+}
 
 var (
 	ErrParsingFailed = errors.New("parsing MJML structure failed")
@@ -33,12 +40,14 @@ func parse(input io.Reader) (*node.Node, error) {
 	}
 
 	mjmlString := string(fullBytes)
-	var rawContents []string
+	var rawContents []rawBlock
 	processedMJML := rawTagRegex.ReplaceAllStringFunc(mjmlString, func(match string) string {
-		// Extract the inner content from the full match.
-		innerContent := rawTagRegex.FindStringSubmatch(match)[1]
-		// Store the raw inner content.
-		rawContents = append(rawContents, innerContent)
+		parts := rawTagRegex.FindStringSubmatch(match)
+		// Store the raw attributes and inner content.
+		rawContents = append(rawContents, rawBlock{
+			attributes: parseRawAttributes(parts[1]),
+			content:    parts[2],
+		})
 		// Return a placeholder comment. The index will correspond to the slice.
 		placeholder := fmt.Sprintf(rawContentPlaceholderFormat, len(rawContents)-1)
 		return fmt.Sprintf("<!--%s-->", placeholder)
@@ -116,9 +125,11 @@ func parse(input io.Reader) (*node.Node, error) {
 					continue
 				}
 
+				raw := rawContents[index]
 				node := &node.Node{
-					Type:    "mj-raw",
-					Content: rawContents[index], // the original content
+					Type:       "mj-raw",
+					Attributes: raw.attributes,
+					Content:    raw.content, // the original content
 				}
 
 				if len(stack) > 0 {
@@ -149,6 +160,50 @@ func parse(input io.Reader) (*node.Node, error) {
 	}
 
 	return root, nil
+}
+
+// parseRawAttributes parses the attribute fragment of an extracted <mj-raw>
+// start tag. Invalid attribute fragments are ignored: raw content is still
+// captured, and validation reports genuinely unknown attributes later.
+func parseRawAttributes(raw string) []xml.Attr {
+	if strings.TrimSpace(raw) == "" {
+		return nil
+	}
+
+	dec := xml.NewDecoder(strings.NewReader("<mj-raw" + raw + "/>"))
+	dec.Strict = false
+
+	for {
+		token, err := dec.Token()
+		if err != nil {
+			return nil
+		}
+
+		if start, ok := token.(xml.StartElement); ok {
+			return start.Attr
+		}
+	}
+}
+
+// fileStartRawContent returns the concatenated content of <mj-raw
+// position="file-start"> elements that are direct children of <mjml>, in
+// document order. MJML emits it before the doctype.
+func fileStartRawContent(root *node.Node) string {
+	var contents []string
+
+	for _, child := range root.Children {
+		if child.Type != component.RawTagName {
+			continue
+		}
+
+		if position, ok := child.GetAttributeValue("position"); !ok || position != "file-start" {
+			continue
+		}
+
+		contents = append(contents, strings.TrimSpace(child.Content))
+	}
+
+	return strings.Join(contents, "\n")
 }
 
 // mjmlEndTags is a map of MJML tags whose inner content should be

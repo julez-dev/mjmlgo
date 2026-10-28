@@ -330,6 +330,17 @@ func (s MJMLSection) renderWrappedChildren(ctx *RenderContext, w io.Writer, n *n
 		_, _ = io.WriteString(w, "<!--[if mso | IE]><tr><![endif]-->\n")
 
 		for _, child := range n.Children {
+			if child.Type == RawTagName {
+				var raw MJMLRaw
+				if err := InitComponent(ctx, raw, child); err != nil {
+					return err
+				}
+				if err := raw.Render(ctx, w, child); err != nil {
+					return fmt.Errorf("failed to render raw: %w", err)
+				}
+				continue
+			}
+
 			switch child.Type {
 			case ColumnTagName:
 				var column MJMLColumn
@@ -374,6 +385,17 @@ func (s MJMLSection) renderWrappedChildren(ctx *RenderContext, w io.Writer, n *n
 	}
 
 	for _, child := range n.Children {
+		if child.Type == RawTagName {
+			var raw MJMLRaw
+			if err := InitComponent(ctx, raw, child); err != nil {
+				return err
+			}
+			if err := raw.Render(ctx, w, child); err != nil {
+				return fmt.Errorf("failed to render raw: %w", err)
+			}
+			continue
+		}
+
 		attr := inlineAttributes{
 			"align": child.GetAttributeValueDefault("align"),
 			"width": ctx.ContainerWidth,

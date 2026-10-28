@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"regexp"
 	"strings"
 
 	"github.com/ericchiang/css"
@@ -45,11 +46,55 @@ func RenderMJML(input io.Reader) (string, error) {
 		return "", err
 	}
 
+	if beforeDoctype := fileStartRawContent(node); beforeDoctype != "" {
+		return beforeDoctype + "\n" + out.String(), nil
+	}
+
 	return out.String(), nil
 }
 
+// rawBlockMarkerPattern matches the markers emitted around raw column content.
+const (
+	rawBlockStartMarker = "<!--mjmlgo-raw-start-->"
+	rawBlockEndMarker   = "<!--mjmlgo-raw-end-->"
+	rawBlockPlaceholder = "<!--mjmlgo-raw-placeholder-%d-->"
+)
+
+var rawBlockMarkerPattern = regexp.MustCompile(`(?s)` + regexp.QuoteMeta(rawBlockStartMarker) + `(.*?)` + regexp.QuoteMeta(rawBlockEndMarker))
+
+// protectRawBlocks replaces raw blocks with comment placeholders so the HTML
+// parser cannot move them out of table elements. The original blocks are
+// restored after serialization.
+func protectRawBlocks(input string) (string, []string) {
+	var blocks []string
+
+	protected := rawBlockMarkerPattern.ReplaceAllStringFunc(input, func(match string) string {
+		content := strings.TrimSuffix(strings.TrimPrefix(match, rawBlockStartMarker), rawBlockEndMarker)
+		blocks = append(blocks, content)
+
+		return fmt.Sprintf(rawBlockPlaceholder, len(blocks)-1)
+	})
+
+	return protected, blocks
+}
+
+func restoreRawBlocks(output string, blocks []string) string {
+	for i, content := range blocks {
+		output = strings.Replace(output, fmt.Sprintf(rawBlockPlaceholder, i), content, 1)
+	}
+
+	return output
+}
+
 func inlineCSS(ctx *component.RenderContext, r io.Reader, w io.Writer) error {
-	htmlNode, err := html.Parse(r)
+	input, err := io.ReadAll(r)
+	if err != nil {
+		return err
+	}
+
+	protected, rawBlocks := protectRawBlocks(string(input))
+
+	htmlNode, err := html.Parse(strings.NewReader(protected))
 	if err != nil {
 		return err
 	}
@@ -158,11 +203,13 @@ func inlineCSS(ctx *component.RenderContext, r io.Reader, w io.Writer) error {
 		}
 	}
 
-	if err := html.Render(w, htmlNode); err != nil {
+	var rendered strings.Builder
+	if err := html.Render(&rendered, htmlNode); err != nil {
 		return err
 	}
 
-	return nil
+	_, err = io.WriteString(w, restoreRawBlocks(rendered.String(), rawBlocks))
+	return err
 }
 
 func parseStyleAttribute(attr html.Attribute) (map[string]string, error) {

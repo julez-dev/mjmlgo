@@ -1,0 +1,12 @@
+<mjml>
+  <mj-raw position="file-start">
+    <!-- file-start marker -->
+  </mj-raw>
+  <mj-body>
+    <mj-section>
+      <mj-column>
+        <mj-text>Body text</mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

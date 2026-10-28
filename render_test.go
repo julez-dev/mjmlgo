@@ -378,6 +378,56 @@ func mjmlFixtures(t testing.TB, dir string) []string {
 	return fixtures
 }
 
+func TestRenderFileStartRaw(t *testing.T) {
+	t.Parallel()
+
+	const input = `<mjml>
+		<mj-raw position="file-start"><!-- file-start marker --></mj-raw>
+		<mj-body><mj-section><mj-column><mj-text>Body</mj-text></mj-column></mj-section></mj-body>
+	</mjml>`
+
+	html, err := RenderMJML(strings.NewReader(input))
+	require.NoError(t, err)
+	require.True(t, strings.HasPrefix(strings.ToLower(html), "<!-- file-start marker -->\n<!doctype html>"), "file-start raw must precede the doctype, got:\n%s", html)
+}
+
+func TestRenderRawInColumnKeepsPosition(t *testing.T) {
+	t.Parallel()
+
+	const input = `<mjml>
+		<mj-body>
+			<mj-section>
+				<mj-column>
+					<mj-text>first text</mj-text>
+					<mj-raw><div class="raw-between">raw markup</div></mj-raw>
+					<mj-text>second text</mj-text>
+				</mj-column>
+			</mj-section>
+		</mj-body>
+	</mjml>`
+
+	out, err := RenderMJML(strings.NewReader(input))
+	require.NoError(t, err)
+
+	tbody := strings.Index(out, "<tbody>")
+	require.NotEqual(t, -1, tbody, "missing <tbody>")
+
+	firstTR := strings.Index(out[tbody:], "<tr>")
+	require.NotEqual(t, -1, firstTR, "missing first row")
+	firstTR += tbody
+
+	raw := strings.Index(out, `<div class="raw-between">raw markup</div>`)
+	require.NotEqual(t, -1, raw, "missing raw markup")
+
+	secondTR := strings.Index(out[raw:], "<tr>")
+	require.NotEqual(t, -1, secondTR, "missing second row")
+	secondTR += raw
+
+	require.Less(t, tbody, firstTR)
+	require.Less(t, firstTR, raw, "raw markup must follow the first row")
+	require.Less(t, raw, secondTR, "raw markup must precede the second row")
+}
+
 func TestInlineCSS(t *testing.T) {
 	t.Parallel()
 

@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/julez-dev/mjmlgo/node"
 	"github.com/stretchr/testify/require"
 )
 
@@ -37,6 +38,44 @@ func TestParse(t *testing.T) {
 		require.Equal(t, "Raw </div>", rawContent)
 	})
 
+	t.Run("mj-raw-with-attributes", func(t *testing.T) {
+		const input = `<mjml>
+			<mj-body>
+				<mj-raw position="file-start" class="raw-class"><div>raw content</div></mj-raw>
+			</mj-body>
+		</mjml>`
+
+		n, err := parse(strings.NewReader(input))
+		require.NoError(t, err)
+
+		body := findChild(t, n, "mj-body")
+		raw := findChild(t, body, "mj-raw")
+
+		position, ok := raw.GetAttributeValue("position")
+		require.True(t, ok)
+		require.Equal(t, "file-start", position)
+
+		class, ok := raw.GetAttributeValue("class")
+		require.True(t, ok)
+		require.Equal(t, "raw-class", class)
+
+		require.Equal(t, "<div>raw content</div>", raw.Content)
+	})
+
+	t.Run("file-start-raw-content", func(t *testing.T) {
+		const input = `<mjml>
+			<mj-raw position="file-start"><!-- first --></mj-raw>
+			<mj-raw position="file-start"><!-- second --></mj-raw>
+			<mj-raw><div>in body flow</div></mj-raw>
+			<mj-body></mj-body>
+		</mjml>`
+
+		n, err := parse(strings.NewReader(input))
+		require.NoError(t, err)
+
+		require.Equal(t, "<!-- first -->\n<!-- second -->", fileStartRawContent(n))
+	})
+
 	t.Run("mj-end-tags", func(t *testing.T) {
 		const input = `<mjml><mj-text><h1>Test</h1></mj-text></mjml>`
 
@@ -52,6 +91,20 @@ func TestParse(t *testing.T) {
 
 		require.Equal(t, "<h1>Test</h1>", rawContent)
 	})
+}
+
+// findChild returns the first direct child of n with the given tag name.
+func findChild(t *testing.T, n *node.Node, tag string) *node.Node {
+	t.Helper()
+
+	for _, child := range n.Children {
+		if child.Type == tag {
+			return child
+		}
+	}
+
+	t.Fatalf("no <%s> child of <%s>", tag, n.Type)
+	return nil
 }
 
 // BenchmarkParse isolates the MJML parser.
