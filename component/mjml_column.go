@@ -106,22 +106,28 @@ func (c MJMLColumn) renderColumn(ctx *RenderContext, w io.Writer, n *node.Node) 
 		"style":       c.tableStyle(n).InlineString(),
 	}
 
-	_, _ = io.WriteString(w, "<table "+tableAttr.InlineString()+">\n")
-	_, _ = io.WriteString(w, "<tbody>\n")
-
 	for _, child := range n.Children {
 		if !slices.Contains(c.allowedChildren(), child.Type) {
 			return fmt.Errorf("invalid child type %s in column, allowed types are: %v", child.Type, c.allowedChildren())
 		}
+	}
 
+	_, _ = io.WriteString(w, "<table "+tableAttr.InlineString()+">\n")
+	_, _ = io.WriteString(w, "<tbody>\n")
+
+	for _, child := range n.Children {
 		if child.Type == RawTagName {
 			var raw MJMLRaw
 			if err := InitComponent(ctx, raw, child); err != nil {
 				return err
 			}
+			// Mark the raw block so the CSS inliner can keep it at this position;
+			// html.Parse would otherwise move non-table content out of <tbody>.
+			_, _ = io.WriteString(w, rawBlockStartMarker)
 			if err := raw.Render(ctx, w, child); err != nil {
 				return fmt.Errorf("failed to render raw: %w", err)
 			}
+			_, _ = io.WriteString(w, rawBlockEndMarker)
 			continue
 		}
 

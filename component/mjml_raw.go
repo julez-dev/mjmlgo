@@ -9,6 +9,13 @@ import (
 
 type MJMLRaw struct{}
 
+// Raw block markers let the CSS inliner protect raw markup from HTML table
+// foster-parenting. They are removed from the final output.
+const (
+	rawBlockStartMarker = "<!--mjmlgo-raw-start-->"
+	rawBlockEndMarker   = "<!--mjmlgo-raw-end-->"
+)
+
 func (r MJMLRaw) Name() string {
 	return "mj-raw"
 }
