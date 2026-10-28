@@ -754,6 +754,54 @@ func TestProtectRawBlocks(t *testing.T) {
 	})
 }
 
+// TestInlineCSSStylesRawBlocks asserts protected raw content is parsed as a
+// fragment and receives the inline declarations and the <mj-html-attributes>
+// selectors, while the markers still keep it at its position.
+func TestInlineCSSStylesRawBlocks(t *testing.T) {
+	t.Parallel()
+
+	// The block sits directly in a <tbody>, which is where the markers are
+	// required. Parsing it with that <tbody> as the fragment context is what
+	// keeps the row a row; a body context would drop the <td> and its class.
+	document := `<html><body><table><tbody>` +
+		component.RawBlockStartMarker + `<tr><td class="cell">raw row</td></tr>` + component.RawBlockEndMarker +
+		`<tr><td>content</td></tr>` +
+		`</tbody></table></body></html>`
+
+	ctx := inlineContext(inlineSheet(".cell", component.Style{Property: "color", Value: "red"}))
+	ctx.HTMLAttributes = []component.HTMLAttributeSelector{
+		{Path: ".cell", Attributes: []component.HTMLAttribute{{Name: "data-x", Value: "1"}}},
+	}
+
+	var out bytes.Buffer
+	require.NoError(t, inlineCSS(ctx, strings.NewReader(document), &out))
+
+	require.Equal(t, `<html><body><table><tbody>`+
+		`<tr><td class="cell" data-x="1" style="color:red;">raw row</td></tr>`+
+		`<tr><td>content</td></tr>`+
+		`</tbody></table></body></html>`, out.String())
+}
+
+// TestInlineCSSKeepsUnmatchedRawBlocks asserts a block that no rule and no
+// selector applies to keeps its exact bytes: comment-only blocks - the common
+// case - never get re-serialized.
+func TestInlineCSSKeepsUnmatchedRawBlocks(t *testing.T) {
+	t.Parallel()
+
+	const raw = `<!--     a comment with 5 spaces     --><div>plain</div>`
+	document := `<html><body><table><tbody>` +
+		component.RawBlockStartMarker + raw + component.RawBlockEndMarker +
+		`<tr><td class="other">content</td></tr>` +
+		`</tbody></table></body></html>`
+
+	ctx := inlineContext(inlineSheet(".other", component.Style{Property: "color", Value: "red"}))
+
+	var out bytes.Buffer
+	require.NoError(t, inlineCSS(ctx, strings.NewReader(document), &out))
+
+	require.Contains(t, out.String(), raw)
+}
+
 // BenchmarkRenderMJML measures the full pipeline (parse, render, inline CSS,
 // output post-processing) per fixture. The fixture set is the parity corpus, so
 // the numbers describe realistic documents rather than toy inputs.

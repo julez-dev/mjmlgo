@@ -1,0 +1,22 @@
+<mjml>
+  <mj-head>
+    <mj-style inline="inline">
+      .col-raw { color: #ff0000; }
+    </mj-style>
+    <mj-html-attributes>
+      <mj-selector path=".col-raw">
+        <mj-html-attribute name="data-x">column</mj-html-attribute>
+      </mj-selector>
+    </mj-html-attributes>
+  </mj-head>
+  <mj-body>
+    <mj-section>
+      <mj-column>
+        <!-- before the raw child -->
+        <mj-raw><div class="col-raw">raw child<span>with markup</span></div></mj-raw>
+        <!-- after the raw child -->
+        <mj-text>Column text</mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

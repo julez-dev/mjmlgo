@@ -24,7 +24,7 @@ through `Renderer.RenderString` (fs reads included).
 | `comments-containers.mjml` | 199,958 | 400,067 | 3,491 | 124,974 | 250,042 | 2,182 |
 | `comments-head.mjml` | 58,405 | 109,282 | 1,299 | 36,503 | 68,301 | 812 |
 | `comments-hero.mjml` | 123,251 | 234,520 | 2,427 | 77,032 | 146,575 | 1,517 |
-| `comments-hero-inline.mjml` | 150,435 | 256,704 | 2,309 | 94,022 | 160,440 | 1,443 |
+| `comments-hero-inline.mjml` | 173,419 | 302,195 | 2,701 | 108,387 | 188,872 | 1,688 |
 | `comments-keep-false.mjml` | 63,245 | 110,979 | 1,242 | 39,528 | 69,362 | 776 |
 | `comments-raw.mjml` | 57,366 | 116,206 | 1,246 | 35,854 | 72,629 | 779 |
 | `component-head-styles.mjml` | 124,703 | 258,346 | 2,440 | 77,939 | 161,466 | 1,525 |
@@ -46,6 +46,7 @@ through `Renderer.RenderString` (fs reads included).
 | `navbar.mjml` | 91,592 | 172,783 | 1,783 | 57,245 | 107,989 | 1,114 |
 | `printer-support.mjml` | 89,856 | 152,194 | 1,773 | 56,160 | 95,121 | 1,108 |
 | `raw-in-column.mjml` | 58,983 | 116,711 | 1,244 | 36,864 | 72,944 | 777 |
+| `raw-in-column-inline.mjml` | 124,981 | 225,827 | 2,101 | 78,113 | 141,142 | 1,313 |
 | `raw-in-group.mjml` | 86,856 | 161,021 | 1,960 | 54,285 | 100,638 | 1,225 |
 | `raw-in-section.mjml` | 76,111 | 143,559 | 1,733 | 47,569 | 89,724 | 1,083 |
 | `raw-position-file-start.mjml` | 52,802 | 102,541 | 1,181 | 33,001 | 64,088 | 738 |
@@ -65,7 +66,7 @@ through `Renderer.RenderString` (fs reads included).
 | `upstream/mjml--beautify-output--04.mjml` | 51,061 | 95,540 | 1,151 | 31,913 | 59,712 | 719 |
 | `upstream/mjml--carousel-hoverSupported--00.mjml` | 123,748 | 338,962 | 2,296 | 77,342 | 211,851 | 1,435 |
 | `upstream/mjml--column-border-radius--00.mjml` | 61,324 | 113,647 | 1,298 | 38,327 | 71,029 | 811 |
-| `upstream/mjml--html-attributes--00.mjml` | 163,605 | 274,410 | 2,799 | 102,253 | 171,506 | 1,749 |
+| `upstream/mjml--html-attributes--00.mjml` | 175,024 | 300,259 | 3,019 | 109,390 | 187,662 | 1,887 |
 | `upstream/mjml--html-comments--00.mjml` | 53,453 | 99,583 | 1,154 | 33,408 | 62,239 | 721 |
 | `upstream/mjml--htmlmin-ignore--00.mjml` | 47,400 | 95,671 | 970 | 29,625 | 59,794 | 606 |
 | `upstream/mjml--htmlmin-ignore--01.mjml` | 48,192 | 91,176 | 970 | 30,120 | 56,985 | 606 |

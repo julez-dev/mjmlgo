@@ -1,11 +1,17 @@
 <mjml>
   <mj-head>
     <mj-style inline="inline">
-      .hero-inline { color: #ff0000; }
+      .hero-raw { color: #ff0000; }
+      .hero-inline { color: #0000ff; }
     </mj-style>
+    <mj-html-attributes>
+      <mj-selector path=".hero-raw">
+        <mj-html-attribute name="data-x">hero</mj-html-attribute>
+      </mj-selector>
+    </mj-html-attributes>
   </mj-head>
   <mj-body>
-    <mj-hero mode="fixed-height" height="300px" background-width="600px" background-height="300px" background-color="#2a3448" padding="50px 0px">
+    <mj-hero mode="fluid-height" background-width="600px" background-height="300px" background-color="#2a3448" padding="50px 0px">
       <!-- before the raw child -->
       <mj-raw><div class="hero-raw">raw child<span>with markup</span></div></mj-raw>
       <!-- after the raw child -->

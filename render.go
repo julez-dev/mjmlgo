@@ -13,6 +13,7 @@ import (
 	"github.com/ericchiang/css"
 	"github.com/julez-dev/mjmlgo/internal/component"
 	"golang.org/x/net/html"
+	"golang.org/x/net/html/atom"
 )
 
 // ErrUnknownStartingTag reports a document whose root element is not <mjml>.
@@ -145,6 +146,18 @@ const (
 	rawBlockPlaceholderSuffix = "-->"
 )
 
+// rawBlockPlaceholderComment returns the placeholder comment that stands for
+// block i in the document handed to the HTML parser.
+func rawBlockPlaceholderComment(i int) string {
+	return rawBlockPlaceholderPrefix + strconv.Itoa(i) + rawBlockPlaceholderSuffix
+}
+
+// rawBlockPlaceholderData returns the content of that comment: what the parsed
+// tree stores as the comment node's data, without the comment delimiters.
+func rawBlockPlaceholderData(i int) string {
+	return strings.TrimSuffix(strings.TrimPrefix(rawBlockPlaceholderComment(i), "<!--"), "-->")
+}
+
 var rawBlockMarkerPattern = regexp.MustCompile(`(?s)` + regexp.QuoteMeta(component.RawBlockStartMarker) + `(.*?)` + regexp.QuoteMeta(component.RawBlockEndMarker))
 
 // protectRawBlocks replaces raw blocks with comment placeholders so the HTML
@@ -162,7 +175,7 @@ func protectRawBlocks(input string) (string, []string) {
 		content := strings.TrimSuffix(strings.TrimPrefix(match, component.RawBlockStartMarker), component.RawBlockEndMarker)
 		blocks = append(blocks, content)
 
-		return rawBlockPlaceholderPrefix + strconv.Itoa(len(blocks)-1) + rawBlockPlaceholderSuffix
+		return rawBlockPlaceholderComment(len(blocks) - 1)
 	})
 
 	return protected, blocks
@@ -222,6 +235,98 @@ func writeRestoredRawBlocks(w io.Writer, output string, blocks []string) error {
 
 		rest = rest[end+len(rawBlockPlaceholderSuffix):]
 	}
+}
+
+// styleRawBlocks applies the inline stylesheets and the <mj-html-attributes>
+// selectors to the content of protected raw blocks and replaces each block with
+// its styled, re-serialized form.
+//
+// A block is parsed as a fragment rather than as part of the document, because
+// the markers deliberately keep it out of the whole-document parse so that the
+// HTML parser cannot foster-parent it. The node the block's placeholder sits in
+// is the fragment's context, so raw content that is table content (<tr>, <td>)
+// keeps its meaning instead of being dropped the way a body context would drop
+// it.
+//
+// Fragment scope has a cost: a selector that depends on an ancestor outside the
+// block (`.hero .raw`) cannot match inside it, because those ancestors are not
+// part of the fragment. Selectors that match the block's own elements - the
+// common case for raw content - apply exactly as they do in the document.
+func styleRawBlocks(ctx *component.RenderContext, doc *html.Node, blocks []string) error {
+	if len(blocks) == 0 || (len(ctx.HTMLAttributes) == 0 && len(ctx.InlineStyles) == 0) {
+		return nil
+	}
+
+	contexts := rawBlockContexts(doc, len(blocks))
+
+	for i := range blocks {
+		nodes, err := html.ParseFragment(strings.NewReader(blocks[i]), contexts[i])
+		if err != nil {
+			return fmt.Errorf("parse raw block: %w", err)
+		}
+
+		// The document pass runs the attribute selectors before the inline
+		// styles so that a rule matching an injected attribute sees it; the
+		// block pass keeps that order.
+		changed := applyHTMLAttributesIn(ctx.HTMLAttributes, nodes, nil)
+
+		inlined, err := inlineStylesIn(ctx.InlineStyles, nodes)
+		if err != nil {
+			return err
+		}
+
+		if !changed && !inlined {
+			continue
+		}
+
+		var styled strings.Builder
+		styled.Grow(len(blocks[i]) + len(blocks[i])/8)
+
+		for _, n := range nodes {
+			if err := html.Render(&styled, n); err != nil {
+				return err
+			}
+		}
+
+		blocks[i] = styled.String()
+	}
+
+	return nil
+}
+
+// rawBlockContexts returns the element each protected block's placeholder sits
+// in, indexed by block. That element is the fragment parsing context of the
+// block. A block whose placeholder cannot be found falls back to a body context,
+// which parses it as ordinary flow content.
+func rawBlockContexts(doc *html.Node, count int) []*html.Node {
+	contexts := make([]*html.Node, count)
+
+	placeholders := make(map[string]int, count)
+	for i := range contexts {
+		placeholders[rawBlockPlaceholderData(i)] = i
+	}
+
+	var walk func(*html.Node)
+	walk = func(n *html.Node) {
+		if n.Type == html.CommentNode {
+			if i, ok := placeholders[n.Data]; ok && n.Parent != nil && n.Parent.Type == html.ElementNode {
+				contexts[i] = n.Parent
+			}
+		}
+
+		for c := n.FirstChild; c != nil; c = c.NextSibling {
+			walk(c)
+		}
+	}
+	walk(doc)
+
+	for i := range contexts {
+		if contexts[i] == nil {
+			contexts[i] = &html.Node{Type: html.ElementNode, Data: "body", DataAtom: atom.Body}
+		}
+	}
+
+	return contexts
 }
 
 // styleDecl is one declaration of a style attribute. Inline style lists are
@@ -330,6 +435,10 @@ func inlineCSS(ctx *component.RenderContext, r io.Reader, w io.Writer) error {
 
 	changed = changed || inlined
 
+	if err := styleRawBlocks(ctx, htmlNode, rawBlocks); err != nil {
+		return err
+	}
+
 	if !changed {
 		// No rule matched and no selector set an attribute, so the parsed
 		// document is the input document: re-rendering it would only burn time.
@@ -350,6 +459,12 @@ func inlineCSS(ctx *component.RenderContext, r io.Reader, w io.Writer) error {
 // declaration order and reports whether the document changed. Selectors are
 // compiled with the stylesheet, so this never parses CSS.
 func inlineStyles(sheets []component.Stylesheet, doc *html.Node) (bool, error) {
+	return inlineStylesIn(sheets, []*html.Node{doc})
+}
+
+// inlineStylesIn is inlineStyles over a set of disjoint roots: the document for
+// the whole-document pass, the top-level fragment nodes for a raw block.
+func inlineStylesIn(sheets []component.Stylesheet, roots []*html.Node) (bool, error) {
 	var (
 		changed bool
 		scratch styleDecls
@@ -365,13 +480,15 @@ func inlineStyles(sheets []component.Stylesheet, doc *html.Node) (bool, error) {
 				continue
 			}
 
-			for _, n := range sel.Select(doc) {
-				nodeChanged, err := applyDeclarations(n, rules[j].Declarations, &scratch)
-				if err != nil {
-					return false, err
-				}
+			for _, root := range roots {
+				for _, n := range sel.Select(root) {
+					nodeChanged, err := applyDeclarations(n, rules[j].Declarations, &scratch)
+					if err != nil {
+						return false, err
+					}
 
-				changed = changed || nodeChanged
+					changed = changed || nodeChanged
+				}
 			}
 		}
 	}
@@ -490,6 +607,13 @@ func applyHTMLAttributes(selectors []component.HTMLAttributeSelector, doc *html.
 		return false
 	}
 
+	return applyHTMLAttributesIn(selectors, []*html.Node{body}, body)
+}
+
+// applyHTMLAttributesIn is applyHTMLAttributes over a set of disjoint roots,
+// skipping skip itself when a selector matches it. The raw-block pass passes the
+// block's fragment roots and no skip.
+func applyHTMLAttributesIn(selectors []component.HTMLAttributeSelector, roots []*html.Node, skip *html.Node) bool {
 	changed := false
 
 	for _, htmlSelector := range selectors {
@@ -498,14 +622,16 @@ func applyHTMLAttributes(selectors []component.HTMLAttributeSelector, doc *html.
 			continue
 		}
 
-		for _, target := range sel.Select(body) {
-			if target == body {
-				continue
-			}
+		for _, root := range roots {
+			for _, target := range sel.Select(root) {
+				if target == skip {
+					continue
+				}
 
-			for _, htmlAttribute := range htmlSelector.Attributes {
-				if setHTMLAttribute(target, htmlAttribute.Name, htmlAttribute.Value) {
-					changed = true
+				for _, htmlAttribute := range htmlSelector.Attributes {
+					if setHTMLAttribute(target, htmlAttribute.Name, htmlAttribute.Value) {
+						changed = true
+					}
 				}
 			}
 		}
