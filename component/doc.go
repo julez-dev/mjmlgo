@@ -41,8 +41,8 @@
 // attribute tables and their call order are implementation details; they change
 // whenever matching the reference implementation requires it.
 //
-// ErrValidation is still exported as the sentinel the element, attribute, value,
-// child and mj-class kinds match with errors.Is; ErrMJMLBadlyFormatted, MergeOutlookConditionals,
+// ErrValidation is still exported as the sentinel the element, attribute,
+// value, child and mj-class kinds match with errors.Is; ErrMJMLBadlyFormatted, MergeOutlookConditionals,
 // RemoveNonNumeric, RawBlockStartMarker, RawBlockEndMarker and
 // StripRawBlockMarkers are exported to wire the packages together. They are not
 // meant to be called from outside, and may be changed or unexported.

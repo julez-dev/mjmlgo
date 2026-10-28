@@ -73,7 +73,7 @@ func (c MJMLCarousel) Render(ctx *RenderContext, w io.Writer, n *node.Node) erro
 				append(elementPathSegments(n), child.Type),
 				"",
 				child.Type,
-				fmt.Errorf("allowed children: %v", validationDependencies[CarouselTagName]),
+				fmt.Errorf("allowed children: %s", allowedChildList(CarouselTagName)),
 			)
 		}
 

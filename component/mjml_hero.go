@@ -260,7 +260,7 @@ func (h MJMLHero) renderContent(ctx *RenderContext, w io.Writer, n *node.Node) e
 				append(elementPathSegments(n), child.Type),
 				"",
 				child.Type,
-				fmt.Errorf("allowed children: %v", validationDependencies[HeroTagName]),
+				fmt.Errorf("allowed children: %s", allowedChildList(HeroTagName)),
 			)
 		}
 
@@ -302,13 +302,9 @@ func (h MJMLHero) renderContent(ctx *RenderContext, w io.Writer, n *node.Node) e
 		}
 
 		if childComponent == nil {
-			return NewError(
-				KindDisallowedChild,
-				append(elementPathSegments(n), child.Type),
-				"",
-				child.Type,
-				fmt.Errorf("allowed children: %v", validationDependencies[HeroTagName]),
-			)
+			// Unreachable while the switch above covers every allowed child;
+			// report the broken invariant as internal, not as author input.
+			return fmt.Errorf("no component for allowed child <%s> in <mj-hero>", child.Type)
 		}
 
 		if err := InitComponent(ctx, childComponent, child); err != nil {

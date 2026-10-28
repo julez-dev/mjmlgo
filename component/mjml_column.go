@@ -123,7 +123,7 @@ func (c MJMLColumn) renderColumn(ctx *RenderContext, w io.Writer, n *node.Node) 
 				append(elementPathSegments(n), child.Type),
 				"",
 				child.Type,
-				fmt.Errorf("allowed children: %v", validationDependencies[ColumnTagName]),
+				fmt.Errorf("allowed children: %s", allowedChildList(ColumnTagName)),
 			)
 		}
 	}

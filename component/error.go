@@ -62,7 +62,9 @@ type Error struct {
 	// e.g. []string{"mj-body", "mj-section", "mj-text"}. The root <mjml>
 	// element is omitted, like the paths in error messages always have been. A
 	// document-level failure that happens before an element exists uses the
-	// document element it failed to build, so Path is never empty.
+	// document element it failed to build. Every site in this package supplies
+	// a non-empty Path; the constructor does not enforce it for hand-built
+	// errors.
 	Path []string
 	// Attribute is the attribute that failed, when the failure is about one.
 	Attribute string

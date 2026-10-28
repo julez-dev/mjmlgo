@@ -231,6 +231,12 @@ var invalidFailures = map[string]invalidFailure{
 		value:    "partials/does-not-exist.mjml",
 		sentinel: fs.ErrNotExist,
 	},
+	"include-malformed.mjml": {
+		kind:     KindParseFailure,
+		path:     []string{"mj-body", "mj-include"},
+		value:    "partials/malformed.mjml",
+		sentinel: ErrParsingFailed,
+	},
 	"include-unknown-type.mjml": {
 		kind:     KindUnknownIncludeType,
 		path:     []string{"mj-body", "mj-include"},

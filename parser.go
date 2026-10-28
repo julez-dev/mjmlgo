@@ -411,7 +411,16 @@ func (r *includeResolver) expandDocument(file string, head *node.Node, depth int
 
 	root, err := parse(strings.NewReader(document), r.keepComments)
 	if err != nil {
-		return nil, fmt.Errorf("mjml: mj-include %s: %w", file, err)
+		// Attribute the failure to the include site, not only to where parsing
+		// stopped inside the included file: that is where the author can act.
+		// The inner *Error stays reachable through Err.
+		return nil, component.NewError(
+			KindParseFailure,
+			at,
+			"",
+			file,
+			fmt.Errorf("mjml: mj-include %s: %w", file, err),
+		)
 	}
 
 	r.stack = append(r.stack, file)
@@ -522,8 +531,8 @@ func (r *includeResolver) read(file string, at []string) ([]byte, error) {
 // parser failed to build when it never opened one.
 func parsePath(stack []*node.Node) []string {
 	if len(stack) > 0 {
-		if path := nodePath(stack[len(stack)-1]); len(path) > 0 {
-			return path
+		if segments := nodePath(stack[len(stack)-1]); len(segments) > 0 {
+			return segments
 		}
 	}
 
@@ -531,7 +540,9 @@ func parsePath(stack []*node.Node) []string {
 }
 
 // nodePath returns the ancestry of n from the document root, with the root
-// <mjml> element omitted, like component element paths are.
+// <mjml> element omitted, like component element paths are. The rule is
+// duplicated from component's elementPathSegments because that helper is
+// unexported; keep the two in step.
 func nodePath(n *node.Node) []string {
 	var parts []string
 

@@ -85,7 +85,7 @@ func TestErrorUnwrap(t *testing.T) {
 func TestErrorIsValidationSentinel(t *testing.T) {
 	t.Parallel()
 
-	validationKinds := []ErrorKind{
+	wantValidationKinds := []ErrorKind{
 		KindUnknownElement,
 		KindUnknownAttribute,
 		KindInvalidValue,
@@ -93,7 +93,7 @@ func TestErrorIsValidationSentinel(t *testing.T) {
 		KindUndefinedMJClass,
 	}
 
-	for _, kind := range validationKinds {
+	for _, kind := range wantValidationKinds {
 		t.Run(string(kind), func(t *testing.T) {
 			t.Parallel()
 			assert.ErrorIs(t, NewError(kind, []string{"mj-text"}, "", "", nil), ErrValidation)
