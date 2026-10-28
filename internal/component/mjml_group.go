@@ -139,13 +139,12 @@ func (g MJMLGroup) Render(ctx *RenderContext, w io.Writer, n *node.Node) error {
 
 	for _, child := range n.Children {
 		if child.Type == RawTagName {
-			var raw MJMLRaw
-			if err := InitComponent(ctx, raw, child); err != nil {
+			// Group raw content is emitted inside the group's <div>, not in a
+			// table body, so it needs no markers.
+			if err := renderRawChild(ctx, w, child); err != nil {
 				return err
 			}
-			if err := raw.Render(ctx, w, child); err != nil {
-				return fmt.Errorf("failed to render raw: %w", err)
-			}
+
 			continue
 		}
 

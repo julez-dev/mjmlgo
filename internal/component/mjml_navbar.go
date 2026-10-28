@@ -87,13 +87,10 @@ func (n MJMLNavbar) Render(ctx *RenderContext, w io.Writer, node *node.Node) err
 				return fmt.Errorf("failed to render navbar link: %w", err)
 			}
 		case RawTagName:
-			var raw MJMLRaw
-			if err := InitComponent(ctx, raw, child); err != nil {
+			// Navbar raw content is emitted inside the navbar cell, not in a
+			// table body, so it needs no markers.
+			if err := renderRawChild(ctx, w, child); err != nil {
 				return err
-			}
-
-			if err := raw.Render(ctx, w, child); err != nil {
-				return fmt.Errorf("failed to render raw: %w", err)
 			}
 		}
 	}

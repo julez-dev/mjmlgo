@@ -139,9 +139,10 @@ Known divergences at the start: 214 records / 15 root causes (see
   reads per-fixture `<fixture>.cli-args` sidecars, passes the flags to the
   reference CLI and maps `-c.<name>=<value>` onto those options, and it now
   compares comment text byte for byte - so the four existing comment/
-  `htmlmin-ignore` fixtures fail if comments are dropped. Nine new fixtures
-  cover head, raw, hero, container and between-component comments plus one per
-  option.
+  `htmlmin-ignore` fixtures fail if comments are dropped. Ten new fixtures
+  cover head, raw, hero (also behind the inliner), container and
+  between-component comments plus one per option; raw children are rendered by
+  one shared helper, marked when they sit in a table body.
 
 Current state: full MJML 4.18 component and head coverage, zero divergences,
 `TestMJMLInvalid` covering fail-fast validation, benchmarks and fuzz targets in

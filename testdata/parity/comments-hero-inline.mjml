@@ -1,0 +1,16 @@
+<mjml>
+  <mj-head>
+    <mj-style inline="inline">
+      .hero-inline { color: #ff0000; }
+    </mj-style>
+  </mj-head>
+  <mj-body>
+    <mj-hero mode="fixed-height" height="300px" background-width="600px" background-height="300px" background-color="#2a3448" padding="50px 0px">
+      <!-- before the raw child -->
+      <mj-raw><div class="hero-raw">raw child<span>with markup</span></div></mj-raw>
+      <!-- after the raw child -->
+      <mj-text css-class="hero-inline">Inlined hero text</mj-text>
+      <mj-button href="https://mjml.io/" align="center">TICKET</mj-button>
+    </mj-hero>
+  </mj-body>
+</mjml>

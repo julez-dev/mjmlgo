@@ -258,6 +258,18 @@ func (h MJMLHero) renderContent(ctx *RenderContext, w io.Writer, n *node.Node) e
 			return fmt.Errorf("unknown child type: %s for <mj-hero>, allowed types are: %v", child.Type, validationDependencies[HeroTagName])
 		}
 
+		if child.Type == RawTagName {
+			// Raw content - an author comment, for instance - is emitted at its
+			// document position instead of the row/cell every content child
+			// gets: MJML checks isRawElement() and renders it bare. The hero
+			// places children directly in a <tbody>, so the block is marked.
+			if err := renderRawChildInTableBody(ctx, w, child); err != nil {
+				return err
+			}
+
+			continue
+		}
+
 		var childComponent Component
 
 		switch child.Type {
@@ -281,8 +293,6 @@ func (h MJMLHero) renderContent(ctx *RenderContext, w io.Writer, n *node.Node) e
 			childComponent = MJMLNavbar{}
 		case AccordionTagName:
 			childComponent = MJMLAccordion{}
-		case RawTagName:
-			childComponent = MJMLRaw{}
 		}
 
 		if childComponent == nil {
@@ -291,18 +301,6 @@ func (h MJMLHero) renderContent(ctx *RenderContext, w io.Writer, n *node.Node) e
 
 		if err := InitComponent(ctx, childComponent, child); err != nil {
 			return err
-		}
-
-		if child.Type == RawTagName {
-			// Raw content - an author comment, for instance - is emitted bare
-			// at its document position. MJML checks isRawElement() and skips
-			// the row/cell it wraps every content child in, so the comment has
-			// the same parent node in both outputs.
-			if err := childComponent.Render(ctx, w, child); err != nil {
-				return err
-			}
-
-			continue
 		}
 
 		_, _ = io.WriteString(w, "<tr>\n")

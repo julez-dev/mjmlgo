@@ -95,13 +95,11 @@ func (a MJMLAccordion) Render(ctx *RenderContext, w io.Writer, n *node.Node) err
 
 	for _, child := range n.Children {
 		if child.Type == RawTagName {
-			var raw MJMLRaw
-			if err := InitComponent(ctx, raw, child); err != nil {
+			// Accordion children sit directly in the accordion's <tbody>.
+			if err := renderRawChildInTableBody(ctx, w, child); err != nil {
 				return err
 			}
-			if err := raw.Render(ctx, w, child); err != nil {
-				return fmt.Errorf("failed to render raw: %w", err)
-			}
+
 			continue
 		}
 
@@ -207,12 +205,10 @@ func (e MJMLAccordionElement) Render(ctx *RenderContext, w io.Writer, n *node.No
 				return err
 			}
 		case RawTagName:
-			var raw MJMLRaw
-			if err := InitComponent(ctx, raw, child); err != nil {
+			// Raw content here is emitted inside the accordion element's
+			// content <div>, not in a table body, so it needs no markers.
+			if err := renderRawChild(ctx, w, child); err != nil {
 				return err
-			}
-			if err := raw.Render(ctx, w, child); err != nil {
-				return fmt.Errorf("failed to render raw: %w", err)
 			}
 		}
 	}

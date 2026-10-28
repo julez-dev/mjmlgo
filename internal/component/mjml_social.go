@@ -84,14 +84,9 @@ func (s MJMLSocial) renderHorizontal(ctx *RenderContext, w io.Writer, n *node.No
 
 	for _, child := range n.Children {
 		if child.Type == RawTagName {
-			// Raw content - an author comment, for instance - is emitted at
-			// its document position, like every other component child.
-			var raw MJMLRaw
-			if err := InitComponent(ctx, raw, child); err != nil {
-				return err
-			}
-
-			if err := raw.Render(ctx, w, child); err != nil {
+			// The horizontal layout emits raw content between the per-element
+			// tables, not inside a table body, so it needs no markers.
+			if err := renderRawChild(ctx, w, child); err != nil {
 				return err
 			}
 
@@ -157,10 +152,12 @@ func (s MJMLSocial) renderVertical(ctx *RenderContext, w io.Writer, n *node.Node
 
 	for _, child := range n.Children {
 		if child.Type == RawTagName {
-			var raw MJMLRaw
-			if err := raw.Render(ctx, w, child); err != nil {
+			// The vertical layout puts its children directly in a <tbody>.
+			if err := renderRawChildInTableBody(ctx, w, child); err != nil {
 				return err
 			}
+
+			continue
 		}
 
 		if child.Type != SocialElementTagName {
