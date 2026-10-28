@@ -474,7 +474,7 @@ func (a *styleApplier) applyHTMLAttributes(selectors []component.HTMLAttributeSe
 			}
 
 			for _, htmlAttribute := range htmlSelector.Attributes {
-				if setHTMLAttribute(target, htmlAttribute.Name, htmlAttribute.Value) {
+				if setAttribute(target, htmlAttribute.Name, htmlAttribute.Value) {
 					a.markChanged(target)
 				}
 			}
@@ -494,24 +494,6 @@ func findHTMLElement(n *html.Node, tag string) *html.Node {
 	}
 
 	return nil
-}
-
-// setHTMLAttribute sets one attribute on n and reports whether it changed.
-func setHTMLAttribute(n *html.Node, name, value string) bool {
-	for i := range n.Attr {
-		if n.Attr[i].Key != name {
-			continue
-		}
-
-		changed := n.Attr[i].Val != value
-		n.Attr[i].Val = value
-
-		return changed
-	}
-
-	n.Attr = append(n.Attr, html.Attribute{Key: name, Val: value})
-
-	return true
 }
 
 // styleDecl is one declaration of a style attribute. Inline style lists are
@@ -690,15 +672,15 @@ func materializeDeclarations(n *html.Node, decls styleDecls, setStyle bool) bool
 	// The mirrored attributes follow the winning declaration, replacing a value
 	// the element carried before: the stylesheet, not the emitted attribute, is
 	// what a reader of the copied document sees.
-	if v, ok := decls.lookup("text-align"); ok && v != "" && setAttributeValue(n, "align", v) {
+	if v, ok := decls.lookup("text-align"); ok && v != "" && setAttribute(n, "align", v) {
 		changed = true
 	}
 
-	if v, ok := decls.lookup("vertical-align"); ok && v != "" && setAttributeValue(n, "valign", v) {
+	if v, ok := decls.lookup("vertical-align"); ok && v != "" && setAttribute(n, "valign", v) {
 		changed = true
 	}
 
-	if v, ok := decls.lookup("background-color"); ok && v != "" && setAttributeValue(n, "bgcolor", v) {
+	if v, ok := decls.lookup("background-color"); ok && v != "" && setAttribute(n, "bgcolor", v) {
 		changed = true
 	}
 
@@ -731,9 +713,12 @@ func materializeDeclarations(n *html.Node, decls styleDecls, setStyle bool) bool
 	return true
 }
 
-// setAttributeValue sets the attribute to value, replacing an existing one, and
-// reports whether the node changed.
-func setAttributeValue(n *html.Node, name, value string) bool {
+// setAttribute sets the attribute to value - replacing a value the node already
+// carries - and reports whether the node changed. The inline stage uses it for
+// the <mj-html-attributes> pass and for the legacy attributes it mirrors from the
+// winning declarations: in both cases the stylesheet, not the emitted attribute,
+// is what a reader of the copied document should see.
+func setAttribute(n *html.Node, name, value string) bool {
 	for i := range n.Attr {
 		if n.Attr[i].Key != name {
 			continue

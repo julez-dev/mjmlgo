@@ -9,15 +9,16 @@ import "strings"
 // authored inline style outrank every rule that is not important.
 type specificity [4]int
 
-// splitSelectorList splits a rule's selector text into its selectors, on the
-// commas that separate them. Commas inside an attribute selector, a functional
-// pseudo-class or a string do not separate selectors.
-func splitSelectorList(text string) []string {
+// splitTopLevel splits text on the separators that appear outside strings,
+// brackets and parentheses. It is the one scanner the cascade needs: a selector
+// list splits on the commas between selectors, a complex selector on the
+// combinators between its compound selectors.
+func splitTopLevel(text string, isSeparator func(byte) bool) []string {
 	var (
-		selectors []string
-		start     int
-		depth     int
-		quote     byte
+		parts []string
+		start int
+		depth int
+		quote byte
 	)
 
 	for i := 0; i < len(text); i++ {
@@ -36,13 +37,20 @@ func splitSelectorList(text string) []string {
 			if depth > 0 {
 				depth--
 			}
-		case c == ',' && depth == 0:
-			selectors = append(selectors, strings.TrimSpace(text[start:i]))
+		case depth == 0 && isSeparator(c):
+			parts = append(parts, strings.TrimSpace(text[start:i]))
 			start = i + 1
 		}
 	}
 
-	return append(selectors, strings.TrimSpace(text[start:]))
+	return append(parts, strings.TrimSpace(text[start:]))
+}
+
+// splitSelectorList splits a rule's selector text into its selectors, on the
+// commas that separate them. Commas inside an attribute selector, a functional
+// pseudo-class or a string do not separate selectors.
+func splitSelectorList(text string) []string {
+	return splitTopLevel(text, func(c byte) bool { return c == ',' })
 }
 
 // selectorSpecificity counts the specificity of one complex selector - a
@@ -68,40 +76,21 @@ func selectorSpecificity(selector string) specificity {
 // splitCompounds splits a complex selector into its compound selectors on the
 // combinators, ignoring anything inside brackets, parentheses or strings.
 func splitCompounds(selector string) []string {
-	var (
-		compounds []string
-		start     int
-		depth     int
-		quote     byte
-	)
-
-	for i := 0; i < len(selector); i++ {
-		switch c := selector[i]; {
-		case quote != 0:
-			if c == '\\' {
-				i++
-			} else if c == quote {
-				quote = 0
-			}
-		case c == '"' || c == '\'':
-			quote = c
-		case c == '(' || c == '[':
-			depth++
-		case c == ')' || c == ']':
-			if depth > 0 {
-				depth--
-			}
-		case depth == 0 && (c == ' ' || c == '\t' || c == '\n' || c == '>' || c == '+' || c == '~'):
-			if compound := strings.TrimSpace(selector[start:i]); compound != "" {
-				compounds = append(compounds, compound)
-			}
-
-			start = i + 1
+	parts := splitTopLevel(selector, func(c byte) bool {
+		switch c {
+		case ' ', '\t', '\n', '\r', '>', '+', '~':
+			return true
+		default:
+			return false
 		}
-	}
+	})
 
-	if compound := strings.TrimSpace(selector[start:]); compound != "" {
-		compounds = append(compounds, compound)
+	compounds := make([]string, 0, len(parts))
+
+	for _, compound := range parts {
+		if compound != "" {
+			compounds = append(compounds, compound)
+		}
 	}
 
 	return compounds

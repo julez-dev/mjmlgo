@@ -107,6 +107,11 @@ and `head.mjml` 94.6 us -> 83.7 us (1,493 -> 1,448 allocs/op), measured by runni
 the pre-change and the post-change tree alternately in one session; the per-fixture
 numbers above come from single runs of each tree and are medians of 7 and 5.
 
+That is ~0.21 ms of the ~0.54 ms the round-trip used to cost on `input_big.mjml`:
+the rest of the round-trip's cost came back as the element tree the selector
+passes need, and removing that too means components emitting elements instead of
+markup (ADR-0005).
+
 What the stage costs now, from its CPU profile: about half is tokenizing the
 emitted markup and building the tree, a third is selector matching (one full tree
 traversal per rule) and the rest is the writer that patches the changed start
