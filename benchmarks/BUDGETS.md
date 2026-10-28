@@ -9,77 +9,77 @@ Policy: CI prints benchmark results but does not fail on them. Update this table
 in the same commit as a change that moves a budget materially.
 
 Measured with Go 1.24 on an AMD Ryzen 9 9950X3D, `-benchmem -count=3`, medians,
-over the whole parity corpus. Fixtures with `mj-include` need the caller's
-filesystem, so they are measured through `Renderer.RenderString` and their
-numbers include reading the fixture and its includes from disk.
+over the whole parity corpus. Fixtures with `mj-include` are measured through
+`Renderer.RenderString` (fs reads included).
 
 | Fixture | Budget ns/op | Budget B/op | Budget allocs/op | Measured ns/op | Measured B/op | Measured allocs/op |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| `accordion.mjml` | 134,016 | 232,410 | 2,036 | 83,760 | 145,256 | 1,272 |
-| `button-complex.mjml` | 1,073,730 | 1,686,200 | 17,204 | 671,081 | 1,053,875 | 10,752 |
-| `button.mjml` | 59,767 | 100,157 | 1,093 | 37,354 | 62,598 | 683 |
-| `carousel-thumbnails-hidden.mjml` | 92,498 | 227,080 | 1,604 | 57,811 | 141,925 | 1,002 |
-| `carousel.mjml` | 125,458 | 327,119 | 2,146 | 78,411 | 204,449 | 1,341 |
-| `component-head-styles.mjml` | 126,820 | 229,821 | 2,048 | 79,262 | 143,638 | 1,280 |
-| `content.mjml` | 143,663 | 212,197 | 2,335 | 89,789 | 132,623 | 1,459 |
-| `fluid-height-hero.mjml` | 79,712 | 138,160 | 1,384 | 49,820 | 86,350 | 865 |
-| `head-attributes-class.mjml` | 109,664 | 175,532 | 1,935 | 68,540 | 109,707 | 1,209 |
-| `head-attributes-per-tag.mjml` | 85,764 | 132,236 | 1,487 | 53,602 | 82,647 | 929 |
-| `head-fonts-default.mjml` | 65,004 | 100,408 | 1,212 | 40,627 | 62,755 | 757 |
-| `head-html-attributes.mjml` | 156,194 | 263,671 | 2,280 | 97,621 | 164,794 | 1,425 |
-| `head-owa.mjml` | 54,026 | 87,602 | 1,032 | 33,766 | 54,751 | 645 |
-| `head.mjml` | 156,325 | 256,858 | 2,095 | 97,703 | 160,536 | 1,309 |
-| `image-complex.mjml` | 836,314 | 1,190,664 | 13,861 | 522,696 | 744,165 | 8,663 |
-| `image.mjml` | 59,810 | 100,391 | 1,151 | 37,381 | 62,744 | 719 |
-| `includes/main.mjml` | 471,290 | 680,517 | 5,656 | 294,556 | 425,323 | 3,535 |
-| `input_big.mjml` | 4,277,055 | 6,158,615 | 52,706 | 2,673,159 | 3,849,134 | 32,941 |
-| `layout.mjml` | 265,868 | 427,703 | 4,772 | 166,167 | 267,314 | 2,982 |
-| `navbar.mjml` | 88,293 | 152,002 | 1,485 | 55,183 | 95,001 | 928 |
-| `raw-in-column.mjml` | 55,476 | 90,426 | 1,064 | 34,672 | 56,516 | 665 |
-| `raw-in-group.mjml` | 90,608 | 139,476 | 1,666 | 56,630 | 87,172 | 1,041 |
-| `raw-in-section.mjml` | 77,058 | 123,463 | 1,453 | 48,161 | 77,164 | 908 |
-| `raw-position-file-start.mjml` | 52,935 | 91,028 | 1,021 | 33,084 | 56,892 | 638 |
-| `raw.mjml` | 56,652 | 89,997 | 1,063 | 35,407 | 56,248 | 664 |
-| `section-container-width.mjml` | 100,311 | 152,207 | 1,837 | 62,694 | 95,129 | 1,148 |
-| `simple-hero.mjml` | 78,392 | 136,727 | 1,392 | 48,995 | 85,454 | 870 |
-| `simple.mjml` | 24,106 | 42,128 | 506 | 15,066 | 26,330 | 316 |
-| `social.mjml` | 154,301 | 296,376 | 2,474 | 96,438 | 185,235 | 1,546 |
-| `table-width-auto.mjml` | 55,831 | 91,055 | 1,042 | 34,894 | 56,909 | 651 |
-| `upstream/mjml--accordion-fontFamily--00.mjml` | 135,269 | 246,045 | 2,250 | 84,543 | 153,778 | 1,406 |
-| `upstream/mjml--accordion-padding--00.mjml` | 86,152 | 153,250 | 1,397 | 53,845 | 95,781 | 873 |
-| `upstream/mjml--accordionTitle-fontWeight--00.mjml` | 134,608 | 224,589 | 1,898 | 84,130 | 140,368 | 1,186 |
-| `upstream/mjml--beautify-output--00.mjml` | 51,631 | 84,469 | 996 | 32,269 | 52,793 | 622 |
-| `upstream/mjml--beautify-output--01.mjml` | 51,935 | 84,631 | 997 | 32,459 | 52,894 | 623 |
-| `upstream/mjml--beautify-output--02.mjml` | 43,844 | 69,829 | 840 | 27,402 | 43,643 | 525 |
-| `upstream/mjml--beautify-output--03.mjml` | 51,660 | 84,456 | 996 | 32,287 | 52,785 | 622 |
-| `upstream/mjml--beautify-output--04.mjml` | 52,348 | 84,712 | 997 | 32,717 | 52,945 | 623 |
-| `upstream/mjml--carousel-hoverSupported--00.mjml` | 127,101 | 322,682 | 2,052 | 79,438 | 201,676 | 1,282 |
-| `upstream/mjml--column-border-radius--00.mjml` | 60,986 | 101,666 | 1,130 | 38,116 | 63,541 | 706 |
-| `upstream/mjml--html-attributes--00.mjml` | 178,626 | 300,760 | 2,503 | 111,641 | 187,975 | 1,564 |
-| `upstream/mjml--html-comments--00.mjml` | 54,148 | 88,692 | 1,000 | 33,842 | 55,432 | 625 |
-| `upstream/mjml--htmlmin-ignore--00.mjml` | 44,100 | 77,183 | 842 | 27,562 | 48,239 | 526 |
-| `upstream/mjml--htmlmin-ignore--01.mjml` | 45,087 | 71,876 | 842 | 28,179 | 44,922 | 526 |
-| `upstream/mjml--htmlmin-ignore--02.mjml` | 43,276 | 69,884 | 840 | 27,047 | 43,677 | 525 |
-| `upstream/mjml--navbar-ico-padding--00.mjml` | 86,861 | 153,407 | 1,460 | 54,288 | 95,879 | 912 |
-| `upstream/mjml--social-align--00.mjml` | 87,933 | 155,562 | 1,500 | 54,958 | 97,226 | 937 |
-| `upstream/mjml--social-icon-height--00.mjml` | 93,229 | 166,496 | 1,559 | 58,268 | 104,060 | 974 |
-| `upstream/mjml--table-cellspacing--00.mjml` | 62,239 | 104,295 | 1,071 | 38,899 | 65,184 | 669 |
-| `upstream/mjml--tableWidth--00.mjml` | 205,386 | 326,927 | 3,388 | 128,366 | 204,329 | 2,117 |
-| `upstream/mjml--template-syntax-sanitization--00.mjml` | 42,605 | 69,930 | 840 | 26,628 | 43,706 | 525 |
-| `upstream/mjml--template-syntax-sanitization--01.mjml` | 52,871 | 88,085 | 1,031 | 33,044 | 55,053 | 644 |
-| `upstream/mjml--template-syntax-sanitization--02.mjml` | 41,796 | 69,100 | 839 | 26,122 | 43,187 | 524 |
-| `upstream/mjml--template-syntax-sanitization--03.mjml` | 41,722 | 69,122 | 839 | 26,076 | 43,201 | 524 |
-| `upstream/mjml--template-syntax-sanitization--04.mjml` | 45,066 | 71,508 | 880 | 28,166 | 44,692 | 550 |
-| `upstream/mjml--template-syntax-sanitization--05.mjml` | 41,924 | 69,111 | 839 | 26,202 | 43,194 | 524 |
-| `upstream/mjml--template-syntax-sanitization--06.mjml` | 42,172 | 69,311 | 839 | 26,357 | 43,319 | 524 |
-| `upstream/mjml--template-syntax-sanitization--07.mjml` | 42,359 | 69,242 | 839 | 26,474 | 43,276 | 524 |
-| `upstream/mjml--wrapper-border-radius--00.mjml` | 64,023 | 102,655 | 1,242 | 40,014 | 64,159 | 776 |
-| `upstream/mjml--wrapper-gap--00.mjml` | 148,543 | 245,661 | 2,736 | 92,839 | 153,538 | 1,710 |
-| `upstream/parser-xml--preprocessors--00.mjml` | 51,290 | 84,778 | 1,004 | 32,056 | 52,986 | 627 |
+| `accordion.mjml` | 129,384 | 232,765 | 2,036 | 80,865 | 145,478 | 1,272 |
+| `button-complex.mjml` | 1,064,328 | 1,685,015 | 17,204 | 665,205 | 1,053,134 | 10,752 |
+| `button.mjml` | 59,644 | 100,039 | 1,093 | 37,277 | 62,524 | 683 |
+| `carousel-thumbnails-hidden.mjml` | 90,736 | 227,237 | 1,604 | 56,710 | 142,023 | 1,002 |
+| `carousel.mjml` | 124,533 | 326,957 | 2,146 | 77,833 | 204,348 | 1,341 |
+| `component-head-styles.mjml` | 125,818 | 229,548 | 2,048 | 78,636 | 143,467 | 1,280 |
+| `content.mjml` | 141,605 | 211,836 | 2,335 | 88,503 | 132,397 | 1,459 |
+| `fluid-height-hero.mjml` | 77,645 | 138,290 | 1,384 | 48,528 | 86,431 | 865 |
+| `head-attributes-class.mjml` | 109,799 | 175,565 | 1,935 | 68,624 | 109,728 | 1,209 |
+| `head-attributes-per-tag.mjml` | 85,920 | 132,205 | 1,487 | 53,700 | 82,628 | 929 |
+| `head-fonts-default.mjml` | 63,605 | 100,272 | 1,212 | 39,753 | 62,670 | 757 |
+| `head-html-attributes.mjml` | 146,866 | 206,802 | 2,244 | 91,791 | 129,251 | 1,402 |
+| `head-owa.mjml` | 53,568 | 87,565 | 1,032 | 33,480 | 54,728 | 645 |
+| `head.mjml` | 141,820 | 199,893 | 2,039 | 88,637 | 124,933 | 1,274 |
+| `image-complex.mjml` | 811,037 | 1,191,317 | 13,861 | 506,898 | 744,573 | 8,663 |
+| `image.mjml` | 60,530 | 100,328 | 1,151 | 37,831 | 62,705 | 719 |
+| `includes/main.mjml` | 444,533 | 612,285 | 5,599 | 277,833 | 382,678 | 3,499 |
+| `input_big.mjml` | 3,997,770 | 4,894,837 | 48,576 | 2,498,606 | 3,059,273 | 30,360 |
+| `layout.mjml` | 264,048 | 427,832 | 4,772 | 165,030 | 267,395 | 2,982 |
+| `navbar.mjml` | 87,735 | 151,888 | 1,485 | 54,834 | 94,930 | 928 |
+| `raw-in-column.mjml` | 59,221 | 104,116 | 1,068 | 37,013 | 65,072 | 667 |
+| `raw-in-group.mjml` | 87,320 | 139,301 | 1,666 | 54,575 | 87,063 | 1,041 |
+| `raw-in-section.mjml` | 76,072 | 123,368 | 1,453 | 47,545 | 77,105 | 908 |
+| `raw-position-file-start.mjml` | 53,015 | 91,047 | 1,021 | 33,134 | 56,904 | 638 |
+| `raw.mjml` | 58,327 | 103,730 | 1,066 | 36,454 | 64,831 | 666 |
+| `section-container-width.mjml` | 105,018 | 151,936 | 1,837 | 65,636 | 94,960 | 1,148 |
+| `simple-hero.mjml` | 188,730 | 135,552 | 1,391 | 117,956 | 84,720 | 869 |
+| `simple.mjml` | 28,436 | 41,988 | 506 | 17,772 | 26,242 | 316 |
+| `social.mjml` | 167,908 | 295,701 | 2,474 | 104,942 | 184,813 | 1,546 |
+| `table-width-auto.mjml` | 72,280 | 90,786 | 1,042 | 45,175 | 56,741 | 651 |
+| `upstream/mjml--accordion-fontFamily--00.mjml` | 135,952 | 246,076 | 2,250 | 84,970 | 153,797 | 1,406 |
+| `upstream/mjml--accordion-padding--00.mjml` | 87,061 | 153,154 | 1,397 | 54,413 | 95,721 | 873 |
+| `upstream/mjml--accordionTitle-fontWeight--00.mjml` | 138,815 | 223,976 | 1,898 | 86,759 | 139,985 | 1,186 |
+| `upstream/mjml--beautify-output--00.mjml` | 53,080 | 84,316 | 996 | 33,175 | 52,697 | 622 |
+| `upstream/mjml--beautify-output--01.mjml` | 56,252 | 84,474 | 997 | 35,157 | 52,796 | 623 |
+| `upstream/mjml--beautify-output--02.mjml` | 46,346 | 79,938 | 844 | 28,966 | 49,961 | 527 |
+| `upstream/mjml--beautify-output--03.mjml` | 51,442 | 84,311 | 996 | 32,151 | 52,694 | 622 |
+| `upstream/mjml--beautify-output--04.mjml` | 51,850 | 84,751 | 997 | 32,406 | 52,969 | 623 |
+| `upstream/mjml--carousel-hoverSupported--00.mjml` | 123,224 | 323,124 | 2,052 | 77,015 | 201,952 | 1,282 |
+| `upstream/mjml--column-border-radius--00.mjml` | 65,212 | 101,650 | 1,130 | 40,757 | 63,531 | 706 |
+| `upstream/mjml--html-attributes--00.mjml` | 172,229 | 250,223 | 2,466 | 107,643 | 156,389 | 1,541 |
+| `upstream/mjml--html-comments--00.mjml` | 54,540 | 88,583 | 1,000 | 34,087 | 55,364 | 625 |
+| `upstream/mjml--htmlmin-ignore--00.mjml` | 48,272 | 87,007 | 845 | 30,170 | 54,379 | 528 |
+| `upstream/mjml--htmlmin-ignore--01.mjml` | 47,720 | 82,536 | 845 | 29,825 | 51,585 | 528 |
+| `upstream/mjml--htmlmin-ignore--02.mjml` | 45,996 | 80,098 | 844 | 28,747 | 50,061 | 527 |
+| `upstream/mjml--navbar-ico-padding--00.mjml` | 87,690 | 153,170 | 1,460 | 54,806 | 95,731 | 912 |
+| `upstream/mjml--social-align--00.mjml` | 87,063 | 155,628 | 1,500 | 54,414 | 97,267 | 937 |
+| `upstream/mjml--social-icon-height--00.mjml` | 91,594 | 166,677 | 1,559 | 57,246 | 104,173 | 974 |
+| `upstream/mjml--table-cellspacing--00.mjml` | 63,490 | 104,252 | 1,071 | 39,681 | 65,157 | 669 |
+| `upstream/mjml--tableWidth--00.mjml` | 207,588 | 326,264 | 3,388 | 129,742 | 203,915 | 2,117 |
+| `upstream/mjml--template-syntax-sanitization--00.mjml` | 46,671 | 80,117 | 844 | 29,169 | 50,073 | 527 |
+| `upstream/mjml--template-syntax-sanitization--01.mjml` | 53,922 | 88,074 | 1,031 | 33,701 | 55,046 | 644 |
+| `upstream/mjml--template-syntax-sanitization--02.mjml` | 45,308 | 79,328 | 842 | 28,317 | 49,580 | 526 |
+| `upstream/mjml--template-syntax-sanitization--03.mjml` | 45,455 | 79,288 | 842 | 28,409 | 49,555 | 526 |
+| `upstream/mjml--template-syntax-sanitization--04.mjml` | 48,396 | 81,360 | 884 | 30,247 | 50,850 | 552 |
+| `upstream/mjml--template-syntax-sanitization--05.mjml` | 45,352 | 79,319 | 842 | 28,345 | 49,574 | 526 |
+| `upstream/mjml--template-syntax-sanitization--06.mjml` | 45,700 | 79,444 | 842 | 28,562 | 49,652 | 526 |
+| `upstream/mjml--template-syntax-sanitization--07.mjml` | 45,512 | 79,384 | 842 | 28,445 | 49,615 | 526 |
+| `upstream/mjml--wrapper-border-radius--00.mjml` | 66,101 | 102,514 | 1,242 | 41,313 | 64,071 | 776 |
+| `upstream/mjml--wrapper-gap--00.mjml` | 144,255 | 245,420 | 2,736 | 90,159 | 153,387 | 1,710 |
+| `upstream/parser-xml--preprocessors--00.mjml` | 51,828 | 84,706 | 1,004 | 32,392 | 52,941 | 627 |
 
 `BenchmarkParse` and `BenchmarkParityComparison` isolate the parser and the test
-harness; inline-CSS cost is included in the end-to-end numbers until the inliner
-rewrite (M3) exposes a separate seam.
+harness. The remaining inline-stage cost is dominated by the post-render
+`html.Parse`/`html.Render` round-trip (measured at ~0.54 ms of `input_big`, ~65%
+of the inline stage); removing it is a tracked follow-up.
 
 ## Reproducing
 
