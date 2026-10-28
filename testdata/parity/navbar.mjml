@@ -1,0 +1,15 @@
+<mjml>
+  <mj-body>
+    <mj-section direction="rtl" padding="12px 0">
+      <mj-column>
+        <mj-navbar hamburger="hamburger" base-url="https://mjml.io" align="left"
+                   ico-color="#ffffff" ico-font-size="24px" ico-padding="8px 12px"
+                   ico-padding-left="20px" ico-text-transform="none"
+                   ico-open="OPEN" ico-close="CLOSE">
+          <mj-navbar-link href="/docs" color="#ff0000" font-size="14px" letter-spacing="1px">Docs</mj-navbar-link>
+          <mj-navbar-link href="/blog" target="_self" text-decoration="underline">Blog</mj-navbar-link>
+        </mj-navbar>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

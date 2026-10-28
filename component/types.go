@@ -35,4 +35,6 @@ const (
 	TableTagName         MJMLComponentName = "mj-table"
 	ButtonTagName        MJMLComponentName = "mj-button"
 	HeroTagName          MJMLComponentName = "mj-hero"
+	NavbarTagName        MJMLComponentName = "mj-navbar"
+	NavbarLinkTagName    MJMLComponentName = "mj-navbar-link"
 )

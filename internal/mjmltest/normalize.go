@@ -187,6 +187,8 @@ func normalizeAttrs(attrs []html.Attribute) []Attr {
 		val := strings.TrimSpace(attr.Val)
 
 		switch key {
+		case "id", "for":
+			val = normalizeGeneratedID(val)
 		case "style":
 			val = normalizeStyle(val)
 			if val == "" {
@@ -215,6 +217,22 @@ func normalizeAttrs(attrs []html.Attribute) []Attr {
 	})
 
 	return out
+}
+
+// generatedIDPattern matches the 16-character hex ids MJML generates for
+// navbar hamburger labels and carousels. They are random on every reference
+// render, so the harness treats them as opaque identifiers.
+var generatedIDPattern = regexp.MustCompile(`^[0-9a-f]{16}$`)
+
+// normalizeGeneratedID replaces a generated id with a stable placeholder. Only
+// id and for values are passed here, so the substitution cannot hide a real
+// difference elsewhere.
+func normalizeGeneratedID(val string) string {
+	if generatedIDPattern.MatchString(val) {
+		return "mjml-generated-id"
+	}
+
+	return val
 }
 
 // normalizeClass sorts class tokens and collapses whitespace.
