@@ -7,6 +7,14 @@
 // children are reported as errors instead of being warned about and ignored.
 // Invalid input never produces partial output.
 //
+// Every validation and MJML parse rejection is a structured *Error: inspect its
+// Kind, Path, Attribute and Value instead of matching the message text. I/O
+// failures that are not about the document's content - an unreadable top-level
+// file, a nil argument, a cancelled context - keep their own plain errors. errors.Is still finds the
+// package's sentinels (ErrValidation, ErrParsingFailed, ErrIncludeCycle, ...)
+// and errors.As unwraps through wrapping, so both inspection styles keep
+// working. The kinds are a closed set; see the ErrorKind constants.
+//
 // Use NewRenderer to configure a renderer and Render, RenderString,
 // RenderBytes or RenderFile to render a document:
 //

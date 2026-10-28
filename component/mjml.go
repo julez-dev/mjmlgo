@@ -36,7 +36,7 @@ func (m MJML) DefaultAttributes(_ *RenderContext) map[string]string {
 
 func (m MJML) Render(ctx *RenderContext, w io.Writer, n *node.Node) error {
 	if len(n.Children) < 1 {
-		return fmt.Errorf("%w: no children in <mjml> tag", ErrMJMLBadlyFormatted)
+		return NewError(KindParseFailure, elementPathSegments(n), "", "", fmt.Errorf("%w: no children in <mjml> tag", ErrMJMLBadlyFormatted))
 	}
 
 	hasBody := slices.ContainsFunc(n.Children, func(node *node.Node) bool {
@@ -44,7 +44,7 @@ func (m MJML) Render(ctx *RenderContext, w io.Writer, n *node.Node) error {
 	})
 
 	if !hasBody {
-		return fmt.Errorf("%w: no <mj-body> in <mjml> tag", ErrMJMLBadlyFormatted)
+		return NewError(KindParseFailure, elementPathSegments(n), "", "", fmt.Errorf("%w: no <mj-body> in <mjml> tag", ErrMJMLBadlyFormatted))
 	}
 
 	if err := m.validateHTMLAttributeTags(n, nil); err != nil {
@@ -240,25 +240,25 @@ func (m MJML) validateHTMLAttributeTags(n, parent *node.Node) error {
 	switch n.Type {
 	case HTMLAttributesTagName:
 		if parentType != HeadTagName {
-			return fmt.Errorf("%w: <mj-html-attributes> must be a direct child of <mj-head>", ErrValidation)
+			return NewError(KindDisallowedChild, elementPathSegments(n), "", n.Type, errors.New("<mj-html-attributes> must be a direct child of <mj-head>"))
 		}
 	case SelectorTagName:
 		if parentType != HTMLAttributesTagName {
-			return fmt.Errorf("%w: <mj-selector> must be a direct child of <mj-html-attributes>", ErrValidation)
+			return NewError(KindDisallowedChild, elementPathSegments(n), "", n.Type, errors.New("<mj-selector> must be a direct child of <mj-html-attributes>"))
 		}
 
 		path, has := n.GetAttributeValue("path")
 		if !has || strings.TrimSpace(path) == "" {
-			return fmt.Errorf("%w: missing path in mj-selector element", ErrValidation)
+			return NewError(KindInvalidValue, elementPathSegments(n), "path", "", errors.New("missing path in mj-selector element"))
 		}
 	case HTMLAttributeTagName:
 		if parentType != SelectorTagName {
-			return fmt.Errorf("%w: <mj-html-attribute> must be a direct child of <mj-selector>", ErrValidation)
+			return NewError(KindDisallowedChild, elementPathSegments(n), "", n.Type, errors.New("<mj-html-attribute> must be a direct child of <mj-selector>"))
 		}
 
 		name, has := n.GetAttributeValue("name")
 		if !has || strings.TrimSpace(name) == "" {
-			return fmt.Errorf("%w: missing name in mj-html-attribute element", ErrValidation)
+			return NewError(KindInvalidValue, elementPathSegments(n), "name", "", errors.New("missing name in mj-html-attribute element"))
 		}
 	}
 
@@ -295,7 +295,7 @@ func (m MJML) preparseHeadMetaValues(ctx *RenderContext, n *node.Node) error {
 				case ClassTagName:
 					name, has := nestedChild.GetAttributeValue("name")
 					if !has {
-						return fmt.Errorf("%w: missing name in mj-class element", ErrValidation)
+						return NewError(KindInvalidValue, elementPathSegments(nestedChild), "name", "", errors.New("missing name in mj-class element"))
 					}
 
 					attributes := attributesToMap(nestedChild.Attributes)
@@ -341,7 +341,7 @@ func (m MJML) preparseHeadMetaValues(ctx *RenderContext, n *node.Node) error {
 		case FontTagName:
 			n, has := child.GetAttributeValue("name")
 			if !has {
-				return fmt.Errorf("%w: missing name in mj-font element", ErrValidation)
+				return NewError(KindInvalidValue, elementPathSegments(child), "name", "", errors.New("missing name in mj-font element"))
 			}
 
 			ctx.addFont(n, child.GetAttributeValueDefault("href"))

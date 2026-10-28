@@ -171,7 +171,13 @@ testdata/invalid/invalid-color.mjml.error.txt   ->  chartreuseish not a valid co
   document kept as the end-to-end performance fixture
   (`BenchmarkRenderMJML/input_big.mjml`). Its baseline entry is coarse on purpose;
   add focused fixtures instead of extending it.
-- Invalid: add the fixture plus its `.error.txt`.
+- Invalid: add the fixture, its `.error.txt`, and an entry in the
+  `invalidFailures` table in `render_test.go`. The `.error.txt` is a stable
+  substring of the message; the table is the structured contract the fixture must
+  meet (`errors.As` to `*Error`, the expected kind, a non-empty element path, the
+  attribute and value where applicable, and the sentinel `errors.Is` must still
+  find). A fixture without an entry fails the test, and an entry without a
+  fixture fails too.
 - Include targets go into a `partials/` directory next to the fixture that
   includes them. Both corpora render each fixture through the same entry point a
   caller uses — the fixture's own directory is the root of the `fs.FS` — so

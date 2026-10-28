@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/julez-dev/mjmlgo/node"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -337,9 +338,10 @@ func TestValidateHTMLAttributeTags(t *testing.T) {
 	}
 
 	tests := []struct {
-		name    string
-		root    *node.Node
-		wantErr string
+		name     string
+		root     *node.Node
+		wantErr  string
+		wantKind ErrorKind
 	}{
 		{
 			name: "valid",
@@ -351,14 +353,16 @@ func TestValidateHTMLAttributeTags(t *testing.T) {
 			}),
 		},
 		{
-			name:    "mj-html-attributes outside mj-head",
-			root:    mjmlTree(nil, &node.Node{Type: HTMLAttributesTagName}),
-			wantErr: "<mj-html-attributes> must be a direct child of <mj-head>",
+			name:     "mj-html-attributes outside mj-head",
+			root:     mjmlTree(nil, &node.Node{Type: HTMLAttributesTagName}),
+			wantErr:  "<mj-html-attributes> must be a direct child of <mj-head>",
+			wantKind: KindDisallowedChild,
 		},
 		{
-			name:    "mj-selector outside mj-html-attributes",
-			root:    mjmlTree(selector(".text", htmlAttribute("data-id"))),
-			wantErr: "<mj-selector> must be a direct child of <mj-html-attributes>",
+			name:     "mj-selector outside mj-html-attributes",
+			root:     mjmlTree(selector(".text", htmlAttribute("data-id"))),
+			wantErr:  "<mj-selector> must be a direct child of <mj-html-attributes>",
+			wantKind: KindDisallowedChild,
 		},
 		{
 			name: "mj-html-attribute outside mj-selector",
@@ -366,7 +370,8 @@ func TestValidateHTMLAttributeTags(t *testing.T) {
 				Type:     HTMLAttributesTagName,
 				Children: []*node.Node{htmlAttribute("data-id")},
 			}),
-			wantErr: "<mj-html-attribute> must be a direct child of <mj-selector>",
+			wantErr:  "<mj-html-attribute> must be a direct child of <mj-selector>",
+			wantKind: KindDisallowedChild,
 		},
 		{
 			name: "missing path",
@@ -374,7 +379,8 @@ func TestValidateHTMLAttributeTags(t *testing.T) {
 				Type:     HTMLAttributesTagName,
 				Children: []*node.Node{selector("", htmlAttribute("data-id"))},
 			}),
-			wantErr: "missing path in mj-selector element",
+			wantErr:  "missing path in mj-selector element",
+			wantKind: KindInvalidValue,
 		},
 		{
 			name: "missing name",
@@ -382,12 +388,14 @@ func TestValidateHTMLAttributeTags(t *testing.T) {
 				Type:     HTMLAttributesTagName,
 				Children: []*node.Node{selector(".text", htmlAttribute(""))},
 			}),
-			wantErr: "missing name in mj-html-attribute element",
+			wantErr:  "missing name in mj-html-attribute element",
+			wantKind: KindInvalidValue,
 		},
 		{
-			name:    "mj-selector nested in body",
-			root:    mjmlTree(nil, selector(".text", htmlAttribute("data-id"))),
-			wantErr: "<mj-selector> must be a direct child of <mj-html-attributes>",
+			name:     "mj-selector nested in body",
+			root:     mjmlTree(nil, selector(".text", htmlAttribute("data-id"))),
+			wantErr:  "<mj-selector> must be a direct child of <mj-html-attributes>",
+			wantKind: KindDisallowedChild,
 		},
 	}
 
@@ -403,6 +411,11 @@ func TestValidateHTMLAttributeTags(t *testing.T) {
 			}
 
 			require.ErrorContains(t, err, tt.wantErr)
+
+			var structured *Error
+			require.ErrorAs(t, err, &structured)
+			assert.Equal(t, tt.wantKind, structured.Kind)
+			assert.NotEmpty(t, structured.Path)
 		})
 	}
 }

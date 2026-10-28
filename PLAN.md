@@ -9,7 +9,7 @@ against the reference JavaScript implementation.
 | --- | --- |
 | Parity | Every fixture in `testdata/parity/` renders structurally identical HTML to MJML 4.18.0 (normalized DOM **and** normalized CSS). No allowlist: any difference fails. **Achieved** for all 60 fixtures; the baseline file was deleted when it reached zero. |
 | Components | Every MJML 4.18 component renders: body (`mj-body`, `mj-section`, `mj-wrapper`, `mj-column`, `mj-group`, `mj-text`, `mj-image`, `mj-button`, `mj-divider`, `mj-spacer`, `mj-table`, `mj-raw`, `mj-social`, `mj-social-element`, `mj-navbar`, `mj-navbar-link`, `mj-accordion`, `mj-accordion-element`, `mj-accordion-title`, `mj-accordion-text`, `mj-carousel`, `mj-carousel-image`, `mj-hero`) and head (`mj-head`, `mj-attributes` with `mj-all`/`mj-class`/per-tag, `mj-breakpoint`, `mj-font`, `mj-html-attributes`, `mj-preview`, `mj-style`, `mj-title`, `mj-raw`), plus `mj-raw position="file-start"`. `mj-map` does not exist in MJML 4.18 and is out of scope. `mj-include` is implemented over the caller's `fs.FS`: `type="mjml"` (default), `"html"` and `"css"` (with `css-inline`), paths relative to the including file, `fs.Glob` patterns, cycle detection and a recursion-depth cap. |
-| Validation | Done (M2c): fail-fast errors for unknown tags, attributes, invalid values and invalid nesting, driven by MJML's own attribute/type/dependency tables; errors carry the element path. Intentional divergence from MJML's soft validation, covered by `testdata/invalid/`. |
+| Validation | Done (M2c): fail-fast errors for unknown tags, attributes, invalid values and invalid nesting, driven by MJML's own attribute/type/dependency tables; errors carry the element path. Intentional divergence from MJML's soft validation, covered by `testdata/invalid/`. Failures are structured (`*Error` with kind, path, attribute and value) from T5. |
 | API | Done: `NewRenderer(...Option)` + `Render(ctx, fs.FS, name, io.Writer)`, `RenderString`/`RenderBytes`/`RenderFile`, `WithIDGenerator`; `RenderMJML` is a deprecated wrapper over the same pipeline. Remaining: public custom-component interface (M2d). Compact output only (no beautifier). |
 | Performance | Benchmarks committed with a documented budget table; CI reports but does not gate. |
 | Coverage | Reported in CI (no numeric gate). Quality is enforced by parity, CSS comparison, fuzz targets and component unit tests. |
@@ -114,6 +114,12 @@ Known divergences at the start: 214 records / 15 root causes (see
   including negatives, integers vs numbers, enums, colours) with element paths in
   every error. Seven invalid fixtures added. Remaining M2 item: the public
   custom-component interface (M2d).
+- **T5 done**: every validation and parse site returns a structured `*Error`
+  (`Kind`, `Path`, `Attribute`, `Value`, `Err`) from one constructor, with the
+  closed kind set from issue #6. `errors.As` reaches it through wrapping and
+  `errors.Is` keeps matching the existing sentinels. Every invalid fixture now
+  asserts kind, non-empty path, attribute/value and its sentinel; see
+  ADR-0002 for how include and missing-attribute failures map onto the kinds.
 - **M3 done**: inline stylesheet selectors are compiled once per stylesheet, style
   application is allocation-light, and inline output is byte-deterministic
   (previously Go map iteration made repeated renders differ). `input_big.mjml`
@@ -170,8 +176,8 @@ Known divergences at the start: 214 records / 15 root causes (see
 
 Current state: full MJML 4.18 component and head coverage, zero divergences,
 `TestMJMLInvalid` covering fail-fast validation, benchmarks and fuzz targets in
-place. Remaining roadmap: M2 (JS-parity validation core, public
-custom-component interface, structured `Error`) and M3 (the inliner rewrite) -
+place. Remaining roadmap: M2 (public custom-component interface) and M3 (the
+inliner rewrite) -
 the current implementation still uses the post-render HTML round-trip for inline
 CSS and rejects the full surface of MJML's attribute validation less strictly
 than planned.

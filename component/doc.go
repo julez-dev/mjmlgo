@@ -25,6 +25,9 @@
 //     fills in the component's defaults.
 //   - ValidateDocument, which checks tag names, nesting, attribute values and
 //     mj-class references against MJML's own tables before rendering starts.
+//   - Error, ErrorKind and NewError, the structured failure every validation and
+//     parse site constructs. Callers inspect Kind, Path, Attribute and Value;
+//     errors.Is keeps matching ErrValidation.
 //   - DefaultIDGenerator and the TagName constants.
 //
 // InitComponent and ValidateDocument are safe to call, but their signatures are
@@ -38,7 +41,8 @@
 // attribute tables and their call order are implementation details; they change
 // whenever matching the reference implementation requires it.
 //
-// ErrValidation, ErrMJMLBadlyFormatted, MergeOutlookConditionals,
+// ErrValidation is still exported as the sentinel the element, attribute,
+// value, child and mj-class kinds match with errors.Is; ErrMJMLBadlyFormatted, MergeOutlookConditionals,
 // RemoveNonNumeric, RawBlockStartMarker, RawBlockEndMarker and
 // StripRawBlockMarkers are exported to wire the packages together. They are not
 // meant to be called from outside, and may be changed or unexported.

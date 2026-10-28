@@ -163,7 +163,7 @@ func (i MJMLCarouselImage) renderThumbnail(
 func initCarouselImage(n *node.Node) error {
 	image := MJMLCarouselImage{}
 
-	if err := validateAttributes(image.AllowedAttributes(), image.Name(), n); err != nil {
+	if err := validateAttributes(image.AllowedAttributes(), n); err != nil {
 		return err
 	}
 
