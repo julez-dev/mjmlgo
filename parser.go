@@ -6,28 +6,12 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"regexp"
 	"slices"
-	"strconv"
 	"strings"
 
 	"github.com/julez-dev/mjmlgo/component"
 	"github.com/julez-dev/mjmlgo/node"
 )
-
-// rawContentPlaceholderFormat defines the structure for the placeholder comment.
-const rawContentPlaceholderFormat = "RAW_PLACEHOLDER_%d"
-
-// rawTagRegex is used to find <mj-raw> blocks and capture their attributes and
-// inner content. The (?s) flag allows '.' to match newline characters.
-var rawTagRegex = regexp.MustCompile(`(?s)<mj-raw(\s[^>]*)?>(.*?)</mj-raw>`)
-
-// rawBlock is an extracted <mj-raw> element. Its content is kept verbatim
-// because it is arbitrary markup, not necessarily well-formed XML.
-type rawBlock struct {
-	attributes []xml.Attr
-	content    string
-}
 
 var (
 	ErrParsingFailed = errors.New("parsing MJML structure failed")
@@ -39,21 +23,7 @@ func parse(input io.Reader) (*node.Node, error) {
 		return nil, err
 	}
 
-	mjmlString := string(fullBytes)
-	var rawContents []rawBlock
-	processedMJML := rawTagRegex.ReplaceAllStringFunc(mjmlString, func(match string) string {
-		parts := rawTagRegex.FindStringSubmatch(match)
-		// Store the raw attributes and inner content.
-		rawContents = append(rawContents, rawBlock{
-			attributes: parseRawAttributes(parts[1]),
-			content:    parts[2],
-		})
-		// Return a placeholder comment. The index will correspond to the slice.
-		placeholder := fmt.Sprintf(rawContentPlaceholderFormat, len(rawContents)-1)
-		return fmt.Sprintf("<!--%s-->", placeholder)
-	})
-
-	dec := xml.NewDecoder(strings.NewReader(processedMJML))
+	dec := xml.NewDecoder(strings.NewReader(protectRawContent(string(fullBytes))))
 	dec.Strict = false
 
 	var (
@@ -78,26 +48,6 @@ func parse(input io.Reader) (*node.Node, error) {
 				Attributes: t.Attr,
 			}
 
-			if _, has := mjmlEndTags[node.Type]; has {
-				s, err := streamInnerRawContent(dec, t)
-				if err != nil {
-					return nil, err
-				}
-
-				node.Content = s
-				// Attach to parent
-				if len(stack) > 0 {
-					parent := stack[len(stack)-1]
-					node.Parent = parent
-					parent.Children = append(parent.Children, node)
-				} else {
-					root = node
-				}
-
-				// Do NOT push to stack, since streamInnerRawContent already consumes the end tag
-				continue
-			}
-
 			if len(stack) > 0 {
 				parent := stack[len(stack)-1]
 				node.Parent = parent
@@ -110,35 +60,16 @@ func parse(input io.Reader) (*node.Node, error) {
 		case xml.CharData:
 			if len(stack) > 0 {
 				parent := stack[len(stack)-1]
-				content := string(bytes.TrimSpace(t))
-				parent.Content += content
-			}
-		case xml.Comment:
-			// Check if this comment is one of our placeholders
-			comment := string(t)
-			if after, ok := strings.CutPrefix(comment, "RAW_PLACEHOLDER_"); ok {
-				// Parse the index from the placeholder string.
-				indexStr := strings.TrimSpace(after)
-				index, err := strconv.Atoi(indexStr)
-				if err != nil || index >= len(rawContents) {
-					// This shouldn't happen
+
+				if _, isRaw := mjmlEndTags[parent.Type]; isRaw {
+					// Raw content is protected with CDATA sections, so it must
+					// be kept byte for byte.
+					parent.Content += string(t)
 					continue
 				}
 
-				raw := rawContents[index]
-				node := &node.Node{
-					Type:       "mj-raw",
-					Attributes: raw.attributes,
-					Content:    raw.content, // the original content
-				}
-
-				if len(stack) > 0 {
-					parent := stack[len(stack)-1]
-					node.Parent = parent // Set parent node for raw content
-					parent.Children = append(parent.Children, node)
-				}
+				parent.Content += string(bytes.TrimSpace(t))
 			}
-
 		case xml.EndElement:
 			if len(stack) > 0 {
 				stack = stack[:len(stack)-1]
@@ -160,29 +91,6 @@ func parse(input io.Reader) (*node.Node, error) {
 	}
 
 	return root, nil
-}
-
-// parseRawAttributes parses the attribute fragment of an extracted <mj-raw>
-// start tag. Invalid attribute fragments are ignored: raw content is still
-// captured, and validation reports genuinely unknown attributes later.
-func parseRawAttributes(raw string) []xml.Attr {
-	if strings.TrimSpace(raw) == "" {
-		return nil
-	}
-
-	dec := xml.NewDecoder(strings.NewReader("<mj-raw" + raw + "/>"))
-	dec.Strict = false
-
-	for {
-		token, err := dec.Token()
-		if err != nil {
-			return nil
-		}
-
-		if start, ok := token.(xml.StartElement); ok {
-			return start.Attr
-		}
-	}
 }
 
 // fileStartRawContent returns the concatenated content of <mj-raw
@@ -209,6 +117,7 @@ func fileStartRawContent(root *node.Node) string {
 // mjmlEndTags is a map of MJML tags whose inner content should be
 // treated as a single raw string, not parsed into child nodes.
 var mjmlEndTags = map[string]struct{}{
+	"mj-raw":             struct{}{},
 	"mj-text":            struct{}{},
 	"mj-button":          struct{}{},
 	"mj-table":           struct{}{},
@@ -218,47 +127,181 @@ var mjmlEndTags = map[string]struct{}{
 	"mj-social-element":  struct{}{},
 }
 
-// streamInnerRawContent captures the inner content of an element as a raw string.
-// It starts after the initial start tag and stops before the final end tag.
-func streamInnerRawContent(decoder *xml.Decoder, startElement xml.StartElement) (string, error) {
-	var builder strings.Builder
-	depth := 1
+// protectRawContent rewrites the inner content of raw-content elements into
+// CDATA sections. Their content is arbitrary markup - not necessarily
+// well-formed XML - and encoding/xml would otherwise reserialize it, inventing
+// closing tags for void HTML elements (`<br>` becoming `<br></br>`).
+func protectRawContent(input string) string {
+	var b strings.Builder
+	b.Grow(len(input) + len(input)/8)
 
-	for {
-		token, err := decoder.Token()
-		if err != nil {
-			if errors.Is(err, io.EOF) {
-				return "", fmt.Errorf("unexpected EOF while streaming raw content for <%s>", startElement.Name.Local)
-			}
+	i := 0
 
-			return "", err
+	for i < len(input) {
+		lt := strings.IndexByte(input[i:], '<')
+		if lt < 0 {
+			b.WriteString(input[i:])
+
+			break
 		}
 
-		// Check for the final EndElement before writing, so we don't include it
-		if end, ok := token.(xml.EndElement); ok && end.Name.Local == startElement.Name.Local {
-			depth--
-			if depth == 0 {
-				return builder.String(), nil // We're done
+		lt += i
+		b.WriteString(input[i:lt])
+
+		switch {
+		case strings.HasPrefix(input[lt:], "<!--"):
+			end := strings.Index(input[lt+4:], "-->")
+			if end < 0 {
+				b.WriteString(input[lt:])
+
+				return b.String()
 			}
+
+			end += lt + 4 + len("-->")
+			b.WriteString(input[lt:end])
+			i = end
+
+			continue
+
+		case strings.HasPrefix(input[lt:], "</"), strings.HasPrefix(input[lt:], "<!"):
+			end := scanTagEnd(input, lt)
+			if end < 0 {
+				b.WriteString(input[lt:])
+
+				return b.String()
+			}
+
+			b.WriteString(input[lt:end])
+			i = end
+
+			continue
 		}
 
-		// Re-serialize the token back to a string.
-		switch se := token.(type) {
-		case xml.StartElement:
-			if se.Name.Local == startElement.Name.Local {
-				depth++
+		nameEnd := lt + 1
+		for nameEnd < len(input) && isXMLNameByte(input[nameEnd]) {
+			nameEnd++
+		}
+
+		name := input[lt+1 : nameEnd]
+		if name == "" {
+			b.WriteByte('<')
+			i = lt + 1
+
+			continue
+		}
+
+		tagEnd := scanTagEnd(input, lt)
+		if tagEnd < 0 {
+			b.WriteString(input[lt:])
+
+			break
+		}
+
+		b.WriteString(input[lt:tagEnd])
+		i = tagEnd
+
+		if _, isRaw := mjmlEndTags[name]; !isRaw {
+			continue
+		}
+
+		if strings.HasSuffix(strings.TrimSpace(input[lt:tagEnd]), "/>") {
+			continue
+		}
+
+		closeStart, closeEnd := findClosingTag(input, i, name)
+		if closeStart < 0 {
+			b.WriteString(input[i:])
+
+			return b.String()
+		}
+
+		b.WriteString(protectCDATA(input[i:closeStart]))
+		b.WriteString(input[closeStart:closeEnd])
+		i = closeEnd
+	}
+
+	return b.String()
+}
+
+// scanTagEnd returns the index just after the '>' that closes the tag starting
+// at start, ignoring '>' inside quoted attribute values. It returns -1 when the
+// tag is unterminated.
+func scanTagEnd(input string, start int) int {
+	var quote byte
+
+	for i := start + 1; i < len(input); i++ {
+		switch char := input[i]; {
+		case quote != 0:
+			if char == quote {
+				quote = 0
 			}
-			builder.WriteString("<" + se.Name.Local)
-			for _, attr := range se.Attr {
-				builder.WriteString(fmt.Sprintf(` %s="%s"`, attr.Name.Local, attr.Value))
-			}
-			builder.WriteString(">")
-		case xml.EndElement:
-			builder.WriteString("</" + se.Name.Local + ">")
-		case xml.CharData:
-			builder.Write(se)
-		case xml.Comment:
-			builder.WriteString(fmt.Sprintf("<!--%s-->", string(se)))
+		case char == '"' || char == '\'':
+			quote = char
+		case char == '>':
+			return i + 1
 		}
 	}
+
+	return -1
+}
+
+// findClosingTag returns the span of the end tag that closes the element named
+// name. The search is literal: raw content is arbitrary text, so a '<' inside it
+// ("{ if item < 5 }") must not be mistaken for markup.
+func findClosingTag(input string, from int, name string) (int, int) {
+	needle := "</" + name
+	i := from
+
+	for {
+		idx := strings.Index(input[i:], needle)
+		if idx < 0 {
+			return -1, -1
+		}
+
+		idx += i
+
+		// Guard against names sharing the prefix (</mj-text-x>).
+		if after := idx + len(needle); after < len(input) && isXMLNameByte(input[after]) {
+			i = after
+
+			continue
+		}
+
+		end := scanTagEnd(input, idx)
+		if end < 0 {
+			return -1, -1
+		}
+
+		return idx, end
+	}
+}
+
+func readTagName(input string, start int) string {
+	end := start
+	for end < len(input) && isXMLNameByte(input[end]) {
+		end++
+	}
+
+	return input[start:end]
+}
+
+func isXMLNameByte(char byte) bool {
+	switch {
+	case char >= 'a' && char <= 'z', char >= 'A' && char <= 'Z':
+		return true
+	case char >= '0' && char <= '9', char == '-', char == '_', char == ':', char == '.':
+		return true
+	default:
+		return false
+	}
+}
+
+// protectCDATA wraps content in CDATA sections, splitting any literal "]]>"
+// so the result stays valid XML.
+func protectCDATA(content string) string {
+	if content == "" {
+		return ""
+	}
+
+	return "<![CDATA[" + strings.ReplaceAll(content, "]]>", "]]]]><![CDATA[>") + "]]>"
 }

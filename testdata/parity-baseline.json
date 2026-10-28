@@ -4,14 +4,6 @@
     "testdata/parity/upstream/mjml--carousel-hoverSupported--00.mjml": {
       "error": "failed to render column: invalid child type mj-carousel in column, allowed types are: [mj-divider mj-spacer mj-image mj-text mj-social mj-table mj-button mj-navbar mj-accordion mj-raw]"
     },
-    "testdata/parity/upstream/mjml--html-comments--00.mjml": {
-      "mismatches": [
-        {
-          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
-          "detail": "child count mismatch: want 3, got 5"
-        }
-      ]
-    },
     "testdata/parity/upstream/mjml--template-syntax-sanitization--01.mjml": {
       "error": "error rendering \u003cmj-head\u003e: error parsing CSS: Unexpected } character: CHAR (line: 1, column: 33): \"}\""
     },

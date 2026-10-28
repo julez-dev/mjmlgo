@@ -76,6 +76,26 @@ func TestParse(t *testing.T) {
 		require.Equal(t, "<!-- first -->\n<!-- second -->", fileStartRawContent(n))
 	})
 
+	t.Run("raw-content-is-kept-verbatim", func(t *testing.T) {
+		const input = `<mjml><mj-body><mj-section><mj-column>` +
+			`<mj-text><p>x</p><br><!--c--><br></mj-text>` +
+			`<mj-raw><div data-x="1">a &amp; b</div></mj-raw>` +
+			`</mj-column></mj-section></mj-body></mjml>`
+
+		n, err := parse(strings.NewReader(input))
+		require.NoError(t, err)
+
+		contents := map[string]string{}
+		walkNodes(n, func(node *node.Node) {
+			if node.Type == "mj-text" || node.Type == "mj-raw" {
+				contents[node.Type] = node.Content
+			}
+		})
+
+		require.Equal(t, `<p>x</p><br><!--c--><br>`, contents["mj-text"])
+		require.Equal(t, `<div data-x="1">a &amp; b</div>`, contents["mj-raw"])
+	})
+
 	t.Run("mj-end-tags", func(t *testing.T) {
 		const input = `<mjml><mj-text><h1>Test</h1></mj-text></mjml>`
 
@@ -150,4 +170,13 @@ func FuzzParse(f *testing.F) {
 			t.Fatalf("parse returned nil root without an error for input %q", source)
 		}
 	})
+}
+
+// walkNodes calls fn for n and all its descendants.
+func walkNodes(n *node.Node, fn func(*node.Node)) {
+	fn(n)
+
+	for _, child := range n.Children {
+		walkNodes(child, fn)
+	}
 }
