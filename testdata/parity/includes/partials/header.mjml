@@ -1,0 +1,5 @@
+<mj-section background-color="#e0e0e0">
+  <mj-column>
+    <mj-text font-size="20px" font-weight="bold">Header from include</mj-text>
+  </mj-column>
+</mj-section>

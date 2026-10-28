@@ -1,0 +1,23 @@
+<mjml>
+  <mj-head>
+    <mj-title>Include fixtures</mj-title>
+    <mj-include path="partials/head-style.mjml" />
+    <mj-style>.head-inline-order { color: #444444; }</mj-style>
+    <mj-include path="partials/head-css.css" type="css" />
+  </mj-head>
+  <mj-body background-color="#f4f4f4">
+    <mj-include path="partials/header.mjml" />
+    <mj-section>
+      <mj-column>
+        <mj-include path="partials/body-text.mjml" />
+        <mj-include path="partials/inlined-text.mjml" />
+        <mj-include path="partials/banner.html" type="html" />
+      </mj-column>
+    </mj-section>
+    <mj-include path="partials/nested.mjml" />
+    <mj-include path="partials/full-document.mjml" />
+    <mj-include path="partials/footer.html" type="html" />
+    <mj-include path="partials/theme.css" type="css" />
+    <mj-include path="partials/inline.css" type="css" css-inline="inline" />
+  </mj-body>
+</mjml>

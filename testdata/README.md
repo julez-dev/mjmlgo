@@ -100,10 +100,16 @@ testdata/invalid/invalid-color.mjml.error.txt   ->  chartreuseish not a valid co
   (`BenchmarkRenderMJML/input_big.mjml`). Its baseline entry is coarse on purpose;
   add focused fixtures instead of extending it.
 - Invalid: add the fixture plus its `.error.txt`.
-
-`mj-include` works because the reference CLI runs on the fixture path itself, so
-relative includes resolve as usual. The Go implementation is being reworked to
-resolve includes through a caller-provided `fs.FS` (see `PLAN.md`, M2).
+- Include targets go into a `partials/` directory next to the fixture that
+  includes them. Both corpora render each fixture through the same entry point a
+  caller uses — the fixture's own directory is the root of the `fs.FS` — so
+  relative includes resolve the same way the reference CLI resolves them from the
+  fixture path. `partials/` directories are skipped when fixtures are collected:
+  they are read by `mj-include`, not rendered on their own. The parity fixture
+  `parity/includes/main.mjml` covers a head include, a full-document include,
+  nested includes, `type="html"` and `type="css"`; the error cases
+  (cycle, path escaping the corpus, missing file, unknown type) live in
+  `invalid/include-*.mjml` with their include targets in `invalid/partials/`.
 
 ## Benchmarks
 

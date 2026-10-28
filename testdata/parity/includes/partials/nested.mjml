@@ -1,0 +1,6 @@
+<mj-section>
+  <mj-column>
+    <mj-text>Outer include</mj-text>
+    <mj-include path="deep/leaf.mjml" />
+  </mj-column>
+</mj-section>
