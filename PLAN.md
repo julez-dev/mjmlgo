@@ -8,7 +8,7 @@ against the reference JavaScript implementation.
 | Area | Definition of done |
 | --- | --- |
 | Parity | Every fixture in `testdata/parity/` renders structurally identical HTML to MJML 4.18.0 (normalized DOM **and** normalized CSS). No allowlist: any difference fails. **Achieved** for all 60 fixtures; the baseline file was deleted when it reached zero. |
-| Components | Every MJML 4.18 component renders: body (`mj-body`, `mj-section`, `mj-wrapper`, `mj-column`, `mj-group`, `mj-text`, `mj-image`, `mj-button`, `mj-divider`, `mj-spacer`, `mj-table`, `mj-raw`, `mj-social`, `mj-social-element`, `mj-navbar`, `mj-navbar-link`, `mj-accordion`, `mj-accordion-element`, `mj-accordion-title`, `mj-accordion-text`, `mj-carousel`, `mj-carousel-image`, `mj-hero`) and head (`mj-head`, `mj-attributes` with `mj-all`/`mj-class`/per-tag, `mj-breakpoint`, `mj-font`, `mj-html-attributes`, `mj-preview`, `mj-style`, `mj-title`, `mj-raw`), plus `mj-raw position="file-start"`. `mj-map` does not exist in MJML 4.18 and is out of scope. `mj-include` is **not** implemented yet: it is rejected with an explicit error instead of being silently dropped, and lands with the `fs.FS` API in M2. |
+| Components | Every MJML 4.18 component renders: body (`mj-body`, `mj-section`, `mj-wrapper`, `mj-column`, `mj-group`, `mj-text`, `mj-image`, `mj-button`, `mj-divider`, `mj-spacer`, `mj-table`, `mj-raw`, `mj-social`, `mj-social-element`, `mj-navbar`, `mj-navbar-link`, `mj-accordion`, `mj-accordion-element`, `mj-accordion-title`, `mj-accordion-text`, `mj-carousel`, `mj-carousel-image`, `mj-hero`) and head (`mj-head`, `mj-attributes` with `mj-all`/`mj-class`/per-tag, `mj-breakpoint`, `mj-font`, `mj-html-attributes`, `mj-preview`, `mj-style`, `mj-title`, `mj-raw`), plus `mj-raw position="file-start"`. `mj-map` does not exist in MJML 4.18 and is out of scope. `mj-include` is implemented over the caller's `fs.FS`: `type="mjml"` (default), `"html"` and `"css"` (with `css-inline`), paths relative to the including file, `fs.Glob` patterns, cycle detection and a recursion-depth cap. |
 | Validation | Fail-fast, hard errors: unknown tags, unknown/invalid attributes, invalid nesting (driven by MJML's own `dependencies.js`), missing required children. Structured errors carry the element path and attribute. This is an intentional divergence from MJML's soft validation; invalid input is covered by `testdata/invalid/`. |
 | API | `NewRenderer(Options)` + `Render(ctx, fs.FS, name, io.Writer)`; `Options` carries `IDGenerator`, custom components, and feature toggles; `RenderString`/`RenderFile`/`RenderBytes` conveniences; `RenderMJML` kept as a deprecated wrapper. Compact output only (no beautifier). |
 | Performance | Benchmarks committed with a documented budget table; CI reports but does not gate. |
@@ -45,7 +45,7 @@ Known divergences at the start: 214 records / 15 root causes (see
 | Parity comparison | Normalized DOM: attributes sorted, style declarations sorted, class tokens sorted, whitespace collapsed, comments dropped except Outlook conditionals (parsed and compared). `<style>` bodies compared as normalized CSS (rule order preserved, declarations in order, whitespace/comments normalized, `@media` nesting preserved). |
 | Corpus | `testdata/parity/` hand-written fixtures plus a curated, attributed subset of upstream MJML test inputs; `testdata/invalid/` fail-fast error fixtures. |
 | Error model | Fail fast, no partial output. |
-| Includes | `mj-include` resolves through the caller's `fs.FS` entry point (`fs.Glob` for patterns); no implicit filesystem or network access. |
+| Includes | `mj-include` resolves through the caller's `fs.FS` (`fs.Glob` for patterns); no implicit filesystem or network access. Paths are relative to the including file and may not leave the fs root; cycles and deep recursion are hard errors. |
 | Package layout | Implementation moves to `internal/` (`internal/component`, `internal/node`, parser/renderer). Public surface: root package only. |
 | Inliner | Own inliner emitting into the component tree, no `html.Parse`/`html.Render` round-trip; juice-compatible specificity and `!important`; fast path when nothing needs inlining. Focused dependencies allowed case by case with a written justification. |
 | Determinism | `Options.IDGenerator` (default random) for carousel/navbar ids; the harness also normalizes generated ids as a safety net. |
@@ -105,14 +105,26 @@ Known divergences at the start: 214 records / 15 root causes (see
   inlining pass is skipped; the XML decoder is strict, so mismatched tags are
   rejected (new invalid fixtures); `mj-include` fails loudly instead of silently
   dropping content; dead code from the lanes removed.
+- **M2b includes done**: `mj-include` resolves through the caller's `fs.FS`.
+  `type="mjml"` (the default) parses the included file, wraps a bare fragment in
+  `mjml`/`mj-body` like MJML does, splices the children of its `mj-body` where the
+  include stands and merges its `mj-head` into the document head; `type="html"`
+  inserts the file verbatim as `mj-raw`; `type="css"` adds it as an `mj-style`
+  (honouring `css-inline="inline"`). Paths resolve relative to the including
+  file through `path.Join` + `fs.ValidPath`, so a partial may reach a sibling
+  directory with `../` but never leave the fs root. `fs.Glob` patterns expand in
+  lexical order. Cycles, the 32-level depth cap, missing files and unknown types
+  are hard errors, covered by `testdata/invalid/include-*.mjml`. The parity
+  fixture is `testdata/parity/includes/main.mjml`; include targets live in
+  `partials/` directories, which the corpus walk skips.
 
 Current state: full MJML 4.18 component and head coverage, zero divergences,
 `TestMJMLInvalid` covering fail-fast validation, benchmarks and fuzz targets in
-place. Remaining roadmap: M2 (public `Renderer`/`Options` API over `fs.FS`,
-`mj-include`, internal package layout, JS-parity validation core) and M3 (the
-inliner rewrite) - the current implementation still uses the post-render HTML
-round-trip for inline CSS and rejects the full surface of MJML's attribute
-validation less strictly than planned.
+place. Remaining roadmap: M2 (JS-parity validation core, public
+custom-component interface, structured `Error`) and M3 (the inliner rewrite) -
+the current implementation still uses the post-render HTML round-trip for inline
+CSS and rejects the full surface of MJML's attribute validation less strictly
+than planned.
 
 ## Working with lanes
 
