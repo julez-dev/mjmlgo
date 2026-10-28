@@ -425,15 +425,25 @@ func (s MJMLSection) renderWrappedChildren(ctx *RenderContext, w io.Writer, n *n
 			"width": wrapperWidth,
 		}
 
+		var childComponent Component
+
+		switch child.Type {
+		case SectionTagName:
+			childComponent = MJMLSection{}
+		case HeroTagName:
+			childComponent = MJMLHero{}
+		default:
+			continue
+		}
+
 		_, _ = io.WriteString(w, "<!--[if mso | IE]><tr>")
 		_, _ = io.WriteString(w, "<td "+attr.InlineString()+">")
 		_, _ = io.WriteString(w, "<![endif]-->")
 
-		var sec MJMLSection
-		if err := InitComponent(ctx, sec, child); err != nil {
+		if err := InitComponent(ctx, childComponent, child); err != nil {
 			return err
 		}
-		if err := sec.Render(ctx, w, child); err != nil {
+		if err := childComponent.Render(ctx, w, child); err != nil {
 			return err
 		}
 

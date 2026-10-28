@@ -254,6 +254,10 @@ func (h MJMLHero) renderContent(ctx *RenderContext, w io.Writer, n *node.Node) e
 	ctx.ContainerWidth = currentContainerWidth
 
 	for _, child := range n.Children {
+		if !allowsChild(HeroTagName, child.Type) {
+			return fmt.Errorf("unknown child type: %s for <mj-hero>, allowed types are: %v", child.Type, validationDependencies[HeroTagName])
+		}
+
 		var childComponent Component
 
 		switch child.Type {
@@ -273,6 +277,10 @@ func (h MJMLHero) renderContent(ctx *RenderContext, w io.Writer, n *node.Node) e
 			childComponent = MJMLTable{}
 		case CarouselTagName:
 			childComponent = MJMLCarousel{}
+		case NavbarTagName:
+			childComponent = MJMLNavbar{}
+		case AccordionTagName:
+			childComponent = MJMLAccordion{}
 		case RawTagName:
 			childComponent = MJMLRaw{}
 		}
