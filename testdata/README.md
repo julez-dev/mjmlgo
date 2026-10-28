@@ -54,47 +54,19 @@ fails the test instead of silently comparing against the wrong reference.
 
 ```bash
 npm install --save-dev --save-exact mjml@<new-version>
-go test ./ -run TestMJMLParity -update   # re-record the baseline
-git diff testdata/parity-baseline.json   # review every HTML change
+go test ./ -run TestMJMLParity -v   # every difference is reported with its path
 ```
 
-### Baseline of known divergences
+### Zero tolerance
 
-`parity-baseline.json` records the accepted differences per fixture, scoped to
-the MJML version it was recorded with:
+Every fixture must match MJML exactly; there is no allowlist of accepted
+differences and no baseline file to re-record. A structural difference fails the
+test with the element path and the expected/actual value.
 
-```json
-{
-  "mjmlVersion": "4.18.0",
-  "fixtures": {
-    "testdata/parity/simple.mjml": {
-      "mismatches": [
-        {
-          "path": "/#document/html[1]/body[1]/div[1]",
-          "detail": "attribute \"role\" missing, want \"article\""
-        }
-      ]
-    },
-    "testdata/parity/raw.mjml": {
-      "error": "failed to render column: invalid child type mj-raw in column, ..."
-    }
-  }
-}
-```
-
-The test compares the *set* of differences, not just their count:
-
-- an unrecorded difference (or a new render error) fails — no regressions;
-- a recorded difference that disappeared also fails, so fixes must update the
-  baseline and thereby shrink it.
-
-Fixtures without an entry must match MJML exactly. Baseline entries whose
-fixture no longer exists on disk fail the test, so renames cannot leave stale
-records behind. Re-record with:
-
-```bash
-go test ./ -run TestMJMLParity -update
-```
+When bumping MJML, run the suite and review the failures: each one is a real
+reference change. If it is intended, fix the implementation (or add a focused
+fixture for the new behaviour); if the new output is only a formatting change,
+widen the CSS/HTML normalizer in `internal/mjmltest` deliberately, with a test.
 
 ### Failure artifacts
 

@@ -7,7 +7,7 @@ against the reference JavaScript implementation.
 
 | Area | Definition of done |
 | --- | --- |
-| Parity | Every fixture in `testdata/parity/` renders structurally identical HTML to MJML 4.18.0 (normalized DOM **and** normalized CSS). `testdata/parity-baseline.json` shrinks to empty and is then deleted. |
+| Parity | Every fixture in `testdata/parity/` renders structurally identical HTML to MJML 4.18.0 (normalized DOM **and** normalized CSS). No allowlist: any difference fails. **Achieved** for all 60 fixtures; the baseline file was deleted when it reached zero. |
 | Components | Every MJML 4.18 component renders: body (`mj-body`, `mj-section`, `mj-wrapper`, `mj-column`, `mj-group`, `mj-text`, `mj-image`, `mj-button`, `mj-divider`, `mj-spacer`, `mj-table`, `mj-raw`, `mj-social`, `mj-social-element`, `mj-navbar`, `mj-navbar-link`, `mj-accordion`, `mj-accordion-element`, `mj-accordion-title`, `mj-accordion-text`, `mj-carousel`, `mj-carousel-image`, `mj-hero`) and head (`mj-head`, `mj-attributes` with `mj-all`/`mj-class`/per-tag, `mj-breakpoint`, `mj-font`, `mj-html-attributes`, `mj-preview`, `mj-style`, `mj-title`, `mj-raw`), plus parser-level `mj-include` and `mj-raw position="file-start"`. `mj-map` does not exist in MJML 4.18 and is out of scope. |
 | Validation | Fail-fast, hard errors: unknown tags, unknown/invalid attributes, invalid nesting (driven by MJML's own `dependencies.js`), missing required children. Structured errors carry the element path and attribute. This is an intentional divergence from MJML's soft validation; invalid input is covered by `testdata/invalid/`. |
 | API | `NewRenderer(Options)` + `Render(ctx, fs.FS, name, io.Writer)`; `Options` carries `IDGenerator`, custom components, and feature toggles; `RenderString`/`RenderFile`/`RenderBytes` conveniences; `RenderMJML` kept as a deprecated wrapper. Compact output only (no beautifier). |
@@ -88,9 +88,27 @@ Known divergences at the start: 214 records / 15 root causes (see
   neither `<mj-style inline>` nor `<mj-html-attributes>`
   (simple.mjml 30.2us -> 13.4us, layout.mjml 262us -> 155us).
 
-Current state: 85 recorded divergences (geometry/widths, social, border-radius,
-wrapper gap) and 3 fixtures that do not render (carousel, two CSS-template
-fixtures). In flight: `geometry` and `carousel` lanes.
+- **geometry lane**: container/column/group width propagation, MSO seat widths,
+  section/wrapper/column border-radius rules, `mj-wrapper gap`, social text
+  alignment and icon height, image radius, hero `cellspacing` (88 -> 4).
+- **carousel lane**: `mj-carousel`/`mj-carousel-image`, plus the magic-key
+  component-head-style seam replaced by a typed `ComponentHeadStyles` /
+  `InstanceComponentHeadStyles` list.
+- **parser**: raw-content elements are protected with CDATA sections, so their
+  content is preserved byte for byte (fixes `<br>` becoming `<br></br>`); the
+  raw regexp, placeholder machinery and token reserializer are gone. Head ending
+  tags (`mj-style`, `mj-title`, `mj-preview`, `mj-breakpoint`) now keep their
+  content verbatim, and user CSS is emitted unparsed like MJML does.
+- **parity reached zero**: all 60 fixtures render and match MJML 4.18.0 exactly,
+  so the baseline file and its `-update` workflow were deleted.
+
+Current state: full MJML 4.18 component and head coverage, zero divergences,
+`TestMJMLInvalid` covering fail-fast validation, benchmarks and fuzz targets in
+place. Remaining roadmap: M2 (public `Renderer`/`Options` API over `fs.FS`,
+`mj-include`, internal package layout, JS-parity validation core) and M3 (the
+inliner rewrite) - the current implementation still uses the post-render HTML
+round-trip for inline CSS and rejects the full surface of MJML's attribute
+validation less strictly than planned.
 
 ## Working with lanes
 
