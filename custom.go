@@ -3,6 +3,7 @@ package mjmlgo
 import (
 	"errors"
 	"fmt"
+	"reflect"
 
 	"github.com/julez-dev/mjmlgo/component"
 )
@@ -43,7 +44,7 @@ func componentTable(components []component.Component) (map[string]component.Comp
 	table := make(map[string]component.Component, len(components))
 
 	for _, comp := range components {
-		if comp == nil {
+		if isNilComponent(comp) {
 			return nil, registrationError("", errors.New("nil component"))
 		}
 
@@ -64,6 +65,24 @@ func componentTable(components []component.Component) (map[string]component.Comp
 	}
 
 	return table, nil
+}
+
+// isNilComponent reports whether comp is nil, including the typed nil pointer a
+// caller can pass without the interface itself being nil. Either would panic when
+// Name is called, so registration reports it instead.
+func isNilComponent(comp component.Component) bool {
+	if comp == nil {
+		return true
+	}
+
+	value := reflect.ValueOf(comp)
+
+	switch value.Kind() {
+	case reflect.Chan, reflect.Func, reflect.Interface, reflect.Map, reflect.Pointer, reflect.Slice:
+		return value.IsNil()
+	default:
+		return false
+	}
 }
 
 // registrationError builds the structured failure for a component the renderer

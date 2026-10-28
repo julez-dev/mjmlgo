@@ -54,8 +54,9 @@ Three mapping decisions follow from that closed set:
 - A component registration the renderer must refuse - a nil component, an empty
 tag, a tag registered twice or a tag that shadows a built-in element - is an
 invalid component. It is the one kind that is not document validation: it
-describes the renderer's configuration, so `Path` is the document element that
-renderer cannot build and `errors.Is(err, ErrValidation)` is false.
+describes the renderer's configuration, so `Path` names the tag that cannot be
+registered (or the document element when the component has no tag) and
+`errors.Is(err, ErrValidation)` is false.
 
 - Include failures are parse failures. A cycle, an escaped path, a missing
   include file and a document without `mj-body` all describe a document that

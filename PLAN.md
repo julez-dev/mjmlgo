@@ -250,9 +250,9 @@ tests. The decisions this ticket settles, without a new ADR:
 - Registration failures are structured, not plain errors: a nil component, an empty tag,
   a duplicate tag and a tag that shadows a built-in element are `*component.Error` of
   kind `KindInvalidComponent`. They describe the renderer's configuration, so
-  `errors.Is(err, ErrValidation)` is false and `Path` is the document element the
-  renderer cannot build. The renderer reports the failure for every document, not only
-  for one that uses the tag.
+  `errors.Is(err, ErrValidation)` is false and `Path` names the tag that cannot be
+  registered (the document element when the component has no tag). The renderer reports
+  the failure for every document, not only for one that uses the tag.
 
 ## Roadmap
 

@@ -112,6 +112,21 @@ func TestCustomComponentInColumn(t *testing.T) {
 		badgeHTML("New", "#fde68a", "#111827", "")+"</td>\n</tr>")
 }
 
+// TestCustomComponentInHero asserts mj-hero dispatches a registered tag into the
+// hero's content cell, like it does for a built-in leaf.
+func TestCustomComponentInHero(t *testing.T) {
+	t.Parallel()
+
+	const document = `<mjml><mj-body>` +
+		`<mj-hero mode="fixed-height" height="120px" background-width="600px" background-height="120px">` +
+		`<mj-badge text="Hero" />` +
+		`</mj-hero></mj-body></mjml>`
+
+	rendered := renderWithComponents(t, document, customcomponent.Badge{})
+
+	assert.Contains(t, rendered, badgeHTML("Hero", "#1f2937", "#ffffff", ""))
+}
+
 // TestCustomComponentReceivesAttributeDefaults asserts the document-level
 // default layers reach a custom tag: per-tag defaults from mj-attributes and
 // attributes from a referenced mj-class are applied before Render runs, the
@@ -259,6 +274,11 @@ func TestWithComponentsRejectsInvalidRegistration(t *testing.T) {
 		{
 			name:     "nil component",
 			renderer: mjmlgo.NewRenderer(mjmlgo.WithComponents(nil)),
+			path:     []string{component.MJMLTagName},
+		},
+		{
+			name:     "typed nil component",
+			renderer: mjmlgo.NewRenderer(mjmlgo.WithComponents((*customcomponent.Badge)(nil))),
 			path:     []string{component.MJMLTagName},
 		},
 	}

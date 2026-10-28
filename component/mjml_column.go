@@ -246,8 +246,9 @@ func (c MJMLColumn) renderColumn(ctx *RenderContext, w io.Writer, n *node.Node) 
 			custom, isCustom := customComponent(ctx, child.Type)
 			if !isCustom {
 				// Unreachable while ValidateDocument runs first: every other child
-				// of mj-column is a disallowed-child error before rendering.
-				continue
+				// of mj-column is a disallowed-child error before rendering. Report
+				// the broken invariant as internal, not as author input.
+				return fmt.Errorf("no component for allowed child <%s> in <mj-column>", child.Type)
 			}
 
 			if err := InitComponent(ctx, custom, child); err != nil {
