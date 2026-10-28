@@ -17,75 +17,11 @@
         }
       ]
     },
-    "testdata/parity/input_big.mjml": {
-      "mismatches": [
-        {
-          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[4]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/img[1]",
-          "detail": "attribute \"height\" unexpected, got \"20\""
-        },
-        {
-          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[4]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[2]",
-          "detail": "attribute \"style\" mismatch: want \"padding:0px 20px;text-align:left;vertical-align:middle;\", got \"padding:0px 20px;vertical-align:middle;\""
-        },
-        {
-          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[4]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[3]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/img[1]",
-          "detail": "attribute \"height\" unexpected, got \"20\""
-        },
-        {
-          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[4]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[3]/td[1]/table[1]/tbody[1]/tr[1]/td[2]",
-          "detail": "attribute \"style\" mismatch: want \"padding:0px 20px;text-align:left;vertical-align:middle;\", got \"padding:0px 20px;vertical-align:middle;\""
-        },
-        {
-          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[14]/table[1]/tbody[1]/tr[1]/td[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/img[1]",
-          "detail": "attribute \"height\" unexpected, got \"18\""
-        },
-        {
-          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[14]/table[1]/tbody[1]/tr[1]/td[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[2]",
-          "detail": "attribute \"style\" mismatch: want \"padding:0px 0px 0px 16px;text-align:left;vertical-align:middle;\", got \"padding:0px 0px 0px 16px;vertical-align:middle;\""
-        },
-        {
-          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[14]/table[1]/tbody[1]/tr[1]/td[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/img[1]",
-          "detail": "attribute \"height\" unexpected, got \"18\""
-        },
-        {
-          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[14]/table[1]/tbody[1]/tr[1]/td[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[2]",
-          "detail": "attribute \"style\" mismatch: want \"padding:0px 0px 0px 16px;text-align:left;vertical-align:middle;\", got \"padding:0px 0px 0px 16px;vertical-align:middle;\""
-        }
-      ]
-    },
     "testdata/parity/simple-hero.mjml": {
       "mismatches": [
         {
           "path": "/#document/html[1]/body[1]/div[1]/#conditional[1]/table[1]",
           "detail": "attribute \"cellspacing\" missing, want \"0\""
-        }
-      ]
-    },
-    "testdata/parity/social.mjml": {
-      "mismatches": [
-        {
-          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/a[1]/img[1]",
-          "detail": "attribute \"height\" unexpected, got \"24\""
-        },
-        {
-          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[2]",
-          "detail": "attribute \"style\" mismatch: want \"padding:4px 4px 4px 0;text-align:left;vertical-align:middle;\", got \"padding:4px 4px 4px 0;vertical-align:middle;\""
-        },
-        {
-          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[2]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/a[1]/img[1]",
-          "detail": "attribute \"height\" unexpected, got \"24\""
-        },
-        {
-          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[2]/tbody[1]/tr[1]/td[2]",
-          "detail": "attribute \"style\" mismatch: want \"padding:4px 4px 4px 0;text-align:left;vertical-align:middle;\", got \"padding:4px 4px 4px 0;vertical-align:middle;\""
-        },
-        {
-          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[3]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/a[1]/img[1]",
-          "detail": "attribute \"height\" unexpected, got \"24\""
-        },
-        {
-          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[3]/tbody[1]/tr[1]/td[2]",
-          "detail": "attribute \"style\" mismatch: want \"padding:4px 4px 4px 0;text-align:left;vertical-align:middle;\", got \"padding:4px 4px 4px 0;vertical-align:middle;\""
         }
       ]
     },
@@ -97,30 +33,6 @@
         {
           "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
           "detail": "child count mismatch: want 3, got 5"
-        }
-      ]
-    },
-    "testdata/parity/upstream/mjml--social-align--00.mjml": {
-      "mismatches": [
-        {
-          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]",
-          "detail": "attribute \"style\" mismatch: want \"padding:4px 4px 4px 0;text-align:right;vertical-align:middle;\", got \"padding:4px 4px 4px 0;vertical-align:middle;\""
-        },
-        {
-          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[2]/table[1]/tbody[1]/tr[1]/td[1]/a[1]/img[1]",
-          "detail": "attribute \"height\" unexpected, got \"20\""
-        }
-      ]
-    },
-    "testdata/parity/upstream/mjml--social-icon-height--00.mjml": {
-      "mismatches": [
-        {
-          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/a[1]/img[1]",
-          "detail": "attribute \"height\" unexpected, got \"40\""
-        },
-        {
-          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[2]",
-          "detail": "attribute \"style\" mismatch: want \"padding:4px 4px 4px 0;text-align:left;vertical-align:middle;\", got \"padding:4px 4px 4px 0;vertical-align:middle;\""
         }
       ]
     },
