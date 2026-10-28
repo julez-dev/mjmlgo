@@ -43,7 +43,7 @@ func (h MJMLHero) AllowedAttributes() map[string]validateAttributeFunc {
 
 func (h MJMLHero) DefaultAttributes(ctx *RenderContext) map[string]string {
 	return map[string]string{
-		"mode":                "fluid-height",
+		"mode":                "fixed-height",
 		"height":              "0px",
 		"background-position": "center center",
 		"padding":             "0px",
