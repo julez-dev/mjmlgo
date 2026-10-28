@@ -25,6 +25,14 @@
 // where documents come from and the renderer performs no implicit filesystem
 // or network access. A Renderer is safe for concurrent use.
 //
+// WithComponents adds custom components to a renderer. A host implements
+// component.Component - tag, allowed attributes with validators, defaults and
+// render - and registers it; a registered tag is then a first-class element,
+// with the same validation and default cascade as a built-in one. Registration
+// is per renderer, never global. Implement component.ChildComponent to declare
+// child elements. example/customcomponent is the worked example, and package
+// component documents the contract.
+//
 // mj-include is resolved through the same fs.FS: paths are relative to the
 // directory of the file that contains the include, and type="html", type="css"
 // and the default type="mjml" are supported. Include cycles, paths that would

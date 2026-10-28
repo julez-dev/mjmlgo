@@ -62,6 +62,16 @@ func TestErrorText(t *testing.T) {
 			err:  NewError(KindParseFailure, nil, "", "", errors.New("boom")),
 			want: "parse failure: boom",
 		},
+		{
+			name: "invalid component",
+			err:  NewError(KindInvalidComponent, []string{MJMLTagName}, "", "mj-text", errors.New("tag <mj-text> is a built-in MJML element")),
+			want: `mjml: invalid component "mj-text": tag <mj-text> is a built-in MJML element`,
+		},
+		{
+			name: "invalid component without a tag",
+			err:  NewError(KindInvalidComponent, []string{MJMLTagName}, "", "", errors.New("nil component")),
+			want: "mjml: invalid component: nil component",
+		},
 	}
 
 	for _, tt := range tests {
@@ -100,7 +110,7 @@ func TestErrorIsValidationSentinel(t *testing.T) {
 		})
 	}
 
-	for _, kind := range []ErrorKind{KindUnknownIncludeType, KindParseFailure} {
+	for _, kind := range []ErrorKind{KindUnknownIncludeType, KindParseFailure, KindInvalidComponent} {
 		t.Run(string(kind), func(t *testing.T) {
 			t.Parallel()
 			assert.NotErrorIs(t, NewError(kind, []string{"mjml"}, "", "", nil), ErrValidation)

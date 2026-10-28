@@ -14,14 +14,45 @@ import (
 // with InitComponent and then calls Render, which writes the element's HTML to
 // w.
 //
-// The interface is exported so the renderer can hold one, but it is not yet
-// implementable outside this package: AllowedAttributes returns an unexported
-// validator type. The public custom-component contract is ticket T3 (issue #4).
+// It is the custom-component contract: a host implements it and registers the
+// component on a renderer with mjmlgo.WithComponents. A registered tag is a
+// first-class element - it is validated like a built-in one, receives the
+// defaults declared in mj-attributes and mj-class, and renders at its document
+// position with Render. The node the renderer hands to Render is the one the
+// built-in components receive: attribute defaults are already applied and the
+// children are the parsed child elements. A component that implements it is a
+// leaf unless it also implements ChildComponent.
 type Component interface {
+	// Name is the element's tag name, for example "mj-badge". It must be
+	// non-empty, must not be registered twice on one renderer and must not
+	// shadow a built-in MJML element.
 	Name() string
-	AllowedAttributes() map[string]validateAttributeFunc
+	// AllowedAttributes maps every attribute the component accepts to its
+	// validator. An author attribute that is not in the map is rejected; the
+	// universal css-class and mj-class attributes are accepted without an entry.
+	// A nil validator accepts every value.
+	AllowedAttributes() map[string]AttributeValidator
+	// DefaultAttributes returns the values to apply for attributes the author
+	// did not write. They are applied after author attributes have been
+	// validated, like a built-in component's defaults.
 	DefaultAttributes(ctx *RenderContext) map[string]string
+	// Render writes the element's HTML to w. Returning an error stops the
+	// render.
 	Render(ctx *RenderContext, w io.Writer, n *node.Node) error
+}
+
+// ChildComponent is a Component that accepts child elements. A component that
+// does not implement it is a leaf: any child element under its tag is rejected
+// as a disallowed child.
+//
+// AllowedChildren returns the child tag names the component accepts, in the
+// order they are reported in error messages. Declaring children makes the tag a
+// container for validation; rendering those children is the component's own
+// job and gets no help from the built-in container renderers, which is the
+// container support added by ticket T4 (issue #5).
+type ChildComponent interface {
+	Component
+	AllowedChildren() []string
 }
 
 // universalAttributes are accepted on every component regardless of its own
@@ -84,7 +115,7 @@ func validateComponentAttributes(comp Component, n *node.Node) error {
 			continue
 		}
 
-		if err := validator(attribute.Value); err != nil {
+		if err := runValidator(validator, attribute.Value); err != nil {
 			return NewError(KindInvalidValue, elementPathSegments(n), name, attribute.Value, err)
 		}
 	}
@@ -92,7 +123,17 @@ func validateComponentAttributes(comp Component, n *node.Node) error {
 	return nil
 }
 
-func validateAttributes(allowed map[string]validateAttributeFunc, n *node.Node) error {
+// runValidator applies an attribute validator. A nil validator accepts every
+// value: a custom component may leave one out of its table instead.
+func runValidator(validator AttributeValidator, value string) error {
+	if validator == nil {
+		return nil
+	}
+
+	return validator(value)
+}
+
+func validateAttributes(allowed map[string]AttributeValidator, n *node.Node) error {
 	for _, attribute := range n.Attributes {
 		name := attribute.Name.Local
 
@@ -109,7 +150,7 @@ func validateAttributes(allowed map[string]validateAttributeFunc, n *node.Node) 
 			return NewError(KindUnknownAttribute, elementPathSegments(n), name, attribute.Value, nil)
 		}
 
-		if err := validator(attribute.Value); err != nil {
+		if err := runValidator(validator, attribute.Value); err != nil {
 			return NewError(KindInvalidValue, elementPathSegments(n), name, attribute.Value, err)
 		}
 	}
@@ -120,7 +161,8 @@ func validateAttributes(allowed map[string]validateAttributeFunc, n *node.Node) 
 // validationDependencies is MJML's dependency table, copied from
 // node_modules/mjml-preset-core/lib/dependencies.js. It is the single authority
 // for which element may contain which child. mj-attributes and mj-class accept
-// any component tag; that regex entry is handled in allowsChild.
+// any component tag; that regex entry, custom components and their own child
+// lists are handled in allowsChild.
 var validationDependencies = map[string][]string{
 	MJMLTagName:             {BodyTagName, HeadTagName, RawTagName},
 	AccordionTagName:        {AccordionElementTagName, RawTagName},
@@ -200,21 +242,23 @@ func ValidateDocument(ctx *RenderContext, root *node.Node) error {
 }
 
 func validateDocumentNode(ctx *RenderContext, n, parent *node.Node) error {
-	if _, known := knownTags[n.Type]; !known {
-		return NewError(KindUnknownElement, elementPathSegments(n), "", n.Type, nil)
+	if !IsBuiltinTag(n.Type) {
+		if _, custom := customComponent(ctx, n.Type); !custom {
+			return NewError(KindUnknownElement, elementPathSegments(n), "", n.Type, nil)
+		}
 	}
 
-	if parent != nil && !allowsChild(parent.Type, n.Type) {
+	if parent != nil && !allowsChild(ctx, parent.Type, n.Type) {
 		return NewError(
 			KindDisallowedChild,
 			elementPathSegments(n),
 			"",
 			n.Type,
-			fmt.Errorf("allowed children: %s", allowedChildList(parent.Type)),
+			fmt.Errorf("allowed children: %s", allowedChildList(ctx, parent.Type)),
 		)
 	}
 
-	if err := validateDocumentAttributes(n); err != nil {
+	if err := validateDocumentAttributes(ctx, n); err != nil {
 		return err
 	}
 
@@ -231,7 +275,11 @@ func validateDocumentNode(ctx *RenderContext, n, parent *node.Node) error {
 	return nil
 }
 
-func allowsChild(parent, child string) bool {
+func allowsChild(ctx *RenderContext, parent, child string) bool {
+	if parentComponent, custom := customComponent(ctx, parent); custom {
+		return allowsCustomComponentChild(parentComponent, child)
+	}
+
 	switch parent {
 	case AttributesTagName:
 		// <mj-attributes> accepts mj-all, mj-class and any component tag.
@@ -239,18 +287,33 @@ func allowsChild(parent, child string) bool {
 			return true
 		}
 
-		_, isComponent := componentTags[child]
-		return isComponent
+		return isComponentTag(ctx, child)
 	case ClassTagName:
 		// Nested per-tag defaults inside <mj-class>.
-		_, isComponent := componentTags[child]
-		return isComponent
+		return isComponentTag(ctx, child)
+	}
+
+	if _, custom := customComponent(ctx, child); custom {
+		// A custom component is a leaf, so it sits where content is placed, not
+		// where a layout element is expected.
+		_, contentParent := customComponentParents[parent]
+
+		return contentParent
 	}
 
 	return slices.Contains(validationDependencies[parent], child)
 }
 
-func allowedChildList(parent string) string {
+func allowedChildList(ctx *RenderContext, parent string) string {
+	if parentComponent, custom := customComponent(ctx, parent); custom {
+		container, isContainer := parentComponent.(ChildComponent)
+		if !isContainer || len(container.AllowedChildren()) == 0 {
+			return "none"
+		}
+
+		return strings.Join(container.AllowedChildren(), ", ")
+	}
+
 	switch parent {
 	case AttributesTagName, ClassTagName:
 		return "any component tag"
@@ -264,8 +327,8 @@ func allowedChildList(parent string) string {
 	return strings.Join(children, ", ")
 }
 
-func validateDocumentAttributes(n *node.Node) error {
-	validators, enforce := documentAttributeValidators(n.Type)
+func validateDocumentAttributes(ctx *RenderContext, n *node.Node) error {
+	validators, enforce := documentAttributeValidators(ctx, n.Type)
 	if !enforce {
 		return nil
 	}
@@ -284,7 +347,7 @@ func validateDocumentAttributes(n *node.Node) error {
 			return NewError(KindUnknownAttribute, path, name, attribute.Value, nil)
 		}
 
-		if err := validator(attribute.Value); err != nil {
+		if err := runValidator(validator, attribute.Value); err != nil {
 			return NewError(KindInvalidValue, path, name, attribute.Value, err)
 		}
 	}
@@ -293,10 +356,16 @@ func validateDocumentAttributes(n *node.Node) error {
 }
 
 // documentAttributeValidators returns the allowedAttributes table for one tag.
-// The second result is false for mj-all and mj-class, whose attributes are
-// intentionally free-form because they are applied to whichever components use
-// them (MJML does not validate them either).
-func documentAttributeValidators(tag string) (map[string]validateAttributeFunc, bool) {
+// A custom component's table comes first, so a registered tag is validated
+// exactly like a built-in element. The second result is false for mj-all and
+// mj-class, whose attributes are intentionally free-form because they are
+// applied to whichever components use them (MJML does not validate them
+// either).
+func documentAttributeValidators(ctx *RenderContext, tag string) (map[string]AttributeValidator, bool) {
+	if comp, custom := customComponent(ctx, tag); custom {
+		return comp.AllowedAttributes(), true
+	}
+
 	switch tag {
 	case AccordionTagName:
 		return MJMLAccordion{}.AllowedAttributes(), true
@@ -347,24 +416,24 @@ func documentAttributeValidators(tag string) (map[string]validateAttributeFunc, 
 	case MJMLTagName:
 		return MJML{}.AllowedAttributes(), true
 	case BreakpointTagName:
-		return map[string]validateAttributeFunc{"width": validateUnit([]string{"px"}, false)}, true
+		return map[string]AttributeValidator{"width": validateUnit([]string{"px"}, false)}, true
 	case FontTagName:
-		return map[string]validateAttributeFunc{
+		return map[string]AttributeValidator{
 			"name": validateType("string"),
 			"href": validateType("string"),
 		}, true
 	case StyleTagName:
-		return map[string]validateAttributeFunc{"inline": validateType("string")}, true
+		return map[string]AttributeValidator{"inline": validateType("string")}, true
 	case SelectorTagName:
 		// MJML reads path from the raw attributes even though the component has
 		// no allowedAttributes table.
-		return map[string]validateAttributeFunc{"path": validateType("string")}, true
+		return map[string]AttributeValidator{"path": validateType("string")}, true
 	case HTMLAttributeTagName:
 		// MJML reads name from the raw attributes even though the component has
 		// no allowedAttributes table.
-		return map[string]validateAttributeFunc{"name": validateType("string")}, true
+		return map[string]AttributeValidator{"name": validateType("string")}, true
 	case HeadTagName, AttributesTagName, PreviewTagName, TitleTagName, HTMLAttributesTagName:
-		return map[string]validateAttributeFunc{}, true
+		return map[string]AttributeValidator{}, true
 	default:
 		return nil, false
 	}

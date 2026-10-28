@@ -22,8 +22,8 @@ func (r MJMLRaw) Name() string {
 	return "mj-raw"
 }
 
-func (r MJMLRaw) AllowedAttributes() map[string]validateAttributeFunc {
-	return map[string]validateAttributeFunc{
+func (r MJMLRaw) AllowedAttributes() map[string]AttributeValidator {
+	return map[string]AttributeValidator{
 		"position": validateEnum([]string{"file-start"}),
 	}
 }

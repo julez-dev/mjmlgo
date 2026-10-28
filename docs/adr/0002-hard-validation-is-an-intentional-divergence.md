@@ -34,13 +34,20 @@ would be pointless.
 ## Failures are structured, and the kinds are closed
 
 Every validation and parse site returns a `*Error{Kind, Path, Attribute, Value,
-Err}` through one constructor. `Path` is the element path as data, not text, so a
-caller can locate a failure without parsing a message; `Err` keeps the underlying
-cause for `errors.Is`/`errors.As`. The kinds are a closed set: unknown element,
-unknown attribute, invalid value, disallowed child, unknown include type,
-undefined `mj-class` and parse failure.
+Err}` through one constructor, and so does component registration (T3). `Path`
+is the element path as data, not text, so a caller can locate a failure without
+parsing a message; `Err` keeps the underlying cause for `errors.Is`/`errors.As`.
+The kinds are a closed set: unknown element, unknown attribute, invalid value,
+disallowed child, unknown include type, undefined `mj-class`, parse failure and
+invalid component.
 
-Two mapping decisions follow from that closed set:
+Three mapping decisions follow from that closed set:
+
+- A component registration the renderer must refuse - a nil component, an empty
+tag, a tag registered twice or a tag that shadows a built-in element - is an
+invalid component. It is the one kind that is not document validation: it
+describes the renderer's configuration, so `Path` is the document element that
+renderer cannot build and `errors.Is(err, ErrValidation)` is false.
 
 - Include failures are parse failures. A cycle, an escaped path, a missing
   include file and a document without `mj-body` all describe a document that
@@ -51,7 +58,9 @@ Two mapping decisions follow from that closed set:
 - A missing required attribute (an `mj-selector` without `path`, an
   `mj-font` without `name`) is an invalid value, not an unknown attribute; the
   attribute is known, its value is absent. Template nesting violations such as
-  `mj-html-attributes` outside `mj-head` are disallowed children.
+  `mj-html-attributes` outside `mj-head` are disallowed children. A custom tag
+  placed where a layout element is expected, and any child element under a
+  custom leaf, are disallowed children too.
 
 CSS parsing inside `<mj-style>` is not one of these failures: it is a stylesheet
 parse with no MJML element path, so it keeps its own error instead of inventing a

@@ -23,9 +23,12 @@ Single-context repo (this repo):
 │   ├── 0003-compact-output-only.md
 │   └── 0004-exported-internals-freeze.md
 ├── api.go, render.go, parser.go    ← public package mjmlgo
+├── custom.go                       ← per-renderer custom-component registry
 ├── node/                           ← public element tree (frozen fields)
 ├── component/                      ← public MJML components, head features,
-│                                     validation, render context (frozen fields)
+│                                     validation, render context (frozen fields),
+│                                     custom-component contract
+├── example/customcomponent/        ← in-repo example of that contract
 └── internal/
     └── mjmltest/                   ← parity harness
 ```

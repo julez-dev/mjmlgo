@@ -16,8 +16,8 @@ func (t MJMLTable) Name() string {
 	return "mj-table"
 }
 
-func (t MJMLTable) AllowedAttributes() map[string]validateAttributeFunc {
-	return map[string]validateAttributeFunc{
+func (t MJMLTable) AllowedAttributes() map[string]AttributeValidator {
+	return map[string]AttributeValidator{
 		"align":                      validateEnum([]string{"left", "right", "center"}),
 		"border":                     validateType("string"),
 		"cellpadding":                validateInteger(),
@@ -40,7 +40,7 @@ func (t MJMLTable) AllowedAttributes() map[string]validateAttributeFunc {
 	}
 }
 
-func validateTableWidth() validateAttributeFunc {
+func validateTableWidth() AttributeValidator {
 	validateUnits := validateUnit([]string{"px", "%"}, false)
 
 	return func(value string) error {

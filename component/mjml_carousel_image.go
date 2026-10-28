@@ -20,8 +20,8 @@ func (i MJMLCarouselImage) Name() string {
 	return "mj-carousel-image"
 }
 
-func (i MJMLCarouselImage) AllowedAttributes() map[string]validateAttributeFunc {
-	return map[string]validateAttributeFunc{
+func (i MJMLCarouselImage) AllowedAttributes() map[string]AttributeValidator {
+	return map[string]AttributeValidator{
 		"alt":              validateType("string"),
 		"border-radius":    validateUnit([]string{"px", "%"}, true),
 		"href":             validateType("string"),

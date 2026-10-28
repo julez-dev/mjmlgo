@@ -55,7 +55,7 @@ func TestAllowsChild(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			assert.Equal(t, tt.want, allowsChild(tt.parent, tt.child))
+			assert.Equal(t, tt.want, allowsChild(&RenderContext{}, tt.parent, tt.child))
 		})
 	}
 }
@@ -181,7 +181,7 @@ func TestValidateDocumentAttributes(t *testing.T) {
 			t.Parallel()
 
 			n := &node.Node{Type: tt.tag, Attributes: attributes(tt.attr, tt.value)}
-			err := validateDocumentAttributes(n)
+			err := validateDocumentAttributes(&RenderContext{}, n)
 			if tt.wantErr {
 				require.Error(t, err)
 				return

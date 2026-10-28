@@ -30,8 +30,8 @@ func (a MJMLAccordion) Name() string {
 	return "mj-accordion"
 }
 
-func (a MJMLAccordion) AllowedAttributes() map[string]validateAttributeFunc {
-	return map[string]validateAttributeFunc{
+func (a MJMLAccordion) AllowedAttributes() map[string]AttributeValidator {
+	return map[string]AttributeValidator{
 		"container-background-color": validateColor(),
 		"border":                     validateType("string"),
 		"font-family":                validateType("string"),
@@ -142,8 +142,8 @@ func (e MJMLAccordionElement) Name() string {
 	return "mj-accordion-element"
 }
 
-func (e MJMLAccordionElement) AllowedAttributes() map[string]validateAttributeFunc {
-	return map[string]validateAttributeFunc{
+func (e MJMLAccordionElement) AllowedAttributes() map[string]AttributeValidator {
+	return map[string]AttributeValidator{
 		"background-color":   validateColor(),
 		"border":             validateType("string"),
 		"font-family":        validateType("string"),
@@ -267,8 +267,8 @@ func (t MJMLAccordionTitle) Name() string {
 	return "mj-accordion-title"
 }
 
-func (t MJMLAccordionTitle) AllowedAttributes() map[string]validateAttributeFunc {
-	return map[string]validateAttributeFunc{
+func (t MJMLAccordionTitle) AllowedAttributes() map[string]AttributeValidator {
+	return map[string]AttributeValidator{
 		"background-color": validateColor(),
 		"color":            validateColor(),
 		"font-size":        validateUnit([]string{"px"}, false),
@@ -346,8 +346,8 @@ func (t MJMLAccordionText) Name() string {
 	return "mj-accordion-text"
 }
 
-func (t MJMLAccordionText) AllowedAttributes() map[string]validateAttributeFunc {
-	return map[string]validateAttributeFunc{
+func (t MJMLAccordionText) AllowedAttributes() map[string]AttributeValidator {
+	return map[string]AttributeValidator{
 		"background-color": validateColor(),
 		"font-size":        validateUnit([]string{"px"}, false),
 		"font-family":      validateType("string"),

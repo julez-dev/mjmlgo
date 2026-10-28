@@ -13,8 +13,8 @@ func (t MJMLText) Name() string {
 	return "mj-text"
 }
 
-func (t MJMLText) AllowedAttributes() map[string]validateAttributeFunc {
-	return map[string]validateAttributeFunc{
+func (t MJMLText) AllowedAttributes() map[string]AttributeValidator {
+	return map[string]AttributeValidator{
 		"align":                      validateEnum([]string{"left", "right", "center", "justify"}),
 		"background-color":           validateColor(),
 		"color":                      validateColor(),

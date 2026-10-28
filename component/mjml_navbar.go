@@ -18,8 +18,8 @@ func (n MJMLNavbar) Name() string {
 	return "mj-navbar"
 }
 
-func (n MJMLNavbar) AllowedAttributes() map[string]validateAttributeFunc {
-	return map[string]validateAttributeFunc{
+func (n MJMLNavbar) AllowedAttributes() map[string]AttributeValidator {
+	return map[string]AttributeValidator{
 		"align":               validateEnum([]string{"left", "center", "right"}),
 		"base-url":            validateType("string"),
 		"hamburger":           validateType("string"),
@@ -175,8 +175,8 @@ func (l MJMLNavbarLink) Name() string {
 	return "mj-navbar-link"
 }
 
-func (l MJMLNavbarLink) AllowedAttributes() map[string]validateAttributeFunc {
-	return map[string]validateAttributeFunc{
+func (l MJMLNavbarLink) AllowedAttributes() map[string]AttributeValidator {
+	return map[string]AttributeValidator{
 		"color":           validateColor(),
 		"font-family":     validateType("string"),
 		"font-size":       validateUnit([]string{"px"}, false),

@@ -21,8 +21,8 @@ func (s MJMLSection) Name() string {
 	return SectionTagName
 }
 
-func (s MJMLSection) AllowedAttributes() map[string]validateAttributeFunc {
-	attributes := map[string]validateAttributeFunc{
+func (s MJMLSection) AllowedAttributes() map[string]AttributeValidator {
+	attributes := map[string]AttributeValidator{
 		"background-color":      validateColor(),
 		"background-url":        validateType("string"),
 		"background-repeat":     validateEnum([]string{"repeat", "no-repeat"}),

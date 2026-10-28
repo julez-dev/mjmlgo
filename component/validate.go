@@ -56,9 +56,16 @@ var cssColorNames = map[string]struct{}{
 	"inherit": {}, "transparent": {},
 }
 
-type validateAttributeFunc func(value string) error
+// AttributeValidator checks one attribute value written by the document author.
+// It returns nil when the value is acceptable and an error describing why it is
+// not otherwise. The error text is embedded in the structured *Error the
+// validator site returns, so it should name what was rejected and why.
+//
+// A nil validator accepts every value; leave an attribute out of the
+// AllowedAttributes map to reject it instead.
+type AttributeValidator func(value string) error
 
-func validateEnum(valid []string) validateAttributeFunc {
+func validateEnum(valid []string) AttributeValidator {
 	return func(value string) error {
 		if !slices.Contains(valid, value) {
 			return fmt.Errorf("%s not one of %v", value, valid)
@@ -67,7 +74,7 @@ func validateEnum(valid []string) validateAttributeFunc {
 	}
 }
 
-func validateColor() validateAttributeFunc {
+func validateColor() AttributeValidator {
 	return func(value string) error {
 		if rgbaRegex.MatchString(value) || rgbRegex.MatchString(value) || hexRegex.MatchString(value) {
 			return nil
@@ -84,7 +91,7 @@ func validateColor() validateAttributeFunc {
 // validateUnit validates a unit(units) or unit(units){1,4} attribute. Multiple
 // values are space separated and, like MJML's shorthand types, limited to one
 // to four values.
-func validateUnit(validUnits []string, isMultipleValues bool) validateAttributeFunc {
+func validateUnit(validUnits []string, isMultipleValues bool) AttributeValidator {
 	maxValues := 1
 	if isMultipleValues {
 		maxValues = 4
@@ -96,7 +103,7 @@ func validateUnit(validUnits []string, isMultipleValues bool) validateAttributeF
 // validateUnitWithNegative is the unitWithNegative type: identical to unit,
 // except that a negative numeric part is allowed. MJML uses it for
 // letter-spacing on text, button, navbar-link and accordion-text.
-func validateUnitWithNegative(validUnits []string, isMultipleValues bool) validateAttributeFunc {
+func validateUnitWithNegative(validUnits []string, isMultipleValues bool) AttributeValidator {
 	maxValues := 1
 	if isMultipleValues {
 		maxValues = 4
@@ -105,7 +112,7 @@ func validateUnitWithNegative(validUnits []string, isMultipleValues bool) valida
 	return validateUnitValues(validUnits, 1, maxValues, true)
 }
 
-func validateUnitValues(validUnits []string, minValues, maxValues int, allowNegative bool) validateAttributeFunc {
+func validateUnitValues(validUnits []string, minValues, maxValues int, allowNegative bool) AttributeValidator {
 	return func(value string) error {
 		if value == "" {
 			return errors.New("empty value is not a valid unit")
@@ -156,7 +163,7 @@ func validateUnitValues(validUnits []string, minValues, maxValues int, allowNega
 	}
 }
 
-func validateInteger() validateAttributeFunc {
+func validateInteger() AttributeValidator {
 	return func(value string) error {
 		if !integerRegex.MatchString(value) {
 			return fmt.Errorf("value %q is not an integer", value)
@@ -165,7 +172,7 @@ func validateInteger() validateAttributeFunc {
 	}
 }
 
-func validateType(expectedType string) validateAttributeFunc {
+func validateType(expectedType string) AttributeValidator {
 	return func(value string) error {
 		switch expectedType {
 		case "string":

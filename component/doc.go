@@ -1,13 +1,13 @@
 // Package component renders the MJML component tree: every body and head
 // component of MJML 4.18, the per-render state the renderer accumulates from the
-// document head, and the validation applied to a parsed document before it is
-// rendered.
+// document head, the validation applied to a parsed document before it is
+// rendered, and the contract a host implements to add a component of its own.
 //
-// The package is exported because the root mjmlgo package and (from ticket T3,
-// issue #4) custom components share it. Part of what it exports is frozen API: the render
-// context fields keep their meaning and their type, methods may be added and
-// fields may not change meaning. See docs/adr/0004-exported-internals-freeze.md
-// for the exact frozen set and for why exporting beat a facade.
+// The package is exported because the root mjmlgo package and custom components
+// share it. Part of what it exports is frozen API: the render context fields
+// keep their meaning and their type, methods may be added and fields may not
+// change meaning. See docs/adr/0004-exported-internals-freeze.md for the exact
+// frozen set and for why exporting beat a facade.
 //
 // # What is API
 //
@@ -17,22 +17,56 @@
 //   - RenderContext and its exported fields: the state a component reads while
 //     rendering, and the structure the parser fills from the head
 //     (mj-attributes, mj-class, mj-font, mj-html-attributes, styles, preview,
-//     title, breakpoint, language and direction).
+//     title, breakpoint, language and direction). CustomComponents holds the
+//     components the renderer was configured with.
 //   - The types those fields are declared with: AttributeMap, Stylesheet, Rule,
-//     MediaRule, Style, HTMLAttributeSelector, HTMLAttribute and
-//     ComponentHeadStyle.
+//     MediaRule, Style, HTMLAttributeSelector, HTMLAttribute,
+//     ComponentHeadStyle and Component.
+//   - Component, ChildComponent and AttributeValidator, the custom-component
+//     contract (see below).
 //   - InitComponent, which validates the attributes the author wrote and then
 //     fills in the component's defaults.
 //   - ValidateDocument, which checks tag names, nesting, attribute values and
 //     mj-class references against MJML's own tables before rendering starts.
-//   - Error, ErrorKind and NewError, the structured failure every validation and
-//     parse site constructs. Callers inspect Kind, Path, Attribute and Value;
-//     errors.Is keeps matching ErrValidation.
+//   - Error, ErrorKind and NewError, the structured failure every validation,
+//     parse and component-registration site constructs. Callers inspect Kind,
+//     Path, Attribute and Value; errors.Is keeps matching ErrValidation.
+//   - IsBuiltinTag, which reports whether a tag is already implemented here and
+//     so cannot be used by a custom component.
 //   - DefaultIDGenerator and the TagName constants.
 //
-// InitComponent and ValidateDocument are safe to call, but their signatures are
-// not frozen: the custom-component contract (T3) and structured errors (T5) are
-// expected to change them.
+// # Custom components
+//
+// A host adds an element without patching this repository by implementing
+// Component and registering it on a renderer (mjmlgo.WithComponents):
+//
+//   - Name is the tag. It must not be empty, must not be registered twice on the
+//     same renderer and must not shadow a built-in element; such a renderer is
+//     rejected with a *Error of kind KindInvalidComponent.
+//   - AllowedAttributes declares every accepted attribute with its validator.
+//     An undeclared author attribute and a value its validator rejects are
+//     validation errors carrying the element path, exactly as for a built-in
+//     component. css-class and mj-class are universal and need no entry, and a
+//     nil validator accepts every value.
+//   - DefaultAttributes returns the values applied when the author wrote none,
+//     after author attributes have been validated. Per-tag defaults from
+//     mj-attributes and attributes from mj-class are applied before those, so a
+//     custom tag takes part in the document's default cascade.
+//   - Render writes the element's HTML from the render context and the node.
+//     Both are the values a built-in component receives, so a custom component
+//     needs no access to package internals.
+//
+// A custom component is a leaf unless it also implements ChildComponent, whose
+// AllowedChildren lists the child tags it accepts; a component without it
+// rejects every child. A custom tag is accepted where content goes - as a
+// direct child of mj-body, mj-column or mj-hero - and not where a layout
+// element is expected. Registration is per renderer: there is no global
+// registry, and two renderers in one process may know different tags.
+//
+// Rendering a ChildComponent's children is that component's own job: the
+// built-in container renderers do not descend into a custom tag. Container
+// support, including head-style contribution, is ticket T4 (issue #5).
+// example/customcomponent is the in-repo example of the whole contract.
 //
 // # What is not API
 //
@@ -46,13 +80,6 @@
 // RemoveNonNumeric, RawBlockStartMarker, RawBlockEndMarker and
 // StripRawBlockMarkers are exported to wire the packages together. They are not
 // meant to be called from outside, and may be changed or unexported.
-//
-// The Component interface is the shape a component has, and is exported so the
-// renderer can hold one, but it is not yet an extension point: its
-// AllowedAttributes method returns an unexported validator type, so code outside
-// this package cannot implement it. The public custom-component contract is a
-// separate ticket (T3, issue #4) and will replace that method with an exported
-// type.
 //
 // # What user code must not touch
 //

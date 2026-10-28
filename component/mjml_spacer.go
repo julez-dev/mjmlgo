@@ -12,8 +12,8 @@ func (s MJMLSpacer) Name() string {
 	return "mj-spacer"
 }
 
-func (s MJMLSpacer) AllowedAttributes() map[string]validateAttributeFunc {
-	return map[string]validateAttributeFunc{
+func (s MJMLSpacer) AllowedAttributes() map[string]AttributeValidator {
+	return map[string]AttributeValidator{
 		"border":                     validateType("string"),
 		"border-bottom":              validateType("string"),
 		"border-left":                validateType("string"),

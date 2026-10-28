@@ -104,12 +104,13 @@ fields too: `AttributeMap` (`map[string]string`), `Stylesheet` (`Rules`,
   the error sentinels and package `node`'s `Parent` semantics are not frozen by
   this ADR.
 - `InitComponent` and `ValidateDocument` are API to call, but their signatures
-  are not frozen: the custom-component contract (T3) and structured errors (T5)
-  are expected to change them, and the package documentation says so.
-- The `Component` interface is not frozen: its `AllowedAttributes` method
-  returns an unexported validator type, so it cannot be implemented outside the
-  package. Ticket T3 (issue #4) replaces that method with an exported type; that
-  is a signature change made deliberately, not a violation of this freeze.
+  are not frozen: validation became custom-component aware in T3 (issue #4) and
+  returns the structured failure of T5 (issue #6), and the package documentation
+  says so.
+- The `Component` interface is not frozen. T3 (issue #4) made it the
+  custom-component contract by replacing its unexported validator type with the
+  exported `AttributeValidator`, and added `ChildComponent` for declared child
+  lists; container support (T4) may extend it further.
 
 ## Compatibility promise
 
@@ -138,8 +139,10 @@ down here for the next revision rather than corrected now:
 - `Node.Parent` is exported because the parser needs it, not because callers
   should use it; the package documentation says so, but the field cannot be
   unexported without changing the shape this ADR freezes.
-- The `Component` interface is public but not implementable outside the package
-  until T3, issue #4 (see above).
+- The `Component` interface is implementable outside the package since T3
+  (issue #4), but a custom tag is only accepted in the content containers
+  (mj-body, mj-column, mj-hero) and children of a custom component are rendered
+  by that component itself (see above).
 - `node.Node.Content` holds raw markup for raw-content elements and plain text
   elsewhere; there is no flag that tells the two apart, so a consumer has to know
   the element's type to interpret it.

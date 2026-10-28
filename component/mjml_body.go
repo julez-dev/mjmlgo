@@ -13,8 +13,8 @@ func (b MJMLBody) Name() string {
 	return "mj-body"
 }
 
-func (b MJMLBody) AllowedAttributes() map[string]validateAttributeFunc {
-	return map[string]validateAttributeFunc{
+func (b MJMLBody) AllowedAttributes() map[string]AttributeValidator {
+	return map[string]AttributeValidator{
 		"background-color": validateColor(),
 		"width":            validateUnit([]string{"px"}, false),
 	}
@@ -88,6 +88,20 @@ func (b MJMLBody) Render(ctx *RenderContext, w io.Writer, n *node.Node) error {
 			}
 			if err := hero.Render(ctx, w, child); err != nil {
 				return err
+			}
+		default:
+			custom, isCustom := customComponent(ctx, child.Type)
+			if !isCustom {
+				// Unreachable while ValidateDocument runs first: every other child
+				// of mj-body is a disallowed-child error before rendering.
+				continue
+			}
+
+			if err := InitComponent(ctx, custom, child); err != nil {
+				return err
+			}
+			if err := custom.Render(ctx, w, child); err != nil {
+				return fmt.Errorf("failed to render <%s>: %w", child.Type, err)
 			}
 		}
 	}

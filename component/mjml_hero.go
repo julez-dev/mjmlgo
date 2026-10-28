@@ -15,8 +15,8 @@ func (h MJMLHero) Name() string {
 	return "mj-hero"
 }
 
-func (h MJMLHero) AllowedAttributes() map[string]validateAttributeFunc {
-	return map[string]validateAttributeFunc{
+func (h MJMLHero) AllowedAttributes() map[string]AttributeValidator {
+	return map[string]AttributeValidator{
 		"mode":                       validateType("string"),
 		"height":                     validateUnit([]string{"px", "%"}, false),
 		"background-url":             validateType("string"),
@@ -254,13 +254,13 @@ func (h MJMLHero) renderContent(ctx *RenderContext, w io.Writer, n *node.Node) e
 	ctx.ContainerWidth = currentContainerWidth
 
 	for _, child := range n.Children {
-		if !allowsChild(HeroTagName, child.Type) {
+		if !allowsChild(ctx, HeroTagName, child.Type) {
 			return NewError(
 				KindDisallowedChild,
 				append(elementPathSegments(n), child.Type),
 				"",
 				child.Type,
-				fmt.Errorf("allowed children: %s", allowedChildList(HeroTagName)),
+				fmt.Errorf("allowed children: %s", allowedChildList(ctx, HeroTagName)),
 			)
 		}
 
@@ -302,7 +302,12 @@ func (h MJMLHero) renderContent(ctx *RenderContext, w io.Writer, n *node.Node) e
 		}
 
 		if childComponent == nil {
-			// Unreachable while the switch above covers every allowed child;
+			childComponent, _ = customComponent(ctx, child.Type)
+		}
+
+		if childComponent == nil {
+			// Unreachable while the switch above covers every built-in allowed
+			// child and validation accepts only registered custom tags on top;
 			// report the broken invariant as internal, not as author input.
 			return fmt.Errorf("no component for allowed child <%s> in <mj-hero>", child.Type)
 		}

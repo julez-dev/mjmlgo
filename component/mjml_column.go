@@ -13,8 +13,8 @@ func (c MJMLColumn) Name() string {
 	return "mj-column"
 }
 
-func (c MJMLColumn) AllowedAttributes() map[string]validateAttributeFunc {
-	return map[string]validateAttributeFunc{
+func (c MJMLColumn) AllowedAttributes() map[string]AttributeValidator {
+	return map[string]AttributeValidator{
 		"background-color":       validateColor(),
 		"border":                 validateType("string"),
 		"border-bottom":          validateType("string"),
@@ -117,13 +117,13 @@ func (c MJMLColumn) renderColumn(ctx *RenderContext, w io.Writer, n *node.Node) 
 	}
 
 	for _, child := range n.Children {
-		if !allowsChild(ColumnTagName, child.Type) {
+		if !allowsChild(ctx, ColumnTagName, child.Type) {
 			return NewError(
 				KindDisallowedChild,
 				append(elementPathSegments(n), child.Type),
 				"",
 				child.Type,
-				fmt.Errorf("allowed children: %s", allowedChildList(ColumnTagName)),
+				fmt.Errorf("allowed children: %s", allowedChildList(ctx, ColumnTagName)),
 			)
 		}
 	}
@@ -241,6 +241,22 @@ func (c MJMLColumn) renderColumn(ctx *RenderContext, w io.Writer, n *node.Node) 
 			_, _ = io.WriteString(w, "<td "+c.tdAttribute(child).InlineString()+">\n")
 			if err := carousel.Render(ctx, w, child); err != nil {
 				return fmt.Errorf("failed to render carousel: %w", err)
+			}
+		default:
+			custom, isCustom := customComponent(ctx, child.Type)
+			if !isCustom {
+				// Unreachable while ValidateDocument runs first: every other child
+				// of mj-column is a disallowed-child error before rendering.
+				continue
+			}
+
+			if err := InitComponent(ctx, custom, child); err != nil {
+				return err
+			}
+
+			_, _ = io.WriteString(w, "<td "+c.tdAttribute(child).InlineString()+">\n")
+			if err := custom.Render(ctx, w, child); err != nil {
+				return fmt.Errorf("failed to render <%s>: %w", child.Type, err)
 			}
 		}
 
