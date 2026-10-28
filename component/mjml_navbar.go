@@ -156,14 +156,17 @@ func (n MJMLNavbar) renderHamburger(ctx *RenderContext, w io.Writer, node *node.
 }
 
 func navbarHeadStyle(breakpoint string) string {
-	return `noinput.mj-menu-checkbox { display:block!important; max-height:none!important; visibility:visible!important; }
+	// Keep the formatting MJML's beautifier produces: component styles are
+	// emitted verbatim, and a stylesheet that the canonicalizer cannot parse
+	// (the accordion style ends with @goodbye) is compared as normalized text.
+	return `noinput.mj-menu-checkbox { display: block !important; max-height: none !important; visibility: visible !important; }
 @media only screen and (max-width:` + navbarLowerBreakpoint(breakpoint) + `) {
-  .mj-menu-checkbox[type="checkbox"] ~ .mj-inline-links { display:none!important; }
-  .mj-menu-checkbox[type="checkbox"]:checked ~ .mj-inline-links,
-  .mj-menu-checkbox[type="checkbox"] ~ .mj-menu-trigger { display:block!important; max-width:none!important; max-height:none!important; font-size:inherit!important; }
-  .mj-menu-checkbox[type="checkbox"] ~ .mj-inline-links > a { display:block!important; }
-  .mj-menu-checkbox[type="checkbox"]:checked ~ .mj-menu-trigger .mj-menu-icon-close { display:block!important; }
-  .mj-menu-checkbox[type="checkbox"]:checked ~ .mj-menu-trigger .mj-menu-icon-open { display:none!important; }
+  .mj-menu-checkbox[type="checkbox"]~.mj-inline-links { display: none !important; }
+  .mj-menu-checkbox[type="checkbox"]:checked~.mj-inline-links,
+  .mj-menu-checkbox[type="checkbox"]~.mj-menu-trigger { display: block !important; max-width: none !important; max-height: none !important; font-size: inherit !important; }
+  .mj-menu-checkbox[type="checkbox"]~.mj-inline-links>a { display: block !important; }
+  .mj-menu-checkbox[type="checkbox"]:checked~.mj-menu-trigger .mj-menu-icon-close { display: block !important; }
+  .mj-menu-checkbox[type="checkbox"]:checked~.mj-menu-trigger .mj-menu-icon-open { display: none !important; }
 }`
 }
 

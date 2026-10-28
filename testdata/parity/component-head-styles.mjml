@@ -1,0 +1,18 @@
+<mjml>
+  <mj-body>
+    <mj-section>
+      <mj-column>
+        <mj-image src="https://example.com/image.png" fluid-on-mobile="true" />
+        <mj-navbar hamburger="hamburger">
+          <mj-navbar-link href="/a">A</mj-navbar-link>
+        </mj-navbar>
+        <mj-accordion>
+          <mj-accordion-element>
+            <mj-accordion-title>T</mj-accordion-title>
+            <mj-accordion-text>X</mj-accordion-text>
+          </mj-accordion-element>
+        </mj-accordion>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>
