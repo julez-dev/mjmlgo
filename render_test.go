@@ -400,3 +400,105 @@ func TestInlineCSS(t *testing.T) {
 		assert.True(t, slices.Contains(randomOrder, out.String()), "returned value should be one of the possible")
 	})
 }
+
+// BenchmarkRenderMJML measures the full pipeline (parse, render, inline CSS,
+// output post-processing) per fixture. The fixture set is the parity corpus, so
+// the numbers describe realistic documents rather than toy inputs.
+//
+// Budgets live in benchmarks/BUDGETS.md.
+func BenchmarkRenderMJML(b *testing.B) {
+	for _, fixture := range mjmlFixtures(b, parityDir) {
+		name := strings.TrimPrefix(filepath.ToSlash(fixture), parityDir+"/")
+
+		b.Run(name, func(b *testing.B) {
+			input, err := os.ReadFile(fixture)
+			if err != nil {
+				b.Fatal(err)
+			}
+
+			if _, err := RenderMJML(bytes.NewReader(input)); err != nil {
+				// Fixtures that do not render yet are tracked by the parity
+				// baseline, not by the benchmarks.
+				b.Skipf("fixture does not render: %v", err)
+			}
+
+			b.ReportAllocs()
+			b.SetBytes(int64(len(input)))
+
+			for b.Loop() {
+				if _, err := RenderMJML(bytes.NewReader(input)); err != nil {
+					b.Fatal(err)
+				}
+			}
+		})
+	}
+}
+
+// BenchmarkParityComparison isolates the test harness cost (normalize both
+// documents and compare them), which gates how large the parity corpus can get.
+func BenchmarkParityComparison(b *testing.B) {
+	for _, fixture := range mjmlFixtures(b, parityDir) {
+		name := strings.TrimPrefix(filepath.ToSlash(fixture), parityDir+"/")
+
+		b.Run(name, func(b *testing.B) {
+			input, err := os.ReadFile(fixture)
+			if err != nil {
+				b.Fatal(err)
+			}
+
+			html, err := RenderMJML(bytes.NewReader(input))
+			if err != nil {
+				b.Skipf("fixture does not render: %v", err)
+			}
+
+			b.ReportAllocs()
+
+			for b.Loop() {
+				if _, err := mjmltest.CompareHTML(html, html); err != nil {
+					b.Fatal(err)
+				}
+			}
+		})
+	}
+}
+
+// FuzzRenderMJML asserts that the renderer never panics on arbitrary input and
+// that anything it accepts produces a well-formed HTML document. Malformed input
+// is expected to return an error (this implementation fails fast).
+func FuzzRenderMJML(f *testing.F) {
+	f.Add(`<mjml><mj-body><mj-section><mj-column><mj-text>Hi</mj-text></mj-column></mj-section></mj-body></mjml>`)
+	f.Add(`<mjml><mj-body></mj-body></mjml>`)
+	f.Add(`<mjml lang="de" dir="rtl"><mj-body><mj-section><mj-column><mj-text font-size="12px">x</mj-text></mj-column></mj-section></mj-body></mjml>`)
+	f.Add(`<mjml><mj-head><mj-attributes><mj-all font-family="Arial" /></mj-attributes></mj-head><mj-body /></mjml>`)
+	f.Add(`<mjml><mj-body><mj-section><mj-column><mj-raw><div>x</div></mj-raw></mj-column></mj-section></mj-body></mjml>`)
+	f.Add(`<mjml><mj-body><mj-section><mj-column><mj-text`)
+	f.Add(``)
+
+	for _, fixture := range []string{"testdata/parity/simple.mjml", "testdata/parity/content.mjml", "testdata/parity/head.mjml"} {
+		input, err := os.ReadFile(fixture)
+		if err != nil {
+			f.Fatal(err)
+		}
+
+		f.Add(string(input))
+	}
+
+	f.Fuzz(func(t *testing.T, source string) {
+		if len(source) > 1<<20 {
+			t.Skip("input too large for a fuzz seed")
+		}
+
+		html, err := RenderMJML(strings.NewReader(source))
+		if err != nil {
+			return
+		}
+
+		if html == "" {
+			t.Fatalf("rendered empty output for input %q", source)
+		}
+
+		if !strings.Contains(strings.ToLower(html), "<!doctype html>") {
+			t.Fatalf("output is not an HTML document: %q", html)
+		}
+	})
+}

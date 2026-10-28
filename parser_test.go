@@ -1,6 +1,9 @@
 package mjmlgo
 
 import (
+	"bytes"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -49,5 +52,54 @@ func TestParse(t *testing.T) {
 		}
 
 		require.Equal(t, "<h1>Test</h1>", rawContent)
+	})
+}
+
+// BenchmarkParse isolates the MJML parser.
+func BenchmarkParse(b *testing.B) {
+	for _, fixture := range mjmlFixtures(b, parityDir) {
+		name := strings.TrimPrefix(filepath.ToSlash(fixture), parityDir+"/")
+
+		b.Run(name, func(b *testing.B) {
+			input, err := os.ReadFile(fixture)
+			if err != nil {
+				b.Fatal(err)
+			}
+
+			b.ReportAllocs()
+			b.SetBytes(int64(len(input)))
+
+			for b.Loop() {
+				if _, err := parse(bytes.NewReader(input)); err != nil {
+					b.Skipf("fixture does not parse: %v", err)
+				}
+			}
+		})
+	}
+}
+
+// FuzzParse asserts the parser never panics and either returns an error or a
+// root node; it deliberately does not require MJML validity.
+func FuzzParse(f *testing.F) {
+	f.Add(`<mjml><mj-body><mj-raw><div></mj-raw></mj-body></mjml>`)
+	f.Add(`<mjml><mj-body><mj-text><h1>Test</h1></mj-text></mj-body></mjml>`)
+	f.Add(`<mjml><mj-body><mj-section attr="value"><mj-column /></mj-section></mj-body></mjml>`)
+	f.Add(`<mjml></mjml><mjml></mjml>`)
+	f.Add(`<mjml><mj-body>`)
+	f.Add(`not mjml`)
+
+	f.Fuzz(func(t *testing.T, source string) {
+		if len(source) > 1<<20 {
+			t.Skip("input too large for a fuzz seed")
+		}
+
+		root, err := parse(bytes.NewReader([]byte(source)))
+		if err != nil {
+			return
+		}
+
+		if root == nil {
+			t.Fatalf("parse returned nil root without an error for input %q", source)
+		}
 	})
 }
