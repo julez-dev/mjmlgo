@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/julez-dev/mjmlgo/node"
+	"github.com/julez-dev/mjmlgo/internal/node"
 	"github.com/stretchr/testify/require"
 )
 
