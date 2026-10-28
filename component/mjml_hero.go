@@ -271,6 +271,8 @@ func (h MJMLHero) renderContent(ctx *RenderContext, w io.Writer, n *node.Node) e
 			childComponent = MJMLSocial{}
 		case TableTagName:
 			childComponent = MJMLTable{}
+		case CarouselTagName:
+			childComponent = MJMLCarousel{}
 		case RawTagName:
 			childComponent = MJMLRaw{}
 		}

@@ -1,0 +1,13 @@
+<mjml>
+  <mj-body>
+    <mj-section>
+      <mj-column>
+        <mj-carousel thumbnails="visible" border-radius="8px" icon-width="32px" tb-width="90px">
+          <mj-carousel-image src="https://example.com/one.png" href="https://example.com/one" alt="First" />
+          <mj-carousel-image src="https://example.com/two.png" thumbnails-src="https://example.com/two-thumb.png" alt="Second" title="Second slide" />
+          <mj-carousel-image src="https://example.com/three.png" />
+        </mj-carousel>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>
