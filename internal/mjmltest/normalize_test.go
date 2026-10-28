@@ -53,6 +53,14 @@ func TestParseHTMLNormalization(t *testing.T) {
 			b:    "<html><head><style>\n  /* layout */\n  .a {\n    color: red;\n  }\n</style></head></html>",
 		},
 		{
+			// Both stylesheets are rejected by the CSS parser, so they are
+			// compared as text; the reference formatter reflows the templating
+			// braces, which must not matter.
+			name: "unparsable stylesheet formatting",
+			a:    "<style>.title { color: {{headlineColor}}; }</style>",
+			b:    "<style>\n  .title {\n    color: {\n        {\n          headlineColor\n        }\n    }\n    ;\n  }\n</style>",
+		},
+		{
 			name: "media query whitespace",
 			a:    "<style>@media only screen and (min-width:480px){.a{width:50%}}</style>",
 			b:    "<style>@media   only screen and (min-width:480px) { .a { width: 50%; } }</style>",

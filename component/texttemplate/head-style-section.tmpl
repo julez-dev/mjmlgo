@@ -72,23 +72,6 @@
 {{ end }}{{ range .ComponentHeadStyles }}{{ . }}
 {{ end }}</style>
 {{ end }}
-{{ if .UserStyles }}
-<style type="text/css">
-{{ range .UserStyles }}
-{{ range .MediaRules }}{{ .Condition }} {
-    {{ range .Rules }}{{ .Selectors }} {
-        {{ range .Declarations }}{{ .Property }}: {{ .Value }}{{ if .Important }} !important{{ end }};
-        {{ end }}
-    }
-    {{end}}
-}
-{{end}}
-{{ range .Rules }}
-    {{ .Selectors }} {
-        {{ range .Declarations }}{{ .Property }}: {{ .Value }}{{ if .Important }} !important{{ end }};
-        {{ end }}
-    }
-{{end}}
-{{end}}
-</style>
-{{end}}
+{{ if .UserStyles }}<style type="text/css">{{ range .UserStyles }}
+{{ . }}{{ end }}
+</style>{{ end }}

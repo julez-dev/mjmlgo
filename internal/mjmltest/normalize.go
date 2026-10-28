@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"unicode"
 
 	"github.com/aymerick/douceur/css"
 	"github.com/aymerick/douceur/parser"
@@ -418,8 +419,10 @@ func canonicalStylesheet(stylesheet string) string {
 
 	parsed, err := parser.Parse(stylesheet)
 	if err != nil {
-		// Keep unparsable content visible instead of hiding a divergence.
-		return normalizeText(stylesheet)
+		// Unparsable stylesheets (template payloads, vendor hacks) are compared
+		// as text with formatting removed. Whitespace around CSS punctuation is
+		// never significant, and formatters reflow it.
+		return normalizeCSSWhitespace(stylesheet)
 	}
 
 	var b strings.Builder
@@ -496,7 +499,46 @@ func normalizeCSSSelector(selector string) string {
 	return cssCombinatorSpacing.ReplaceAllString(selector, "$1")
 }
 
-// normalizeCSSValue collapses runs of whitespace.
+// normalizeCSSValue collapses runs of whitespace and drops whitespace around
+// CSS punctuation. Values carrying template payloads (templating braces are not
+// CSS) are thereby compared independently of how a formatter reflowed them.
 func normalizeCSSValue(value string) string {
-	return normalizeText(strings.TrimSuffix(normalizeText(value), ";"))
+	return normalizeCSSWhitespace(strings.TrimSuffix(normalizeText(value), ";"))
+}
+
+// normalizeCSSWhitespace collapses whitespace and removes it where it cannot be
+// significant: around braces, colons, semicolons and commas.
+func normalizeCSSWhitespace(value string) string {
+	var b strings.Builder
+	b.Grow(len(value))
+
+	pendingSpace := false
+	var prev rune
+
+	for _, char := range value {
+		if unicode.IsSpace(char) {
+			pendingSpace = true
+
+			continue
+		}
+
+		if pendingSpace && b.Len() > 0 && !isCSSPunctuation(prev) && !isCSSPunctuation(char) {
+			b.WriteByte(' ')
+		}
+
+		pendingSpace = false
+		b.WriteRune(char)
+		prev = char
+	}
+
+	return b.String()
+}
+
+func isCSSPunctuation(char rune) bool {
+	switch char {
+	case '{', '}', ':', ';', ',':
+		return true
+	default:
+		return false
+	}
 }

@@ -23,23 +23,25 @@ func (h MJMLHead) DefaultAttributes(_ *RenderContext) map[string]string {
 }
 
 func (h MJMLHead) Render(ctx *RenderContext, w io.Writer, n *node.Node) error {
-	var headStylesheets []Stylesheet
+	var userStyles []string
 	var title string
 	_, _ = io.WriteString(w, `<head>`)
 	for _, child := range n.Children {
 		switch child.Type {
 		case StyleTagName:
-			sheet, err := h.parseCSS(child.Content)
-			if err != nil {
-				return err
-			}
-
+			// MJML adds <mj-style> content to the head verbatim; only
+			// inline="inline" styles are parsed (for the inliner).
 			if v, found := child.GetAttributeValue("inline"); found && v == "inline" {
+				sheet, err := h.parseCSS(child.Content)
+				if err != nil {
+					return err
+				}
+
 				ctx.InlineStyles = append(ctx.InlineStyles, sheet)
 				continue
 			}
 
-			headStylesheets = append(headStylesheets, sheet)
+			userStyles = append(userStyles, child.Content)
 		case TitleTagName:
 			title = child.Content
 		}
@@ -51,7 +53,7 @@ func (h MJMLHead) Render(ctx *RenderContext, w io.Writer, n *node.Node) error {
 		"MJMLStyleOrder":              ctx.orderedMJMLStyles(),
 		"ComponentHeadStyles":         ctx.renderedComponentHeadStyles(),
 		"InstanceComponentHeadStyles": ctx.renderedInstanceComponentHeadStyles(),
-		"UserStyles":                  headStylesheets,
+		"UserStyles":                  userStyles,
 		"IncludeMobileFullWidthStyle": ctx.IncludeMobileFullWidthStyle,
 		"ForceOWADesktop":             ctx.ForceOWADesktop,
 		"LowerBreakpoint":             ctx.makeLowerBreakpoint(),

@@ -118,6 +118,10 @@ func fileStartRawContent(root *node.Node) string {
 // treated as a single raw string, not parsed into child nodes.
 var mjmlEndTags = map[string]struct{}{
 	"mj-raw":             struct{}{},
+	"mj-title":           struct{}{},
+	"mj-preview":         struct{}{},
+	"mj-breakpoint":      struct{}{},
+	"mj-style":           struct{}{},
 	"mj-text":            struct{}{},
 	"mj-button":          struct{}{},
 	"mj-table":           struct{}{},

@@ -1,11 +1,4 @@
 {
   "mjmlVersion": "4.18.0",
-  "fixtures": {
-    "testdata/parity/upstream/mjml--template-syntax-sanitization--01.mjml": {
-      "error": "error rendering \u003cmj-head\u003e: error parsing CSS: Unexpected } character: CHAR (line: 1, column: 33): \"}\""
-    },
-    "testdata/parity/upstream/mjml--template-syntax-sanitization--04.mjml": {
-      "error": "error rendering \u003cmj-head\u003e: error parsing CSS: Unexpected } character: CHAR (line: 1, column: 37): \"}\""
-    }
-  }
+  "fixtures": {}
 }
