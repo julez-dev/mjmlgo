@@ -14,7 +14,9 @@ func (r MJMLRaw) Name() string {
 }
 
 func (r MJMLRaw) AllowedAttributes() map[string]validateAttributeFunc {
-	return make(map[string]validateAttributeFunc)
+	return map[string]validateAttributeFunc{
+		"position": validateEnum([]string{"file-start"}),
+	}
 }
 
 func (r MJMLRaw) DefaultAttributes(_ *RenderContext) map[string]string {

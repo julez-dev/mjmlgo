@@ -114,6 +114,17 @@ func (c MJMLColumn) renderColumn(ctx *RenderContext, w io.Writer, n *node.Node) 
 			return fmt.Errorf("invalid child type %s in column, allowed types are: %v", child.Type, c.allowedChildren())
 		}
 
+		if child.Type == RawTagName {
+			var raw MJMLRaw
+			if err := InitComponent(ctx, raw, child); err != nil {
+				return err
+			}
+			if err := raw.Render(ctx, w, child); err != nil {
+				return fmt.Errorf("failed to render raw: %w", err)
+			}
+			continue
+		}
+
 		_, _ = io.WriteString(w, "<tr>\n")
 		switch child.Type {
 		case DividerTagName:
@@ -300,6 +311,6 @@ func (c MJMLColumn) hasGutter(n *node.Node) bool {
 
 func (c MJMLColumn) allowedChildren() []string {
 	return []string{DividerTagName, SpacerTagName, ImageTagName,
-		TextTagName, SocialTagName, TableTagName, ButtonTagName,
+		TextTagName, SocialTagName, TableTagName, ButtonTagName, RawTagName,
 	}
 }
