@@ -9,11 +9,12 @@ import (
 
 type MJMLRaw struct{}
 
-// Raw block markers let the CSS inliner protect raw markup from HTML table
-// foster-parenting. They are removed from the final output.
+// RawBlockStartMarker and RawBlockEndMarker wrap raw column content so the CSS
+// inliner can protect it from HTML table foster-parenting. They are removed from
+// the final output by StripRawBlockMarkers.
 const (
-	rawBlockStartMarker = "<!--mjmlgo-raw-start-->"
-	rawBlockEndMarker   = "<!--mjmlgo-raw-end-->"
+	RawBlockStartMarker = "<!--mjmlgo-raw-start-->"
+	RawBlockEndMarker   = "<!--mjmlgo-raw-end-->"
 )
 
 func (r MJMLRaw) Name() string {
@@ -33,4 +34,18 @@ func (r MJMLRaw) DefaultAttributes(_ *RenderContext) map[string]string {
 func (r MJMLRaw) Render(_ *RenderContext, w io.Writer, n *node.Node) error {
 	_, _ = io.WriteString(w, strings.TrimSpace(n.Content))
 	return nil
+}
+
+// StripRawBlockMarkers removes the raw-block markers from rendered HTML. The
+// inliner already restores protected blocks, but documents that skip the
+// inlining pass (no inline styles, no <mj-html-attributes>) still carry them.
+func StripRawBlockMarkers(html string) string {
+	if !strings.Contains(html, RawBlockStartMarker) && !strings.Contains(html, RawBlockEndMarker) {
+		return html
+	}
+
+	html = strings.ReplaceAll(html, RawBlockStartMarker, "")
+	html = strings.ReplaceAll(html, RawBlockEndMarker, "")
+
+	return html
 }

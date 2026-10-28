@@ -1,0 +1,1 @@
+element <mj-column> closed by </mj-section>

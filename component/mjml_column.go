@@ -134,11 +134,11 @@ func (c MJMLColumn) renderColumn(ctx *RenderContext, w io.Writer, n *node.Node) 
 			}
 			// Mark the raw block so the CSS inliner can keep it at this position;
 			// html.Parse would otherwise move non-table content out of <tbody>.
-			_, _ = io.WriteString(w, rawBlockStartMarker)
+			_, _ = io.WriteString(w, RawBlockStartMarker)
 			if err := raw.Render(ctx, w, child); err != nil {
 				return fmt.Errorf("failed to render raw: %w", err)
 			}
-			_, _ = io.WriteString(w, rawBlockEndMarker)
+			_, _ = io.WriteString(w, RawBlockEndMarker)
 			continue
 		}
 

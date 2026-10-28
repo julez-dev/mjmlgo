@@ -19,4 +19,5 @@ accordion font inheritance, wrapper `gap`, section gutter, table
 hero padding.
 
 To refresh after a MJML upgrade, re-run the extraction, re-apply the curation
-rule, update the commit above and re-record the parity baseline.
+rule, update the commit above and run the parity test; every difference it reports
+must be reviewed.

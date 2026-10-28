@@ -9,6 +9,7 @@ import (
 
 	"github.com/ericchiang/css"
 	"github.com/julez-dev/mjmlgo/component"
+	"github.com/julez-dev/mjmlgo/node"
 	"golang.org/x/net/html"
 )
 
@@ -22,6 +23,10 @@ func RenderMJML(input io.Reader) (string, error) {
 
 	if node.Type != "mjml" {
 		return "", fmt.Errorf("%w: %s", ErrUnknownStartingTag, node.Type)
+	}
+
+	if err := checkUnsupportedTags(node); err != nil {
+		return "", err
 	}
 
 	var buff strings.Builder
@@ -54,6 +59,10 @@ func RenderMJML(input io.Reader) (string, error) {
 		rendered = inlined.String()
 	}
 
+	// The inliner restores protected raw blocks; documents that skip it still
+	// carry the markers, so strip them either way.
+	rendered = component.StripRawBlockMarkers(rendered)
+
 	// MJML merges adjacent Outlook conditional blocks after rendering, so
 	// contiguous MSO fragments form a single conditional comment.
 	html := component.MergeOutlookConditionals(rendered)
@@ -65,14 +74,11 @@ func RenderMJML(input io.Reader) (string, error) {
 	return html, nil
 }
 
-// rawBlockMarkerPattern matches the markers emitted around raw column content.
-const (
-	rawBlockStartMarker = "<!--mjmlgo-raw-start-->"
-	rawBlockEndMarker   = "<!--mjmlgo-raw-end-->"
-	rawBlockPlaceholder = "<!--mjmlgo-raw-placeholder-%d-->"
-)
+// rawBlockPlaceholder stands in for a protected raw block while the document is
+// parsed for CSS inlining.
+const rawBlockPlaceholder = "<!--mjmlgo-raw-placeholder-%d-->"
 
-var rawBlockMarkerPattern = regexp.MustCompile(`(?s)` + regexp.QuoteMeta(rawBlockStartMarker) + `(.*?)` + regexp.QuoteMeta(rawBlockEndMarker))
+var rawBlockMarkerPattern = regexp.MustCompile(`(?s)` + regexp.QuoteMeta(component.RawBlockStartMarker) + `(.*?)` + regexp.QuoteMeta(component.RawBlockEndMarker))
 
 // protectRawBlocks replaces raw blocks with comment placeholders so the HTML
 // parser cannot move them out of table elements. The original blocks are
@@ -81,7 +87,7 @@ func protectRawBlocks(input string) (string, []string) {
 	var blocks []string
 
 	protected := rawBlockMarkerPattern.ReplaceAllStringFunc(input, func(match string) string {
-		content := strings.TrimSuffix(strings.TrimPrefix(match, rawBlockStartMarker), rawBlockEndMarker)
+		content := strings.TrimSuffix(strings.TrimPrefix(match, component.RawBlockStartMarker), component.RawBlockEndMarker)
 		blocks = append(blocks, content)
 
 		return fmt.Sprintf(rawBlockPlaceholder, len(blocks)-1)
@@ -96,6 +102,26 @@ func restoreRawBlocks(output string, blocks []string) string {
 	}
 
 	return output
+}
+
+// unsupportedTags are MJML features this implementation does not provide yet.
+// Failing loudly beats silently dropping the user's content.
+var unsupportedTags = map[string]string{
+	"mj-include": "mj-include is not implemented; resolve includes before rendering (see PLAN.md, M2)",
+}
+
+func checkUnsupportedTags(n *node.Node) error {
+	if message, ok := unsupportedTags[n.Type]; ok {
+		return fmt.Errorf("mjml: %s", message)
+	}
+
+	for _, child := range n.Children {
+		if err := checkUnsupportedTags(child); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func inlineCSS(ctx *component.RenderContext, r io.Reader, w io.Writer) error {

@@ -24,7 +24,7 @@ func parse(input io.Reader) (*node.Node, error) {
 	}
 
 	dec := xml.NewDecoder(strings.NewReader(protectRawContent(string(fullBytes))))
-	dec.Strict = false
+	dec.Strict = true
 
 	var (
 		stack []*node.Node
@@ -278,15 +278,6 @@ func findClosingTag(input string, from int, name string) (int, int) {
 
 		return idx, end
 	}
-}
-
-func readTagName(input string, start int) string {
-	end := start
-	for end < len(input) && isXMLNameByte(input[end]) {
-		end++
-	}
-
-	return input[start:end]
 }
 
 func isXMLNameByte(char byte) bool {

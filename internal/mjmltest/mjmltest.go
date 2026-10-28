@@ -313,28 +313,6 @@ func (c *CLI) RenderAll(t testing.TB, files []string) map[string]string {
 	return out
 }
 
-// RenderSource renders a single MJML source string and returns the resulting
-// HTML. Include-based fixtures should use RenderAll instead.
-func (c *CLI) RenderSource(t testing.TB, source string) string {
-	t.Helper()
-
-	dir := t.TempDir()
-	path := filepath.Join(dir, "inline.mjml")
-
-	if err := os.WriteFile(path, []byte(source), 0o600); err != nil {
-		t.Fatalf("write inline fixture: %v", err)
-	}
-
-	out := c.renderBatch(t, []string{path})
-
-	html, ok := out[path]
-	if !ok {
-		t.Fatalf("reference MJML produced no output for inline source")
-	}
-
-	return html
-}
-
 func (c *CLI) renderBatch(t testing.TB, files []string) map[string]string {
 	t.Helper()
 

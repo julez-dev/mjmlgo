@@ -172,6 +172,23 @@ func TestRenderWithoutInlineStylesKeepsMarkup(t *testing.T) {
 	}
 }
 
+// TestRenderStripsRawBlockMarkers asserts the markers used internally to protect
+// raw column content never reach the output, including on the fast path that
+// skips the CSS inlining pass.
+func TestRenderStripsRawBlockMarkers(t *testing.T) {
+	t.Parallel()
+
+	for _, fixture := range []string{"raw-in-column.mjml", "raw.mjml", "raw-in-section.mjml"} {
+		input, err := os.ReadFile(filepath.Join(parityDir, fixture))
+		require.NoError(t, err)
+
+		html, err := RenderMJML(bytes.NewReader(input))
+		require.NoError(t, err)
+
+		assert.NotContains(t, html, "mjmlgo-raw", "%s leaked an internal marker", fixture)
+	}
+}
+
 // TestRenderMergesOutlookConditionals asserts the rendered document applies
 // MJML's mergeOutlookConditionnals step: adjacent Outlook conditional blocks are
 // joined so the MSO markup is not fragmented across comments.
@@ -363,8 +380,6 @@ func BenchmarkRenderMJML(b *testing.B) {
 			}
 
 			if _, err := RenderMJML(bytes.NewReader(input)); err != nil {
-				// Fixtures that do not render yet are tracked by the parity
-				// baseline, not by the benchmarks.
 				b.Skipf("fixture does not render: %v", err)
 			}
 

@@ -92,10 +92,9 @@ testdata/invalid/invalid-color.mjml.error.txt   ->  chartreuseish not a valid co
 
 ## Adding fixtures
 
-- Parity: drop a `.mjml` file under `parity/` and re-record the baseline. Keep
-  fixtures small and focused: one fixture per feature area keeps each baseline
-  entry interpretable. Fixtures that cannot render yet are still valuable — they
-  record the missing feature.
+- Parity: drop a `.mjml` file under `parity/`. It must match the reference
+  implementation immediately. Keep fixtures small and focused: one fixture per
+  feature area makes a failure easy to interpret.
 - `parity/input_big.mjml` is the deliberate exception: a 24 KB multi-feature
   document kept as the end-to-end performance fixture
   (`BenchmarkRenderMJML/input_big.mjml`). Its baseline entry is coarse on purpose;

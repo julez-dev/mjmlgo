@@ -8,7 +8,7 @@ against the reference JavaScript implementation.
 | Area | Definition of done |
 | --- | --- |
 | Parity | Every fixture in `testdata/parity/` renders structurally identical HTML to MJML 4.18.0 (normalized DOM **and** normalized CSS). No allowlist: any difference fails. **Achieved** for all 60 fixtures; the baseline file was deleted when it reached zero. |
-| Components | Every MJML 4.18 component renders: body (`mj-body`, `mj-section`, `mj-wrapper`, `mj-column`, `mj-group`, `mj-text`, `mj-image`, `mj-button`, `mj-divider`, `mj-spacer`, `mj-table`, `mj-raw`, `mj-social`, `mj-social-element`, `mj-navbar`, `mj-navbar-link`, `mj-accordion`, `mj-accordion-element`, `mj-accordion-title`, `mj-accordion-text`, `mj-carousel`, `mj-carousel-image`, `mj-hero`) and head (`mj-head`, `mj-attributes` with `mj-all`/`mj-class`/per-tag, `mj-breakpoint`, `mj-font`, `mj-html-attributes`, `mj-preview`, `mj-style`, `mj-title`, `mj-raw`), plus parser-level `mj-include` and `mj-raw position="file-start"`. `mj-map` does not exist in MJML 4.18 and is out of scope. |
+| Components | Every MJML 4.18 component renders: body (`mj-body`, `mj-section`, `mj-wrapper`, `mj-column`, `mj-group`, `mj-text`, `mj-image`, `mj-button`, `mj-divider`, `mj-spacer`, `mj-table`, `mj-raw`, `mj-social`, `mj-social-element`, `mj-navbar`, `mj-navbar-link`, `mj-accordion`, `mj-accordion-element`, `mj-accordion-title`, `mj-accordion-text`, `mj-carousel`, `mj-carousel-image`, `mj-hero`) and head (`mj-head`, `mj-attributes` with `mj-all`/`mj-class`/per-tag, `mj-breakpoint`, `mj-font`, `mj-html-attributes`, `mj-preview`, `mj-style`, `mj-title`, `mj-raw`), plus `mj-raw position="file-start"`. `mj-map` does not exist in MJML 4.18 and is out of scope. `mj-include` is **not** implemented yet: it is rejected with an explicit error instead of being silently dropped, and lands with the `fs.FS` API in M2. |
 | Validation | Fail-fast, hard errors: unknown tags, unknown/invalid attributes, invalid nesting (driven by MJML's own `dependencies.js`), missing required children. Structured errors carry the element path and attribute. This is an intentional divergence from MJML's soft validation; invalid input is covered by `testdata/invalid/`. |
 | API | `NewRenderer(Options)` + `Render(ctx, fs.FS, name, io.Writer)`; `Options` carries `IDGenerator`, custom components, and feature toggles; `RenderString`/`RenderFile`/`RenderBytes` conveniences; `RenderMJML` kept as a deprecated wrapper. Compact output only (no beautifier). |
 | Performance | Benchmarks committed with a documented budget table; CI reports but does not gate. |
@@ -101,6 +101,10 @@ Known divergences at the start: 214 records / 15 root causes (see
   content verbatim, and user CSS is emitted unparsed like MJML does.
 - **parity reached zero**: all 60 fixtures render and match MJML 4.18.0 exactly,
   so the baseline file and its `-update` workflow were deleted.
+- **review follow-ups**: raw-block markers no longer leak into output when the
+  inlining pass is skipped; the XML decoder is strict, so mismatched tags are
+  rejected (new invalid fixtures); `mj-include` fails loudly instead of silently
+  dropping content; dead code from the lanes removed.
 
 Current state: full MJML 4.18 component and head coverage, zero divergences,
 `TestMJMLInvalid` covering fail-fast validation, benchmarks and fuzz targets in
@@ -117,11 +121,10 @@ Work is split into independent lanes, each in its own git worktree
 conflict-free. Rules that keep this safe:
 
 - A lane never merges, pushes or tags; the manager reviews and merges.
-- The parity baseline is a per-lane snapshot; the manager regenerates it on the
-  merged tree and reviews the diff.
 - A lane must prove behaviour by diffing against the reference CLI
-  (`./node_modules/.bin/mjml fixture -s`); "the baseline passes" is not evidence,
-  and re-recording to bless an unexplained new divergence is a defect.
+  (`./node_modules/.bin/mjml fixture -s`); a passing test suite is not evidence on
+  its own, because the harness normalizes formatting and ignores non-Outlook
+  comments.
 
 ## Roadmap
 
