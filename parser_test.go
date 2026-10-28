@@ -10,7 +10,7 @@ import (
 	"testing"
 	"testing/fstest"
 
-	"github.com/julez-dev/mjmlgo/internal/node"
+	"github.com/julez-dev/mjmlgo/node"
 	"github.com/stretchr/testify/require"
 )
 

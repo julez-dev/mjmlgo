@@ -11,7 +11,7 @@ import (
 	"strings"
 
 	"github.com/ericchiang/css"
-	"github.com/julez-dev/mjmlgo/internal/component"
+	"github.com/julez-dev/mjmlgo/component"
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
 )

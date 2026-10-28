@@ -12,8 +12,8 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/julez-dev/mjmlgo/internal/component"
-	"github.com/julez-dev/mjmlgo/internal/node"
+	"github.com/julez-dev/mjmlgo/component"
+	"github.com/julez-dev/mjmlgo/node"
 )
 
 var (

@@ -12,7 +12,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/julez-dev/mjmlgo/internal/component"
+	"github.com/julez-dev/mjmlgo/component"
 )
 
 var (
