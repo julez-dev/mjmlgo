@@ -119,6 +119,10 @@ type RenderContext struct {
 	// fall back to them when they do not set font-family themselves.
 	accordionFontFamily string
 	elementFontFamily   string
+	// fluidOnMobileClasses holds the class names custom components registered
+	// through AddFluidOnMobileClass, in registration order. mj-image's own class
+	// stays behind the IncludeMobileFullWidthStyle flag.
+	fluidOnMobileClasses []string
 }
 
 // HTMLAttribute is one attribute set by <mj-html-attribute>.
@@ -157,6 +161,66 @@ func (c *RenderContext) addHTMLAttribute(path, name, value string) {
 		Path:       path,
 		Attributes: []HTMLAttribute{{Name: name, Value: value}},
 	})
+}
+
+// AddMediaQuery contributes className to the document's breakpoint media query.
+// It is the mechanism the built-in columns and groups use for their width
+// classes: the rules are emitted inside
+// `@media only screen and (min-width: <breakpoint>)` for className, and repeated
+// in the Thunderbird, print and desktop-Outlook variants MJML generates. A class
+// is emitted in first-registration order and registered once, so two instances
+// of a component contribute one block; registering a class again replaces its
+// rules.
+func (c *RenderContext) AddMediaQuery(className string, declarations []string) {
+	c.addMJMLStyle(className, declarations)
+}
+
+// AddComponentHeadStyle contributes a named stylesheet to the document head,
+// rendered with the document breakpoint. It is the mechanism the built-in
+// navbar, accordion and image components use. The block is keyed by name: a
+// component registering the same name again - its second instance, for example -
+// replaces the previous block and keeps its position, so the head carries one
+// deterministic block per component.
+func (c *RenderContext) AddComponentHeadStyle(name string, style func(breakpoint string) string) {
+	c.addComponentHeadStyle(name, style)
+}
+
+// AddFluidOnMobileClass makes the head emit MJML's fluid-on-mobile rule for
+// className: inside the media query below the breakpoint,
+// `table.<className>` gets width:100% !important and `td.<className>` width:auto
+// !important. It is the rule mj-image's fluid-on-mobile attribute uses, exposed
+// so a custom component can opt its own class in. Classes are emitted in
+// first-registration order, deduplicated, and after mj-image's own class when
+// the document has one.
+func (c *RenderContext) AddFluidOnMobileClass(className string) {
+	if className == "" || slices.Contains(c.fluidOnMobileClasses, className) {
+		return
+	}
+
+	c.fluidOnMobileClasses = append(c.fluidOnMobileClasses, className)
+}
+
+// fluidOnMobileClassList is the ordered, de-duplicated list of classes that
+// receive the fluid-on-mobile rule: mj-image's fixed class first when the
+// document has an image, then the classes custom components registered.
+func (c RenderContext) fluidOnMobileClassList() []string {
+	if !c.IncludeMobileFullWidthStyle && len(c.fluidOnMobileClasses) == 0 {
+		return nil
+	}
+
+	classes := make([]string, 0, 1+len(c.fluidOnMobileClasses))
+
+	if c.IncludeMobileFullWidthStyle {
+		classes = append(classes, "mj-full-width-mobile")
+	}
+
+	for _, className := range c.fluidOnMobileClasses {
+		if !slices.Contains(classes, className) {
+			classes = append(classes, className)
+		}
+	}
+
+	return classes
 }
 
 // addMJMLStyle records a generated component stylesheet in insertion order.

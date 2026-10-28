@@ -234,6 +234,15 @@ func (namedComponent) DefaultAttributes(*component.RenderContext) map[string]str
 
 func (namedComponent) Render(*component.RenderContext, io.Writer, *node.Node) error { return nil }
 
+// childNamedComponent is a namedComponent that declares children, for the
+// registration tests that are about a container's declared child list.
+type childNamedComponent struct {
+	namedComponent
+	children []string
+}
+
+func (c childNamedComponent) AllowedChildren() []string { return c.children }
+
 // TestWithComponentsRejectsInvalidRegistration asserts a renderer refuses a
 // component it cannot register, with a structured error instead of a plain one.
 // The failure is about the renderer's configuration, so it applies to every
@@ -288,6 +297,39 @@ func TestWithComponentsRejectsInvalidRegistration(t *testing.T) {
 			name:     "typed nil component",
 			renderer: mjmlgo.NewRenderer(mjmlgo.WithComponents((*customcomponent.Badge)(nil))),
 			path:     []string{component.MJMLTagName},
+		},
+		{
+			name: "container declaring a head element",
+			renderer: mjmlgo.NewRenderer(mjmlgo.WithComponents(
+				childNamedComponent{
+					namedComponent: namedComponent{tag: "mj-panel"},
+					children:       []string{component.TitleTagName},
+				},
+			)),
+			path:  []string{"mj-panel"},
+			value: component.TitleTagName,
+		},
+		{
+			name: "container declaring an unknown element",
+			renderer: mjmlgo.NewRenderer(mjmlgo.WithComponents(
+				childNamedComponent{
+					namedComponent: namedComponent{tag: "mj-panel"},
+					children:       []string{"mj-nope"},
+				},
+			)),
+			path:  []string{"mj-panel"},
+			value: "mj-nope",
+		},
+		{
+			name: "container declaring a layout element",
+			renderer: mjmlgo.NewRenderer(mjmlgo.WithComponents(
+				childNamedComponent{
+					namedComponent: namedComponent{tag: "mj-panel"},
+					children:       []string{component.SectionTagName},
+				},
+			)),
+			path:  []string{"mj-panel"},
+			value: component.SectionTagName,
 		},
 	}
 
@@ -455,4 +497,100 @@ func (failingComponent) DefaultAttributes(*component.RenderContext) map[string]s
 
 func (failingComponent) Render(*component.RenderContext, io.Writer, *node.Node) error {
 	return errCustomRender
+}
+
+// noticeHTML is the exact wrapper the example container renders around its
+// children.
+func noticeHTML(children string) string {
+	return `<table role="presentation" border="0" cellpadding="0" cellspacing="0" class="mj-notice mj-notice-fluid">` +
+		`<tbody><tr><td align="left" style="background-color:#fef3c7;border:1px solid #f59e0b;border-radius:6px;` +
+		`font-family:Helvetica,Arial,sans-serif;font-size:13px;line-height:1;padding:12px 16px;">` +
+		children + `</td></tr></tbody></table>`
+}
+
+// textHTML is the exact markup mj-text renders with its defaults.
+func textHTML(content string) string {
+	return `<div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;` +
+		`text-align:left;color:#000000;">` + content + "</div>\n"
+}
+
+// TestCustomContainerRendersChildrenAndWrapper asserts the exact column cell of
+// a custom container at its document position: the container's own wrapper
+// around the built-in child, rendered by that child's own component.
+func TestCustomContainerRendersChildrenAndWrapper(t *testing.T) {
+	t.Parallel()
+
+	const document = `<mjml><mj-body><mj-section><mj-column>` +
+		`<mj-notice><mj-text>Hello</mj-text></mj-notice>` +
+		`</mj-column></mj-section></mj-body></mjml>`
+
+	assert.Contains(t,
+		bodyContent(t, renderWithComponents(t, document, customcomponent.Notice{})),
+		"<tr>\n<td style=\"font-size:0px;word-break:break-word;\">\n"+
+			noticeHTML(textHTML("Hello"))+
+			"</td>\n</tr>",
+	)
+}
+
+// TestCustomContainerAppliesChildDefaults asserts a container's built-in child
+// takes part in the document's default cascade: the per-tag defaults from
+// mj-attributes are applied to the child before it renders.
+func TestCustomContainerAppliesChildDefaults(t *testing.T) {
+	t.Parallel()
+
+	const document = `<mjml><mj-head><mj-attributes>` +
+		`<mj-text color="#123456" />` +
+		`</mj-attributes></mj-head><mj-body><mj-section><mj-column>` +
+		`<mj-notice><mj-text>Hello</mj-text></mj-notice>` +
+		`</mj-column></mj-section></mj-body></mjml>`
+
+	rendered := renderWithComponents(t, document, customcomponent.Notice{})
+
+	assert.Contains(t, rendered, "text-align:left;color:#123456;\">Hello</div>")
+}
+
+// TestCustomContainerHeadCSSIsDeterministic asserts the CSS a container
+// contributes is emitted once per document - the named block and the class rules
+// are de-duplicated across instances - and that two renders of the same document
+// produce the same bytes.
+func TestCustomContainerHeadCSSIsDeterministic(t *testing.T) {
+	t.Parallel()
+
+	const document = `<mjml><mj-body><mj-section><mj-column>` +
+		`<mj-notice><mj-text>One</mj-text></mj-notice>` +
+		`<mj-notice><mj-text>Two</mj-text></mj-notice>` +
+		`</mj-column></mj-section></mj-body></mjml>`
+
+	first := renderWithComponents(t, document, customcomponent.Notice{})
+	second := renderWithComponents(t, document, customcomponent.Notice{})
+
+	assert.Equal(t, first, second, "repeated renders must be byte-identical")
+	assert.Equal(t, 1, strings.Count(first, ".mj-notice { padding: 16px !important; }"), "the named block is emitted once")
+	assert.Equal(t, 2, strings.Count(first, ".mj-notice-inline {"),
+		"the media-query class is emitted once, in the base and Thunderbird variants")
+	assert.Equal(t, 1, strings.Count(first, "table.mj-notice-fluid { width: 100% !important; }"),
+		"the fluid-on-mobile rule is emitted once")
+	assert.Contains(t, first, "@media only screen and (max-width:479px) {")
+	assert.Contains(t, first, "@media only screen and (min-width:480px) {")
+}
+
+// TestCustomContainerRejectsUndeclaredChild asserts a child outside a
+// container's declared child list fails document validation with the element
+// path, exactly like a built-in container's disallowed child.
+func TestCustomContainerRejectsUndeclaredChild(t *testing.T) {
+	t.Parallel()
+
+	const document = `<mjml><mj-body><mj-section><mj-column>` +
+		`<mj-notice><mj-image src="a.png" /></mj-notice>` +
+		`</mj-column></mj-section></mj-body></mjml>`
+
+	_, err := renderErr(t, document, customcomponent.Notice{})
+	require.Error(t, err)
+
+	structured := structuredError(t, err)
+	assert.Equal(t, component.KindDisallowedChild, structured.Kind)
+	assert.Equal(t, []string{"mj-body", "mj-section", "mj-column", "mj-notice", "mj-image"}, structured.Path)
+	assert.Equal(t, "mj-image", structured.Value)
+	assert.ErrorIs(t, err, component.ErrValidation)
+	assert.Contains(t, err.Error(), "allowed children: mj-text")
 }
