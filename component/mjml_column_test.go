@@ -147,3 +147,78 @@ func TestMJMLColumnRender(t *testing.T) {
 		require.Less(t, raw, secondTR, "raw markup must precede the second row")
 	})
 }
+
+func TestMJMLColumnChildContainerWidth(t *testing.T) {
+	t.Parallel()
+
+	n := &node.Node{
+		Attributes: []xml.Attr{
+			{Name: xml.Name{Local: "width"}, Value: "50%"},
+			{Name: xml.Name{Local: "padding"}, Value: "10px 25px"},
+			{Name: xml.Name{Local: "inner-border-left"}, Value: "5px solid #000"},
+			{Name: xml.Name{Local: "inner-border-right"}, Value: "5px solid #000"},
+		},
+		Parent: &node.Node{
+			Children: []*node.Node{{Type: ColumnTagName}},
+		},
+	}
+
+	var column MJMLColumn
+	width, err := column.childContainerWidth(&RenderContext{ContainerWidth: "600px"}, n)
+	require.NoError(t, err)
+	// 600 * 50% - (2*25 + 2*5) = 240
+	require.Equal(t, "240px", width)
+}
+
+func TestMJMLColumnBorderRadiusStyles(t *testing.T) {
+	t.Parallel()
+
+	n := &node.Node{
+		Attributes: []xml.Attr{
+			{Name: xml.Name{Local: "border-radius"}, Value: "50px"},
+			{Name: xml.Name{Local: "inner-border-radius"}, Value: "40px"},
+			{Name: xml.Name{Local: "padding"}, Value: "50px"},
+			{Name: xml.Name{Local: "border"}, Value: "5px solid #000"},
+			{Name: xml.Name{Local: "inner-border"}, Value: "5px solid #666"},
+		},
+		Parent: &node.Node{Children: []*node.Node{{Type: ColumnTagName}}},
+	}
+
+	var column MJMLColumn
+
+	outer := column.outerTableStyle(n).InlineString()
+	require.Contains(t, outer, "border-radius:50px;")
+	require.Contains(t, outer, "border-collapse:separate;")
+
+	inner := column.tableStyle(n).InlineString()
+	require.Contains(t, inner, "border-radius:40px;")
+	require.Contains(t, inner, "border-collapse:separate;")
+	require.Contains(t, inner, "border:5px solid #666;")
+}
+
+func TestMJMLColumnGutterKeepsBackground(t *testing.T) {
+	t.Parallel()
+
+	ctx := &RenderContext{
+		ContainerWidth: "600px",
+		MJMLStylesheet: make(map[string][]string),
+	}
+	parent := &node.Node{Children: []*node.Node{}}
+	n := &node.Node{
+		Parent: parent,
+		Attributes: []xml.Attr{
+			{Name: xml.Name{Local: "background-color"}, Value: "#fafafa"},
+			{Name: xml.Name{Local: "padding"}, Value: "10px"},
+		},
+	}
+	parent.Children = append(parent.Children, n)
+
+	var column MJMLColumn
+	require.NoError(t, InitComponent(ctx, column, n))
+
+	b := strings.Builder{}
+	require.NoError(t, column.Render(ctx, &b, n))
+
+	require.Contains(t, b.String(), `background-color:#fafafa;`)
+	require.Contains(t, b.String(), `padding:10px;`)
+}

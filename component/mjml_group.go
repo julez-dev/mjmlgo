@@ -113,6 +113,12 @@ func (g MJMLGroup) Render(ctx *RenderContext, w io.Writer, n *node.Node) error {
 		return err
 	}
 
+	previousContainerWidth := ctx.ContainerWidth
+	ctx.ContainerWidth = groupWidth
+	defer func() {
+		ctx.ContainerWidth = previousContainerWidth
+	}()
+
 	_, _ = io.WriteString(w, "<div "+inlineAttributes{
 		"class": classesName,
 		"style": styles["div"].InlineString(),

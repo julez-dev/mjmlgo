@@ -3,7 +3,6 @@ package component
 import (
 	"fmt"
 	"io"
-	"strconv"
 	"strings"
 
 	"github.com/julez-dev/mjmlgo/node"
@@ -122,7 +121,7 @@ func (d MJMLDivider) getStyles(ctx *RenderContext, n *node.Node) (map[string]inl
 }
 
 func (d MJMLDivider) getOutlookWidth(ctx *RenderContext, n *node.Node) (string, error) {
-	parsedContainerWidth, err := strconv.Atoi(RemoveNonNumeric(ctx.ContainerWidth))
+	parsedContainerWidth, err := parseIntWidth(ctx.ContainerWidth)
 	if err != nil {
 		return "", err
 	}
@@ -148,8 +147,9 @@ func (d MJMLDivider) getOutlookWidth(ctx *RenderContext, n *node.Node) (string, 
 	switch unit {
 	case "%":
 		effectiveWidth := parsedContainerWidth - paddingSize
-		percentMultiplier := int(parsed) / 100
-		return fmt.Sprintf("%dpx", effectiveWidth*percentMultiplier), nil
+		// MJML multiplies by parsedWidth/100 as a float, so keep the exact
+		// fractional result (e.g. 80% of 530px is 424px, 33% of 528px is 174.9px).
+		return formatPixelWidth(float64(effectiveWidth*int(parsed)) / 100), nil
 	case "px":
 		return width, nil
 	default:

@@ -218,6 +218,73 @@ func parseWidth(width string) (float64, string, error) {
 	return parsedValue, unit, nil
 }
 
+// parseIntWidth reads a leading integer from a CSS length the way JavaScript's
+// parseInt does, stopping at the first non-digit. Unlike RemoveNonNumeric it
+// handles fractional widths such as "174.24px" correctly (174).
+func parseIntWidth(s string) (int, error) {
+	s = strings.TrimSpace(s)
+
+	i := 0
+	if i < len(s) && (s[i] == '+' || s[i] == '-') {
+		i++
+	}
+
+	start := i
+	for i < len(s) && s[i] >= '0' && s[i] <= '9' {
+		i++
+	}
+
+	if i == start {
+		return 0, fmt.Errorf("invalid width: %q", s)
+	}
+
+	return strconv.Atoi(s[:i])
+}
+
+// parseFloatWidth reads a leading floating point value from a CSS length,
+// stopping at the unit. It mirrors parseFloat("600px") / parseFloat("174.24px").
+func parseFloatWidth(s string) (float64, error) {
+	s = strings.TrimSpace(s)
+
+	i := 0
+	if i < len(s) && (s[i] == '+' || s[i] == '-') {
+		i++
+	}
+
+	start := i
+	seenDot := false
+	for i < len(s) {
+		c := s[i]
+		if c >= '0' && c <= '9' {
+			i++
+			continue
+		}
+		if c == '.' && !seenDot {
+			seenDot = true
+			i++
+			continue
+		}
+		break
+	}
+
+	if i == start {
+		return 0, fmt.Errorf("invalid width: %q", s)
+	}
+
+	return strconv.ParseFloat(s[:i], 64)
+}
+
+// formatNumber renders a float like JavaScript's Number#toString for the values
+// used here: no trailing zeros and no exponent.
+func formatNumber(v float64) string {
+	return strconv.FormatFloat(v, 'f', -1, 64)
+}
+
+// formatPixelWidth formats a numeric pixel value as "<value>px".
+func formatPixelWidth(v float64) string {
+	return formatNumber(v) + "px"
+}
+
 func RemoveNonNumeric(s string) string {
 	var builder strings.Builder
 
@@ -257,7 +324,7 @@ func getContentWidth(ctx *RenderContext, n *node.Node) (int, error) {
 }
 
 func getBoxWidths(ctx *RenderContext, n *node.Node) (map[string]int, error) {
-	parsedWidth, err := strconv.Atoi(RemoveNonNumeric(ctx.ContainerWidth))
+	parsedWidth, err := parseIntWidth(ctx.ContainerWidth)
 	if err != nil {
 		return nil, fmt.Errorf("invalid container width: %w", err)
 	}

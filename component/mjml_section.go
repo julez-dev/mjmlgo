@@ -34,6 +34,7 @@ func (s MJMLSection) AllowedAttributes() map[string]validateAttributeFunc {
 		"border-top":            validateType("string"),
 		"direction":             validateEnum([]string{"ltr", "rtl"}),
 		"full-width":            validateEnum([]string{"full-width", "false"}),
+		"gap":                   validateUnit([]string{"px"}, false),
 		"padding-bottom":        validateUnit([]string{"px", "%"}, false),
 		"padding-left":          validateUnit([]string{"px", "%"}, false),
 		"padding-right":         validateUnit([]string{"px", "%"}, false),
@@ -85,7 +86,6 @@ func (s MJMLSection) renderFullWidth(ctx *RenderContext, w io.Writer, n *node.No
 	}
 
 	tableStyle := inlineStyle{
-		{Property: "border-radius", Value: n.GetAttributeValueDefault("border-radius")},
 		{Property: "width", Value: "100%"},
 	}
 
@@ -159,24 +159,23 @@ func (s MJMLSection) renderBefore(ctx *RenderContext, w io.Writer, n *node.Node)
 		"role":        "presentation",
 	}
 
-	if s.IsWrapper {
-		attr["width"] = RemoveNonNumeric(ctx.ContainerWidth)
-		attr["style"] = inlineStyle{{Property: "width", Value: ctx.ContainerWidth}}.InlineString()
-	} else {
-		if n.Parent.Type == WrapperTagName {
-			box, err := getBoxWidths(ctx, n.Parent)
-			if err != nil {
-				return err
-			}
-			attr["width"] = fmt.Sprintf("%d", box["box"])
-			attr["style"] = inlineStyle{{Property: "width", Value: fmt.Sprintf("%dpx", box["box"])}}.InlineString()
-		} else {
-			attr["width"] = RemoveNonNumeric(ctx.ContainerWidth)
-			attr["style"] = inlineStyle{{Property: "width", Value: ctx.ContainerWidth}}.InlineString()
-		}
+	width, err := parseIntWidth(ctx.ContainerWidth)
+	if err != nil {
+		return err
 	}
 
-	if hasBackgroundColor {
+	attr["width"] = fmt.Sprintf("%d", width)
+
+	gap := sectionGap(n)
+	style := inlineStyle{{Property: "width", Value: ctx.ContainerWidth}}
+	if gap != "" && !isFirstSibling(n) {
+		style = append(style, Style{Property: "padding-top", Value: gap})
+	}
+	attr["style"] = style.InlineString()
+
+	// A wrapper gap replaces the background colour on the Outlook seat: the gap
+	// is rendered by the section itself so the colour would fill the gap.
+	if hasBackgroundColor && gap == "" {
 		attr["bgcolor"] = bgcolor
 	}
 
@@ -193,6 +192,15 @@ func (s MJMLSection) renderSection(ctx *RenderContext, w io.Writer, n *node.Node
 	var isFullWidth bool
 	if v, ok := n.GetAttributeValue("full-width"); ok && v == "full-width" {
 		isFullWidth = true
+	}
+
+	containerWidth := ctx.ContainerWidth
+	borderRadius, hasBorderRadius := n.GetAttributeValue("border-radius")
+	hasBorderRadius = hasBorderRadius && borderRadius != ""
+
+	box, err := getBoxWidths(ctx, n)
+	if err != nil {
+		return err
 	}
 
 	_, hasBackground := n.GetAttributeValue("background-url")
@@ -225,25 +233,15 @@ func (s MJMLSection) renderSection(ctx *RenderContext, w io.Writer, n *node.Node
 		{Property: "border-radius", Value: n.GetAttributeValueDefault("border-radius")},
 	}
 
-	if s.IsWrapper {
-		divStyle = append(divStyle, Style{Property: "max-width", Value: ctx.ContainerWidth})
-	} else {
-		if n.Parent.Type == WrapperTagName {
-			box, err := getBoxWidths(ctx, n.Parent)
-			if err != nil {
-				return err
-			}
-
-			defer func(val string) {
-				ctx.ContainerWidth = val
-			}(ctx.ContainerWidth)
-
-			ctx.ContainerWidth = fmt.Sprintf("%dpx", box["box"])
-			divStyle = append(divStyle, Style{Property: "max-width", Value: fmt.Sprintf("%dpx", box["box"])})
-		} else {
-			divStyle = append(divStyle, Style{Property: "max-width", Value: ctx.ContainerWidth})
-		}
+	if hasBorderRadius {
+		divStyle = append(divStyle, Style{Property: "overflow", Value: "hidden"})
 	}
+
+	if gap := sectionGap(n); gap != "" && !isFirstSibling(n) {
+		divStyle = append(divStyle, Style{Property: "margin-top", Value: gap})
+	}
+
+	divStyle = append(divStyle, Style{Property: "max-width", Value: containerWidth})
 
 	innerDivStyle := inlineStyle{
 		{Property: "line-height", Value: "0"},
@@ -260,11 +258,14 @@ func (s MJMLSection) renderSection(ctx *RenderContext, w io.Writer, n *node.Node
 
 	tableStyle := inlineStyle{
 		{Property: "width", Value: "100%"},
-		{Property: "border-radius", Value: n.GetAttributeValueDefault("border-radius")},
 	}
 
 	if !isFullWidth {
 		tableStyle = append(tableStyle, backgroundStyle...)
+	}
+
+	if hasBorderRadius {
+		tableStyle = append(tableStyle, Style{Property: "border-collapse", Value: "separate"})
 	}
 
 	tableAttr := inlineAttributes{
@@ -284,6 +285,7 @@ func (s MJMLSection) renderSection(ctx *RenderContext, w io.Writer, n *node.Node
 		{Property: "border", Value: n.GetAttributeValueDefault("border")},
 		{Property: "border-bottom", Value: n.GetAttributeValueDefault("border-bottom")},
 		{Property: "border-left", Value: n.GetAttributeValueDefault("border-left")},
+		{Property: "border-radius", Value: n.GetAttributeValueDefault("border-radius")},
 		{Property: "border-right", Value: n.GetAttributeValueDefault("border-right")},
 		{Property: "border-top", Value: n.GetAttributeValueDefault("border-top")},
 		{Property: "direction", Value: n.GetAttributeValueDefault("direction")},
@@ -307,7 +309,18 @@ func (s MJMLSection) renderSection(ctx *RenderContext, w io.Writer, n *node.Node
 	_, _ = io.WriteString(w, "<td "+inlineAttributes{"style": tdStyle.InlineString()}.InlineString()+">\n")
 	_, _ = io.WriteString(w, "<!--[if mso | IE]><table role=\"presentation\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\"><![endif]-->\n")
 
-	if err := s.renderWrappedChildren(ctx, w, n); err != nil {
+	previousContainerWidth := ctx.ContainerWidth
+	ctx.ContainerWidth = fmt.Sprintf("%dpx", box["box"])
+	defer func() {
+		ctx.ContainerWidth = previousContainerWidth
+	}()
+
+	channelWidth := containerWidth
+	if !s.IsWrapper {
+		channelWidth = ctx.ContainerWidth
+	}
+
+	if err := s.renderWrappedChildren(ctx, w, n, channelWidth); err != nil {
 		return err
 	}
 
@@ -325,7 +338,7 @@ func (s MJMLSection) renderSection(ctx *RenderContext, w io.Writer, n *node.Node
 	return nil
 }
 
-func (s MJMLSection) renderWrappedChildren(ctx *RenderContext, w io.Writer, n *node.Node) error {
+func (s MJMLSection) renderWrappedChildren(ctx *RenderContext, w io.Writer, n *node.Node, wrapperWidth string) error {
 	if !s.IsWrapper {
 		_, _ = io.WriteString(w, "<!--[if mso | IE]><tr><![endif]-->\n")
 
@@ -348,23 +361,14 @@ func (s MJMLSection) renderWrappedChildren(ctx *RenderContext, w io.Writer, n *n
 					return err
 				}
 
-				tdStyle := inlineStyle{
-					{Property: "vertical-align", Value: child.GetAttributeValueDefault("vertical-align")},
-				}
-
-				width, err := getBoxWidths(ctx, n)
+				width, err := getWidthAsPixel(ctx, child)
 				if err != nil {
 					return err
 				}
 
-				tdStyle = append(tdStyle, Style{Property: "width", Value: fmt.Sprintf("%dpx", width["box"])})
-
-				tdAttr := inlineAttributes{
-					"align": child.GetAttributeValueDefault("align"),
-					"class": addSuffixToClasses(child.GetAttributeValueDefault("css-class"), "outlook"),
-					"style": tdStyle.InlineString(),
+				if err := renderOutlookSeat(w, child, width); err != nil {
+					return err
 				}
-				_, _ = io.WriteString(w, "<!--[if mso | IE]><td "+tdAttr.InlineString()+"><![endif]-->\n")
 				if err := column.Render(ctx, w, child); err != nil {
 					return err
 				}
@@ -374,9 +378,19 @@ func (s MJMLSection) renderWrappedChildren(ctx *RenderContext, w io.Writer, n *n
 				if err := InitComponent(ctx, group, child); err != nil {
 					return err
 				}
+
+				width, err := getWidthAsPixel(ctx, child)
+				if err != nil {
+					return err
+				}
+
+				if err := renderOutlookSeat(w, child, width); err != nil {
+					return err
+				}
 				if err := group.Render(ctx, w, child); err != nil {
 					return err
 				}
+				_, _ = io.WriteString(w, "<!--[if mso | IE]></td><![endif]-->\n")
 			}
 		}
 
@@ -398,11 +412,8 @@ func (s MJMLSection) renderWrappedChildren(ctx *RenderContext, w io.Writer, n *n
 
 		attr := inlineAttributes{
 			"align": child.GetAttributeValueDefault("align"),
-			"width": ctx.ContainerWidth,
-		}
-
-		if class, has := child.GetAttributeValue("class"); has {
-			attr["class"] = addSuffixToClasses(class, "outlook")
+			"class": addSuffixToClasses(child.GetAttributeValueDefault("css-class"), "outlook"),
+			"width": wrapperWidth,
 		}
 
 		_, _ = io.WriteString(w, "<!--[if mso | IE]><tr>")
@@ -421,6 +432,47 @@ func (s MJMLSection) renderWrappedChildren(ctx *RenderContext, w io.Writer, n *n
 	}
 
 	return nil
+}
+
+// renderOutlookSeat emits the conditional <td> that reserves a column's (or
+// group's) width in the section's Outlook table.
+func renderOutlookSeat(w io.Writer, child *node.Node, width string) error {
+	tdStyle := inlineStyle{
+		{Property: "vertical-align", Value: child.GetAttributeValueDefault("vertical-align")},
+		{Property: "width", Value: width},
+	}
+
+	tdAttr := inlineAttributes{
+		"align": child.GetAttributeValueDefault("align"),
+		"class": addSuffixToClasses(child.GetAttributeValueDefault("css-class"), "outlook"),
+		"style": tdStyle.InlineString(),
+	}
+
+	_, err := io.WriteString(w, "<!--[if mso | IE]><td "+tdAttr.InlineString()+"><![endif]-->\n")
+
+	return err
+}
+
+// sectionGap returns the wrapper gap that applies to n: only direct children of
+// an <mj-wrapper> inherit its gap, matching MJML's section child context.
+func sectionGap(n *node.Node) string {
+	if n.Parent == nil || n.Parent.Type != WrapperTagName {
+		return ""
+	}
+
+	gap, _ := n.Parent.GetAttributeValue("gap")
+
+	return gap
+}
+
+// isFirstSibling reports whether n is the first child of its parent. MJML uses
+// props.index for this, which counts raw children too.
+func isFirstSibling(n *node.Node) bool {
+	if n.Parent == nil || len(n.Parent.Children) == 0 {
+		return true
+	}
+
+	return n.Parent.Children[0] == n
 }
 
 func (s MJMLSection) renderAfter(_ *RenderContext, w io.Writer, _ *node.Node) error {

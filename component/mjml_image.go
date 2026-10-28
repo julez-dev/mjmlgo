@@ -168,6 +168,7 @@ func (i MJMLImage) getStyles(ctx *RenderContext, n *node.Node) (map[string]inlin
 		{Property: "border-right", Value: n.GetAttributeValueDefault("border-right")},
 		{Property: "border-top", Value: n.GetAttributeValueDefault("border-top")},
 		{Property: "border-bottom", Value: n.GetAttributeValueDefault("border-bottom")},
+		{Property: "border-radius", Value: n.GetAttributeValueDefault("border-radius")},
 		{Property: "display", Value: "block"},
 		{Property: "outline", Value: "none"},
 		{Property: "text-decoration", Value: "none"},

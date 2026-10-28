@@ -80,6 +80,17 @@ func (c MJMLColumn) Render(ctx *RenderContext, w io.Writer, n *node.Node) error 
 	divStyle = append(divStyle, Style{Property: "width", Value: divWidth})
 	divAttr["style"] = divStyle.InlineString()
 
+	childWidth, err := c.childContainerWidth(ctx, n)
+	if err != nil {
+		return fmt.Errorf("failed to get child container width: %w", err)
+	}
+
+	previousContainerWidth := ctx.ContainerWidth
+	ctx.ContainerWidth = childWidth
+	defer func() {
+		ctx.ContainerWidth = previousContainerWidth
+	}()
+
 	_, _ = io.WriteString(w, "<div "+divAttr.InlineString()+">\n")
 	if c.hasGutter(n) {
 		if err := c.renderGutter(ctx, w, n); err != nil {
@@ -243,16 +254,19 @@ func (c MJMLColumn) renderGutter(ctx *RenderContext, w io.Writer, n *node.Node) 
 		"width":       "100%",
 	}
 
+	if c.hasBorderRadius(n) {
+		tableAttr["style"] = inlineStyle{{Property: "border-collapse", Value: "separate"}}.InlineString()
+	}
+
 	tdStyle := inlineStyle{
 		{Property: "padding", Value: n.GetAttributeValueDefault("padding")},
 		{Property: "padding-top", Value: n.GetAttributeValueDefault("padding-top")},
 		{Property: "padding-right", Value: n.GetAttributeValueDefault("padding-right")},
 		{Property: "padding-bottom", Value: n.GetAttributeValueDefault("padding-bottom")},
 		{Property: "padding-left", Value: n.GetAttributeValueDefault("padding-left")},
-		{Property: "vertical-align", Value: n.GetAttributeValueDefault("vertical-align")},
 	}
 
-	tdStyle = append(tdStyle, c.tableStyle(n)...)
+	tdStyle = append(tdStyle, c.outerTableStyle(n)...)
 
 	tdAttr := inlineAttributes{
 		"style": tdStyle.InlineString(),
@@ -271,6 +285,46 @@ func (c MJMLColumn) renderGutter(ctx *RenderContext, w io.Writer, n *node.Node) 
 	_, _ = io.WriteString(w, "</table>\n")
 
 	return nil
+}
+
+// childContainerWidth implements mj-column's getChildContext: children are
+// rendered at the column width minus its paddings, borders and inner borders.
+func (c MJMLColumn) childContainerWidth(ctx *RenderContext, n *node.Node) (string, error) {
+	parentWidth, err := parseFloatWidth(ctx.ContainerWidth)
+	if err != nil {
+		return "", err
+	}
+
+	unit, width, err := getParsedWidth(n)
+	if err != nil {
+		return "", err
+	}
+
+	var containerWidth float64
+	if unit == "%" {
+		containerWidth = parentWidth * width / 100
+	} else {
+		containerWidth = width
+	}
+
+	paddingLeft, err := getShorthandAttrValue(n, "padding", "left")
+	if err != nil {
+		return "", err
+	}
+
+	paddingRight, err := getShorthandAttrValue(n, "padding", "right")
+	if err != nil {
+		return "", err
+	}
+
+	borderLeft := getShorthandBorderValue(n, "left", "border")
+	borderRight := getShorthandBorderValue(n, "right", "border")
+	innerBorderLeft := getShorthandBorderValue(n, "left", "inner-border")
+	innerBorderRight := getShorthandBorderValue(n, "right", "inner-border")
+
+	containerWidth -= float64(paddingLeft + paddingRight + borderLeft + borderRight + innerBorderLeft + innerBorderRight)
+
+	return formatPixelWidth(containerWidth), nil
 }
 
 func (c MJMLColumn) tdAttribute(n *node.Node) inlineAttributes {
@@ -293,27 +347,58 @@ func (c MJMLColumn) tdAttribute(n *node.Node) inlineAttributes {
 }
 
 func (c MJMLColumn) tableStyle(n *node.Node) inlineStyle {
-	style := inlineStyle{}
-	if c.hasGutter(n) {
-		style = append(style, Style{Property: "background-color", Value: n.GetAttributeValueDefault("inner-background-color")})
-		style = append(style, Style{Property: "border", Value: n.GetAttributeValueDefault("inner-border")})
-		style = append(style, Style{Property: "border-bottom", Value: n.GetAttributeValueDefault("inner-border-bottom")})
-		style = append(style, Style{Property: "border-left", Value: n.GetAttributeValueDefault("inner-border-left")})
-		style = append(style, Style{Property: "border-radius", Value: n.GetAttributeValueDefault("inner-border-radius")})
-		style = append(style, Style{Property: "border-right", Value: n.GetAttributeValueDefault("inner-border-right")})
-		style = append(style, Style{Property: "border-top", Value: n.GetAttributeValueDefault("inner-border-top")})
-	} else {
-		style = append(style, Style{Property: "background-color", Value: n.GetAttributeValueDefault("background-color")})
-		style = append(style, Style{Property: "border", Value: n.GetAttributeValueDefault("border")})
-		style = append(style, Style{Property: "border-bottom", Value: n.GetAttributeValueDefault("border-bottom")})
-		style = append(style, Style{Property: "border-left", Value: n.GetAttributeValueDefault("border-left")})
-		style = append(style, Style{Property: "border-radius", Value: n.GetAttributeValueDefault("border-radius")})
-		style = append(style, Style{Property: "border-right", Value: n.GetAttributeValueDefault("border-right")})
-		style = append(style, Style{Property: "border-top", Value: n.GetAttributeValueDefault("border-top")})
-		style = append(style, Style{Property: "vertical-align", Value: n.GetAttributeValueDefault("vertical-align")})
+	if !c.hasGutter(n) {
+		return c.outerTableStyle(n)
+	}
+
+	style := inlineStyle{
+		{Property: "background-color", Value: n.GetAttributeValueDefault("inner-background-color")},
+		{Property: "border", Value: n.GetAttributeValueDefault("inner-border")},
+		{Property: "border-bottom", Value: n.GetAttributeValueDefault("inner-border-bottom")},
+		{Property: "border-left", Value: n.GetAttributeValueDefault("inner-border-left")},
+		{Property: "border-radius", Value: n.GetAttributeValueDefault("inner-border-radius")},
+		{Property: "border-right", Value: n.GetAttributeValueDefault("inner-border-right")},
+		{Property: "border-top", Value: n.GetAttributeValueDefault("inner-border-top")},
+	}
+
+	if c.hasInnerBorderRadius(n) {
+		style = append(style, Style{Property: "border-collapse", Value: "separate"})
 	}
 
 	return style
+}
+
+// outerTableStyle is MJML's normal column table style. The gutter cell uses it
+// too, so the column's own background and border survive the gutter wrapper.
+func (c MJMLColumn) outerTableStyle(n *node.Node) inlineStyle {
+	style := inlineStyle{
+		{Property: "background-color", Value: n.GetAttributeValueDefault("background-color")},
+		{Property: "border", Value: n.GetAttributeValueDefault("border")},
+		{Property: "border-bottom", Value: n.GetAttributeValueDefault("border-bottom")},
+		{Property: "border-left", Value: n.GetAttributeValueDefault("border-left")},
+		{Property: "border-radius", Value: n.GetAttributeValueDefault("border-radius")},
+		{Property: "border-right", Value: n.GetAttributeValueDefault("border-right")},
+		{Property: "border-top", Value: n.GetAttributeValueDefault("border-top")},
+		{Property: "vertical-align", Value: n.GetAttributeValueDefault("vertical-align")},
+	}
+
+	if c.hasBorderRadius(n) {
+		style = append(style, Style{Property: "border-collapse", Value: "separate"})
+	}
+
+	return style
+}
+
+func (c MJMLColumn) hasBorderRadius(n *node.Node) bool {
+	value, has := n.GetAttributeValue("border-radius")
+
+	return has && value != ""
+}
+
+func (c MJMLColumn) hasInnerBorderRadius(n *node.Node) bool {
+	value, has := n.GetAttributeValue("inner-border-radius")
+
+	return has && value != ""
 }
 
 func (c MJMLColumn) hasGutter(n *node.Node) bool {

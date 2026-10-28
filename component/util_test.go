@@ -584,3 +584,29 @@ func TestMakeBackgroundString(t *testing.T) {
 	v := makeBackgroundString([]string{"content-box", "", "radial-gradient(crimson, skyblue)"})
 	require.Equal(t, "content-box radial-gradient(crimson, skyblue)", v)
 }
+
+func TestWidthParsingHelpers(t *testing.T) {
+	t.Parallel()
+
+	t.Run("parseIntWidth truncates fractions like parseInt", func(t *testing.T) {
+		v, err := parseIntWidth("174.24px")
+		require.NoError(t, err)
+		require.Equal(t, 174, v)
+	})
+
+	t.Run("parseIntWidth rejects a missing number", func(t *testing.T) {
+		_, err := parseIntWidth("px")
+		require.Error(t, err)
+	})
+
+	t.Run("parseFloatWidth keeps fractions", func(t *testing.T) {
+		v, err := parseFloatWidth("174.24px")
+		require.NoError(t, err)
+		require.InDelta(t, 174.24, v, 0.0001)
+	})
+
+	t.Run("formatPixelWidth trims trailing zeros", func(t *testing.T) {
+		require.Equal(t, "174.24px", formatPixelWidth(174.24))
+		require.Equal(t, "600px", formatPixelWidth(600))
+	})
+}

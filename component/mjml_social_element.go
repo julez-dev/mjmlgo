@@ -184,17 +184,12 @@ func (s MJMLSocialElement) Render(ctx *RenderContext, w io.Writer, n *node.Node)
 	attrs := s.getSocialAttributes(n)
 	styles := s.getStyles(n)
 	var (
-		src        = attrs["src"]
-		srcset     = attrs["srcset"]
-		sizes      = attrs["sizes"]
-		href       = attrs["href"]
-		iconSize   = attrs["icon-size"]
-		iconHeight = attrs["icon-height"]
+		src      = attrs["src"]
+		srcset   = attrs["srcset"]
+		sizes    = attrs["sizes"]
+		href     = attrs["href"]
+		iconSize = attrs["icon-size"]
 	)
-
-	if iconHeight == "" {
-		iconHeight = iconSize
-	}
 
 	_, hasLink := n.GetAttributeValue("href")
 	iconPosition := n.GetAttributeValueDefault("icon-position")
@@ -224,7 +219,6 @@ func (s MJMLSocialElement) Render(ctx *RenderContext, w io.Writer, n *node.Node)
 			"sizes":  sizes,
 			"style":  styles["img"].InlineString(),
 			"width":  RemoveNonNumeric(iconSize),
-			"height": RemoveNonNumeric(iconHeight),
 		}
 
 		_, _ = b.WriteString("<img " + imgAttr.InlineString() + " />")
@@ -374,6 +368,7 @@ func (s MJMLSocialElement) getStyles(n *node.Node) map[string]inlineStyle {
 	tdText := inlineStyle{
 		{Property: "vertical-align", Value: "middle"},
 		{Property: "padding", Value: n.GetAttributeValueDefault("text-padding")},
+		{Property: "text-align", Value: n.GetAttributeValueDefault("align")},
 	}
 
 	textStyle := inlineStyle{
