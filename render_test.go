@@ -155,8 +155,8 @@ func TestMJMLInvalid(t *testing.T) {
 
 // TestRenderWithoutInlineStylesKeepsMarkup asserts the fast path: a document
 // with neither <mj-style inline> nor <mj-html-attributes> is not round-tripped
-// through the HTML parser, but still normalizes to the same tree as the inlined
-// variant would.
+// through the HTML parser, but still normalizes to the same tree as the version
+// the round trip would produce.
 func TestRenderWithoutInlineStylesKeepsMarkup(t *testing.T) {
 	t.Parallel()
 
@@ -167,8 +167,14 @@ func TestRenderWithoutInlineStylesKeepsMarkup(t *testing.T) {
 		rendered, err := RenderMJML(bytes.NewReader(input))
 		require.NoError(t, err)
 
+		// The inliner skips documents it does not have to touch, so the round
+		// trip is written out here: this test is what keeps the skipped
+		// parse/render from hiding a formatting difference.
+		parsed, err := html.Parse(strings.NewReader(rendered))
+		require.NoError(t, err)
+
 		var roundTripped strings.Builder
-		require.NoError(t, inlineCSS(&component.RenderContext{}, strings.NewReader(rendered), &roundTripped))
+		require.NoError(t, html.Render(&roundTripped, parsed))
 
 		want, err := mjmltest.ParseHTML(roundTripped.String())
 		require.NoError(t, err)
@@ -195,6 +201,38 @@ func TestRenderStripsRawBlockMarkers(t *testing.T) {
 
 		assert.NotContains(t, html, "mjmlgo-raw", "%s leaked an internal marker", fixture)
 	}
+}
+
+// TestRenderInlineStylesIsDeterministic renders every fixture that inlines CSS
+// several times and asserts the bytes are identical. The style attribute order
+// used to come from Go map iteration, so repeated renders of the same document
+// could differ.
+func TestRenderInlineStylesIsDeterministic(t *testing.T) {
+	t.Parallel()
+
+	checked := 0
+
+	for _, fixture := range mjmlFixtures(t, parityDir) {
+		input, err := os.ReadFile(fixture)
+		require.NoError(t, err)
+
+		if !strings.Contains(string(input), `inline="inline"`) {
+			continue
+		}
+
+		checked++
+
+		first, err := renderFixture(fixture)
+		require.NoError(t, err)
+
+		for range 4 {
+			again, err := renderFixture(fixture)
+			require.NoError(t, err)
+			require.Equal(t, first, again, "%s rendered differently on a repeated render", fixture)
+		}
+	}
+
+	require.NotZero(t, checked, "no fixture in %s inlines CSS", parityDir)
 }
 
 // TestRenderMergesOutlookConditionals asserts the rendered document applies
@@ -343,56 +381,327 @@ func TestRenderRawInColumnKeepsPosition(t *testing.T) {
 func TestInlineCSS(t *testing.T) {
 	t.Parallel()
 
-	t.Run("simple", func(t *testing.T) {
+	t.Run("adds declarations to matching nodes", func(t *testing.T) {
+		t.Parallel()
+
 		const input = `<html><body><p class="p-class">Hello</p></body></html>`
-		ctx := &component.RenderContext{
-			InlineStyles: []component.Stylesheet{
-				{
-					Rules: []component.Rule{
-						{
-							Selectors: ".p-class",
-							Declarations: []component.Style{
-								{Property: "font-size", Value: "22px", Important: true},
-							}},
-					},
-				},
-			},
-		}
 
 		var out bytes.Buffer
-		err := inlineCSS(ctx, strings.NewReader(input), &out)
-		require.NoError(t, err)
+		require.NoError(t, inlineCSS(inlineContext(inlineSheet(".p-class",
+			component.Style{Property: "font-size", Value: "22px", Important: true})),
+			strings.NewReader(input), &out))
 
-		require.Equal(t, "<html><head></head><body><p class=\"p-class\" style=\"font-size:22px;\">Hello</p></body></html>", out.String())
+		require.Equal(t, `<html><head></head><body><p class="p-class" style="font-size:22px;">Hello</p></body></html>`, out.String())
 	})
 
-	t.Run("important-override", func(t *testing.T) {
+	t.Run("important overrides an existing declaration", func(t *testing.T) {
+		t.Parallel()
+
 		const input = `<html><body><p class="p-class" style="font-size: 20px;font-weight:300">Hello</p></body></html>`
-		ctx := &component.RenderContext{
-			InlineStyles: []component.Stylesheet{
-				{
-					Rules: []component.Rule{
-						{
-							Selectors: ".p-class",
-							Declarations: []component.Style{
-								{Property: "font-size", Value: "22px", Important: true},
-								{Property: "font-weight", Value: "400"},
-							}},
-					},
-				},
-			},
-		}
 
 		var out bytes.Buffer
-		err := inlineCSS(ctx, strings.NewReader(input), &out)
-		require.NoError(t, err)
+		require.NoError(t, inlineCSS(inlineContext(inlineSheet(".p-class",
+			component.Style{Property: "font-size", Value: "22px", Important: true},
+			component.Style{Property: "font-weight", Value: "400"})),
+			strings.NewReader(input), &out))
 
-		randomOrder := []string{
-			"<html><head></head><body><p class=\"p-class\" style=\"font-size:22px;font-weight:300;\">Hello</p></body></html>",
-			"<html><head></head><body><p class=\"p-class\" style=\"font-weight:300;font-size:22px;\">Hello</p></body></html>",
-		}
+		// The existing declaration order is preserved, the important rule wins
+		// and the plain rule loses against the node's own declaration.
+		require.Equal(t, `<html><head></head><body><p class="p-class" style="font-size:22px;font-weight:300;">Hello</p></body></html>`, out.String())
+	})
 
-		assert.True(t, slices.Contains(randomOrder, out.String()), "returned value should be one of the possible")
+	t.Run("existing declaration order is preserved", func(t *testing.T) {
+		t.Parallel()
+
+		const input = `<html><body><p class="p-class" style="z-index:1;color:red">Hello</p></body></html>`
+
+		var out bytes.Buffer
+		require.NoError(t, inlineCSS(inlineContext(inlineSheet(".p-class",
+			component.Style{Property: "border", Value: "0"},
+			component.Style{Property: "color", Value: "green"})),
+			strings.NewReader(input), &out))
+
+		require.Equal(t, `<html><head></head><body><p class="p-class" style="z-index:1;color:red;border:0;">Hello</p></body></html>`, out.String())
+	})
+
+	t.Run("unmatched nodes are untouched", func(t *testing.T) {
+		t.Parallel()
+
+		// The markup is deliberately not canonical HTML (unquoted attribute
+		// values, a bare <br>): a node no rule touches must not be reserialized.
+		const input = `<html><body><p style=color:red class=other>a<br></p><div class=no-style>b</div></body></html>`
+
+		var out bytes.Buffer
+		require.NoError(t, inlineCSS(inlineContext(inlineSheet(".p-class",
+			component.Style{Property: "font-size", Value: "22px"})),
+			strings.NewReader(input), &out))
+
+		require.Equal(t, input, out.String())
+		require.NotContains(t, out.String(), "font-size")
+	})
+
+	t.Run("unparsable selectors are skipped", func(t *testing.T) {
+		t.Parallel()
+
+		const input = `<html><body><p class="p-class">Hello</p></body></html>`
+
+		ctx := inlineContext(
+			inlineSheet("!! not a selector", component.Style{Property: "color", Value: "red"}),
+			inlineSheet(".p-class", component.Style{Property: "font-weight", Value: "bold"}),
+		)
+
+		var out bytes.Buffer
+		require.NoError(t, inlineCSS(ctx, strings.NewReader(input), &out))
+
+		require.Equal(t, `<html><head></head><body><p class="p-class" style="font-weight:bold;">Hello</p></body></html>`, out.String())
+	})
+
+	t.Run("layout declarations mirror to legacy attributes", func(t *testing.T) {
+		t.Parallel()
+
+		const input = `<html><body><table class="t"><tr><td class="c">x</td></tr></table><div class="d">y</div></body></html>`
+
+		ctx := inlineContext(
+			inlineSheet(".c",
+				component.Style{Property: "width", Value: "50%"},
+				component.Style{Property: "text-align", Value: "right"},
+				component.Style{Property: "vertical-align", Value: "bottom"},
+				component.Style{Property: "background-color", Value: "#000"}),
+			inlineSheet(".d", component.Style{Property: "width", Value: "100px"}),
+		)
+
+		var out bytes.Buffer
+		require.NoError(t, inlineCSS(ctx, strings.NewReader(input), &out))
+
+		rendered := out.String()
+
+		// px widths become numeric attributes, percentages stay as they are.
+		require.Contains(t, rendered, `<td class="c" width="50%" align="right" valign="bottom" bgcolor="#000" style="width:50%;text-align:right;vertical-align:bottom;background-color:#000;">`)
+		require.Contains(t, rendered, `<div class="d" width="100" style="width:100px;">`)
+	})
+}
+
+// TestInlineCSSDeterminism asserts a render is byte-for-byte reproducible: the
+// style attribute order used to come from Go map iteration, so two renders of
+// the same document could differ.
+func TestInlineCSSDeterminism(t *testing.T) {
+	t.Parallel()
+
+	input := `<html><body>` +
+		`<p class="a b c" style="color:red;font-size:12px">x</p>` +
+		`<div class="a" style="padding:0;margin:0">y</div>` +
+		`</body></html>`
+
+	ctx := inlineContext(inlineSheet(".a, .b, .c",
+		component.Style{Property: "background-color", Value: "#fff"},
+		component.Style{Property: "border", Value: "0"},
+		component.Style{Property: "text-align", Value: "left"},
+		component.Style{Property: "vertical-align", Value: "top"},
+		component.Style{Property: "width", Value: "100px"},
+		component.Style{Property: "font-weight", Value: "bold"},
+	))
+
+	var first bytes.Buffer
+	require.NoError(t, inlineCSS(ctx, strings.NewReader(input), &first))
+
+	for range 20 {
+		var again bytes.Buffer
+		require.NoError(t, inlineCSS(ctx, strings.NewReader(input), &again))
+		require.Equal(t, first.String(), again.String())
+	}
+}
+
+// inlineContext builds a render context with the given inline stylesheets.
+func inlineContext(sheets ...component.Stylesheet) *component.RenderContext {
+	return &component.RenderContext{InlineStyles: sheets}
+}
+
+// inlineSheet builds a stylesheet with one rule for selector and declarations.
+// The selector is compiled the way the head parser compiles it.
+func inlineSheet(selector string, declarations ...component.Style) component.Stylesheet {
+	return component.Stylesheet{Rules: []component.Rule{newInlineRule(selector, declarations...)}}
+}
+
+func newInlineRule(selector string, declarations ...component.Style) component.Rule {
+	rule := component.Rule{Selectors: selector, Declarations: declarations}
+	rule.CompileSelectors()
+
+	return rule
+}
+
+// TestStyleDecls locks down the inline style merge: declaration order is
+// preserved, new properties are appended in application order, and only an
+// important declaration overrides an existing property.
+func TestStyleDecls(t *testing.T) {
+	t.Parallel()
+
+	t.Run("appends new properties after the existing ones", func(t *testing.T) {
+		t.Parallel()
+
+		var decls styleDecls
+		require.NoError(t, parseStyleAttribute(&decls, "z-index: 1; color: red"))
+
+		require.True(t, decls.set(component.Style{Property: "background-color", Value: "#fff"}))
+		require.True(t, decls.set(component.Style{Property: "border", Value: "0"}))
+
+		require.Equal(t, "z-index:1;color:red;background-color:#fff;border:0;", decls.String())
+	})
+
+	t.Run("a plain declaration keeps the existing value", func(t *testing.T) {
+		t.Parallel()
+
+		var decls styleDecls
+		require.NoError(t, parseStyleAttribute(&decls, "color:red"))
+
+		require.False(t, decls.set(component.Style{Property: "color", Value: "green"}))
+		require.Equal(t, "color:red;", decls.String())
+	})
+
+	t.Run("an important declaration overrides in place", func(t *testing.T) {
+		t.Parallel()
+
+		var decls styleDecls
+		require.NoError(t, parseStyleAttribute(&decls, "color:red;font-size:12px"))
+
+		require.True(t, decls.set(component.Style{Property: "color", Value: "green", Important: true}))
+		require.Equal(t, "color:green;font-size:12px;", decls.String())
+	})
+
+	t.Run("a repeated property keeps its first position and the last value", func(t *testing.T) {
+		t.Parallel()
+
+		var decls styleDecls
+		require.NoError(t, parseStyleAttribute(&decls, "color:red;font-size:12px;color:blue"))
+
+		require.Equal(t, "color:blue;font-size:12px;", decls.String())
+	})
+
+	t.Run("lookup reads the merged value", func(t *testing.T) {
+		t.Parallel()
+
+		var decls styleDecls
+		require.NoError(t, parseStyleAttribute(&decls, "width: 100px;"))
+
+		value, ok := decls.lookup("width")
+		require.True(t, ok)
+		require.Equal(t, "100px", value)
+
+		_, ok = decls.lookup("height")
+		require.False(t, ok)
+	})
+
+	t.Run("empty declarations serialize to the empty string", func(t *testing.T) {
+		t.Parallel()
+
+		require.Equal(t, "", styleDecls(nil).String())
+	})
+
+	t.Run("an invalid declaration is rejected", func(t *testing.T) {
+		t.Parallel()
+
+		var decls styleDecls
+
+		require.Error(t, parseStyleAttribute(&decls, "color"))
+		require.Error(t, parseStyleAttribute(&decls, "color:"))
+	})
+
+	t.Run("reset keeps the backing array", func(t *testing.T) {
+		t.Parallel()
+
+		decls := make(styleDecls, 0, 4)
+		require.NoError(t, parseStyleAttribute(&decls, "color:red;font-size:12px"))
+
+		buffer := &decls[0]
+		decls.reset()
+
+		require.Empty(t, decls)
+
+		// Appending again reuses the same backing array, so no allocation happens
+		// per matched node.
+		require.NoError(t, parseStyleAttribute(&decls, "color:blue"))
+		require.Same(t, buffer, &decls[0])
+	})
+}
+
+// TestWriteRestoredRawBlocks asserts the raw block placeholders are restored in a
+// single pass, including for documents that carry none.
+func TestWriteRestoredRawBlocks(t *testing.T) {
+	t.Parallel()
+
+	t.Run("no blocks writes the document as it is", func(t *testing.T) {
+		t.Parallel()
+
+		var out bytes.Buffer
+		require.NoError(t, writeRestoredRawBlocks(&out, "<p>plain</p>", nil))
+		require.Equal(t, "<p>plain</p>", out.String())
+	})
+
+	t.Run("replaces every placeholder", func(t *testing.T) {
+		t.Parallel()
+
+		document := "a" + rawBlockPlaceholderPrefix + "0" + rawBlockPlaceholderSuffix +
+			"b" + rawBlockPlaceholderPrefix + "1" + rawBlockPlaceholderSuffix + "c"
+
+		var out bytes.Buffer
+		require.NoError(t, writeRestoredRawBlocks(&out, document, []string{"<div>", "</div>"}))
+		require.Equal(t, "a<div>b</div>c", out.String())
+	})
+
+	t.Run("leaves an unknown index alone", func(t *testing.T) {
+		t.Parallel()
+
+		document := "a" + rawBlockPlaceholderPrefix + "7" + rawBlockPlaceholderSuffix + "b"
+
+		var out bytes.Buffer
+		require.NoError(t, writeRestoredRawBlocks(&out, document, []string{"<div>"}))
+		require.Equal(t, document, out.String())
+	})
+
+	t.Run("leaves a prefix without a suffix alone", func(t *testing.T) {
+		t.Parallel()
+
+		document := "a" + rawBlockPlaceholderPrefix + "0"
+
+		var out bytes.Buffer
+		require.NoError(t, writeRestoredRawBlocks(&out, document, []string{"<div>"}))
+		require.Equal(t, document, out.String())
+	})
+}
+
+// TestProtectRawBlocks asserts raw blocks are replaced by placeholders in one
+// pass and a document without raw blocks is not copied.
+func TestProtectRawBlocks(t *testing.T) {
+	t.Parallel()
+
+	t.Run("no raw blocks", func(t *testing.T) {
+		t.Parallel()
+
+		const document = "<p>no raw blocks</p>"
+
+		protected, blocks := protectRawBlocks(document)
+		require.Equal(t, document, protected)
+		require.Empty(t, blocks)
+	})
+
+	t.Run("protects and restores raw blocks in order", func(t *testing.T) {
+		t.Parallel()
+
+		document := `<p>before</p>` +
+			component.RawBlockStartMarker + `<div class="raw">one</div>` + component.RawBlockEndMarker +
+			`<p>between</p>` +
+			component.RawBlockStartMarker + `<span>two</span>` + component.RawBlockEndMarker
+
+		// The markers themselves are internal: the restored document is the input
+		// with the marker pairs removed.
+		restoredDocument := `<p>before</p><div class="raw">one</div><p>between</p><span>two</span>`
+
+		protected, blocks := protectRawBlocks(document)
+		require.Equal(t, []string{`<div class="raw">one</div>`, `<span>two</span>`}, blocks)
+		require.NotContains(t, protected, component.RawBlockStartMarker)
+
+		var restored bytes.Buffer
+		require.NoError(t, writeRestoredRawBlocks(&restored, protected, blocks))
+		require.Equal(t, restoredDocument, restored.String())
 	})
 }
 
@@ -513,7 +822,7 @@ func TestApplyHTMLAttributes(t *testing.T) {
 	doc, err := html.Parse(strings.NewReader(document))
 	require.NoError(t, err)
 
-	applyHTMLAttributes([]component.HTMLAttributeSelector{
+	selectors := []component.HTMLAttributeSelector{
 		{
 			Path:       ".text div",
 			Attributes: []component.HTMLAttribute{{Name: "data-id", Value: "42"}},
@@ -526,7 +835,12 @@ func TestApplyHTMLAttributes(t *testing.T) {
 			Path:       ".text div",
 			Attributes: []component.HTMLAttribute{{Name: "data-extra", Value: "second"}},
 		},
-	}, doc)
+	}
+
+	require.True(t, applyHTMLAttributes(selectors, doc))
+
+	// The pass reports no change when it sets the same values again.
+	require.False(t, applyHTMLAttributes(selectors, doc))
 
 	var out bytes.Buffer
 	require.NoError(t, html.Render(&out, doc))
