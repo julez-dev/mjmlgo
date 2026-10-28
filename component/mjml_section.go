@@ -34,6 +34,7 @@ func (s MJMLSection) AllowedAttributes() map[string]validateAttributeFunc {
 		"border-top":            validateType("string"),
 		"direction":             validateEnum([]string{"ltr", "rtl"}),
 		"full-width":            validateEnum([]string{"full-width", "false"}),
+		"gap":                   validateUnit([]string{"px"}, false),
 		"padding-bottom":        validateUnit([]string{"px", "%"}, false),
 		"padding-left":          validateUnit([]string{"px", "%"}, false),
 		"padding-right":         validateUnit([]string{"px", "%"}, false),
@@ -164,9 +165,17 @@ func (s MJMLSection) renderBefore(ctx *RenderContext, w io.Writer, n *node.Node)
 	}
 
 	attr["width"] = fmt.Sprintf("%d", width)
-	attr["style"] = inlineStyle{{Property: "width", Value: ctx.ContainerWidth}}.InlineString()
 
-	if hasBackgroundColor {
+	gap := sectionGap(n)
+	style := inlineStyle{{Property: "width", Value: ctx.ContainerWidth}}
+	if gap != "" && !isFirstSibling(n) {
+		style = append(style, Style{Property: "padding-top", Value: gap})
+	}
+	attr["style"] = style.InlineString()
+
+	// A wrapper gap replaces the background colour on the Outlook seat: the gap
+	// is rendered by the section itself so the colour would fill the gap.
+	if hasBackgroundColor && gap == "" {
 		attr["bgcolor"] = bgcolor
 	}
 
@@ -226,6 +235,10 @@ func (s MJMLSection) renderSection(ctx *RenderContext, w io.Writer, n *node.Node
 
 	if hasBorderRadius {
 		divStyle = append(divStyle, Style{Property: "overflow", Value: "hidden"})
+	}
+
+	if gap := sectionGap(n); gap != "" && !isFirstSibling(n) {
+		divStyle = append(divStyle, Style{Property: "margin-top", Value: gap})
 	}
 
 	divStyle = append(divStyle, Style{Property: "max-width", Value: containerWidth})
@@ -399,11 +412,8 @@ func (s MJMLSection) renderWrappedChildren(ctx *RenderContext, w io.Writer, n *n
 
 		attr := inlineAttributes{
 			"align": child.GetAttributeValueDefault("align"),
+			"class": addSuffixToClasses(child.GetAttributeValueDefault("css-class"), "outlook"),
 			"width": wrapperWidth,
-		}
-
-		if class, has := child.GetAttributeValue("class"); has {
-			attr["class"] = addSuffixToClasses(class, "outlook")
 		}
 
 		_, _ = io.WriteString(w, "<!--[if mso | IE]><tr>")
@@ -441,6 +451,28 @@ func renderOutlookSeat(w io.Writer, child *node.Node, width string) error {
 	_, err := io.WriteString(w, "<!--[if mso | IE]><td "+tdAttr.InlineString()+"><![endif]-->\n")
 
 	return err
+}
+
+// sectionGap returns the wrapper gap that applies to n: only direct children of
+// an <mj-wrapper> inherit its gap, matching MJML's section child context.
+func sectionGap(n *node.Node) string {
+	if n.Parent == nil || n.Parent.Type != WrapperTagName {
+		return ""
+	}
+
+	gap, _ := n.Parent.GetAttributeValue("gap")
+
+	return gap
+}
+
+// isFirstSibling reports whether n is the first child of its parent. MJML uses
+// props.index for this, which counts raw children too.
+func isFirstSibling(n *node.Node) bool {
+	if n.Parent == nil || len(n.Parent.Children) == 0 {
+		return true
+	}
+
+	return n.Parent.Children[0] == n
 }
 
 func (s MJMLSection) renderAfter(_ *RenderContext, w io.Writer, _ *node.Node) error {

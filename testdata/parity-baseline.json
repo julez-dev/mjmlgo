@@ -129,42 +129,6 @@
     },
     "testdata/parity/upstream/mjml--template-syntax-sanitization--04.mjml": {
       "error": "error rendering \u003cmj-head\u003e: error parsing CSS: Unexpected } character: CHAR (line: 1, column: 37): \"}\""
-    },
-    "testdata/parity/upstream/mjml--wrapper-gap--00.mjml": {
-      "mismatches": [
-        {
-          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[1]/table[1]/tbody[1]/tr[1]/td[1]",
-          "detail": "attribute \"class\" missing, want \"my-section-outlook\""
-        },
-        {
-          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]",
-          "detail": "attribute \"bgcolor\" unexpected, got \"#f45e43\""
-        },
-        {
-          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[2]/table[1]",
-          "detail": "attribute \"bgcolor\" unexpected, got \"#cccccc\""
-        },
-        {
-          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[2]/table[1]",
-          "detail": "attribute \"style\" mismatch: want \"padding-top:20px;width:600px;\", got \"width:600px;\""
-        },
-        {
-          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[2]",
-          "detail": "attribute \"style\" mismatch: want \"background:#cccccc;background-color:#cccccc;margin:0px auto;margin-top:20px;max-width:600px;\", got \"background:#cccccc;background-color:#cccccc;margin:0px auto;max-width:600px;\""
-        },
-        {
-          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[3]/table[1]",
-          "detail": "attribute \"bgcolor\" unexpected, got \"#333333\""
-        },
-        {
-          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[3]/table[1]",
-          "detail": "attribute \"style\" mismatch: want \"padding-top:20px;width:600px;\", got \"width:600px;\""
-        },
-        {
-          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[3]",
-          "detail": "attribute \"style\" mismatch: want \"background:#333333;background-color:#333333;margin:0px auto;margin-top:20px;max-width:600px;\", got \"background:#333333;background-color:#333333;margin:0px auto;max-width:600px;\""
-        }
-      ]
     }
   }
 }

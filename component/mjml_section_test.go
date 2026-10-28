@@ -201,3 +201,73 @@ func TestMJMLSectionBorderRadius(t *testing.T) {
 	require.NotContains(t, out, `<table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-radius:10px;width:100%;">`)
 	require.Contains(t, out, `border-radius:10px;direction:ltr;`)
 }
+
+func TestMJMLSectionWrapperGap(t *testing.T) {
+	t.Parallel()
+
+	wrapper := &node.Node{
+		Type:       WrapperTagName,
+		Attributes: []xml.Attr{{Name: xml.Name{Local: "gap"}, Value: "20px"}},
+	}
+	first := &node.Node{Type: SectionTagName, Parent: wrapper}
+	second := &node.Node{
+		Type:   SectionTagName,
+		Parent: wrapper,
+		Attributes: []xml.Attr{
+			{Name: xml.Name{Local: "background-color"}, Value: "#cccccc"},
+		},
+	}
+	wrapper.Children = []*node.Node{first, second}
+
+	require.Equal(t, "20px", sectionGap(first))
+	require.True(t, isFirstSibling(first))
+	require.False(t, isFirstSibling(second))
+
+	ctx := &RenderContext{
+		ContainerWidth: "600px",
+		MJMLStylesheet: make(map[string][]string),
+	}
+
+	var section MJMLSection
+	require.NoError(t, InitComponent(ctx, section, second))
+
+	b := strings.Builder{}
+	require.NoError(t, section.Render(ctx, &b, second))
+
+	out := b.String()
+	require.Contains(t, out, `style="width:600px;padding-top:20px;"`)
+	require.Contains(t, out, `margin-top:20px;`)
+	require.NotContains(t, out, `bgcolor="#cccccc"`)
+}
+
+func TestMJMLWrapperChildOutlookClass(t *testing.T) {
+	t.Parallel()
+
+	ctx := &RenderContext{
+		ContainerWidth: "600px",
+		MJMLStylesheet: make(map[string][]string),
+	}
+	parent := &node.Node{Type: "mj-body", Children: []*node.Node{}}
+	wrapper := &node.Node{
+		Type:       WrapperTagName,
+		Parent:     parent,
+		Attributes: []xml.Attr{{Name: xml.Name{Local: "gap"}, Value: "20px"}},
+	}
+	parent.Children = append(parent.Children, wrapper)
+
+	first := &node.Node{
+		Type:       SectionTagName,
+		Parent:     wrapper,
+		Attributes: []xml.Attr{{Name: xml.Name{Local: "css-class"}, Value: "my-section"}},
+	}
+	wrapper.Children = append(wrapper.Children, first)
+
+	var section MJMLSection
+	section.IsWrapper = true
+	require.NoError(t, InitComponent(ctx, section, wrapper))
+
+	b := strings.Builder{}
+	require.NoError(t, section.Render(ctx, &b, wrapper))
+
+	require.Contains(t, b.String(), `class="my-section-outlook"`)
+}
