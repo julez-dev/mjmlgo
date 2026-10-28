@@ -99,6 +99,8 @@ func inlineCSS(ctx *component.RenderContext, r io.Reader, w io.Writer) error {
 		return err
 	}
 
+	applyHTMLAttributes(ctx.HTMLAttributes, htmlNode)
+
 	for _, sheet := range ctx.InlineStyles {
 		for _, rule := range sheet.Rules {
 			sel, err := css.Parse(rule.Selectors)
@@ -210,6 +212,63 @@ func inlineCSS(ctx *component.RenderContext, r io.Reader, w io.Writer) error {
 
 	_, err = io.WriteString(w, restoreRawBlocks(rendered.String(), rawBlocks))
 	return err
+}
+
+// applyHTMLAttributes runs the <mj-html-attributes> selector pass on the parsed
+// document before inline styles are applied, mirroring MJML's pipeline. MJML
+// runs the pass against the rendered body content, so only the body subtree is
+// considered and the body element itself is not a target.
+func applyHTMLAttributes(selectors []component.HTMLAttributeSelector, doc *html.Node) {
+	if len(selectors) == 0 {
+		return
+	}
+
+	body := findHTMLElement(doc, "body")
+	if body == nil {
+		return
+	}
+
+	for _, htmlSelector := range selectors {
+		sel, err := css.Parse(htmlSelector.Path)
+		if err != nil {
+			continue
+		}
+
+		for _, target := range sel.Select(body) {
+			if target == body {
+				continue
+			}
+
+			for _, htmlAttribute := range htmlSelector.Attributes {
+				setHTMLAttribute(target, htmlAttribute.Name, htmlAttribute.Value)
+			}
+		}
+	}
+}
+
+func findHTMLElement(n *html.Node, tag string) *html.Node {
+	if n.Type == html.ElementNode && n.Data == tag {
+		return n
+	}
+
+	for child := n.FirstChild; child != nil; child = child.NextSibling {
+		if found := findHTMLElement(child, tag); found != nil {
+			return found
+		}
+	}
+
+	return nil
+}
+
+func setHTMLAttribute(n *html.Node, name, value string) {
+	for i := range n.Attr {
+		if n.Attr[i].Key == name {
+			n.Attr[i].Val = value
+			return
+		}
+	}
+
+	n.Attr = append(n.Attr, html.Attribute{Key: name, Val: value})
 }
 
 func parseStyleAttribute(attr html.Attribute) (map[string]string, error) {

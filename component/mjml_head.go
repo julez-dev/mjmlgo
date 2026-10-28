@@ -48,10 +48,13 @@ func (h MJMLHead) Render(ctx *RenderContext, w io.Writer, n *node.Node) error {
 	data := map[string]any{
 		"Breakpoint":                  ctx.Breakpoint,
 		"MJMLStyles":                  ctx.MJMLStylesheet,
+		"MJMLStyleOrder":              ctx.orderedMJMLStyles(),
 		"UserStyles":                  headStylesheets,
 		"IncludeMobileFullWidthStyle": ctx.IncludeMobileFullWidthStyle,
+		"ForceOWADesktop":             ctx.ForceOWADesktop,
 		"LowerBreakpoint":             ctx.makeLowerBreakpoint(),
 		"Fonts":                       ctx.Fonts,
+		"UsedFonts":                   ctx.usedFonts(ctx.BodyContent, ctx.InlineStyles),
 	}
 
 	_, _ = io.WriteString(w, fmt.Sprintf("<title>%s</title>\n", title))

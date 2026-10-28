@@ -415,10 +415,10 @@ func getColumnClass(ctx *RenderContext, n *node.Node) (string, error) {
 		class = fmt.Sprintf("mj-column-px-%s", formatted)
 	}
 
-	ctx.MJMLStylesheet[class] = []string{
+	ctx.addMJMLStyle(class, []string{
 		fmt.Sprintf("width: %s%s !important", formatted, unit),
 		fmt.Sprintf("max-width: %s%s", formatted, unit),
-	}
+	})
 
 	return class, nil
 }

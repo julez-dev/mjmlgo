@@ -1,0 +1,18 @@
+<mjml>
+  <mj-head>
+    <mj-attributes>
+      <mj-all font-family="Arial, Helvetica, sans-serif" color="#111111" />
+      <mj-text font-size="15px" color="#222222" />
+      <mj-button background-color="#336699" color="#ffffff" />
+    </mj-attributes>
+  </mj-head>
+  <mj-body>
+    <mj-section>
+      <mj-column>
+        <mj-text>Per-tag defaults win over mj-all</mj-text>
+        <mj-text color="#ff0000">Element attributes win</mj-text>
+        <mj-button>Button defaults</mj-button>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>
