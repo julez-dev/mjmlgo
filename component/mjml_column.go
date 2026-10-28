@@ -118,7 +118,13 @@ func (c MJMLColumn) renderColumn(ctx *RenderContext, w io.Writer, n *node.Node) 
 
 	for _, child := range n.Children {
 		if !allowsChild(ColumnTagName, child.Type) {
-			return fmt.Errorf("invalid child type %s in column, allowed types are: %v", child.Type, validationDependencies[ColumnTagName])
+			return NewError(
+				KindDisallowedChild,
+				append(elementPathSegments(n), child.Type),
+				"",
+				child.Type,
+				fmt.Errorf("allowed children: %v", validationDependencies[ColumnTagName]),
+			)
 		}
 	}
 

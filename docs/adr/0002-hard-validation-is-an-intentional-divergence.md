@@ -31,6 +31,34 @@ Invalid documents are deliberately not part of the parity corpus: their output
 under the reference is exactly what we refuse to produce, so comparing the two
 would be pointless.
 
+## Failures are structured, and the kinds are closed
+
+Every validation and parse site returns a `*Error{Kind, Path, Attribute, Value,
+Err}` through one constructor. `Path` is the element path as data, not text, so a
+caller can locate a failure without parsing a message; `Err` keeps the underlying
+cause for `errors.Is`/`errors.As`. The kinds are a closed set: unknown element,
+unknown attribute, invalid value, disallowed child, unknown include type,
+undefined `mj-class` and parse failure.
+
+Two mapping decisions follow from that closed set:
+
+- Include failures are parse failures. A cycle, an escaped path, a missing
+  include file and a document without `mj-body` all describe a document that
+  could not be assembled into a renderable tree; the specific sentinel
+  (`ErrIncludeCycle`, `ErrIncludePath`, ...) remains reachable through `Err`.
+  Only the include *type* has a kind of its own, because it is the one include
+  failure that is about the author's value rather than the document assembly.
+- A missing required attribute (an `mj-selector` without `path`, an
+  `mj-font` without `name`) is an invalid value, not an unknown attribute; the
+  attribute is known, its value is absent. Template nesting violations such as
+  `mj-html-attributes` outside `mj-head` are disallowed children.
+
+`errors.Is` keeps working for the older sentinels, including `ErrValidation` for
+every validation kind, so migrating a caller to the structured error does not
+require a flag day. Error text remains part of the tested surface and is
+deliberately regenerated when it changes, but callers are told to branch on
+`Kind`, not on the message.
+
 ## Consequences
 
 - Some documents the reference renders are rejected here. That is the intended

@@ -255,7 +255,13 @@ func (h MJMLHero) renderContent(ctx *RenderContext, w io.Writer, n *node.Node) e
 
 	for _, child := range n.Children {
 		if !allowsChild(HeroTagName, child.Type) {
-			return fmt.Errorf("unknown child type: %s for <mj-hero>, allowed types are: %v", child.Type, validationDependencies[HeroTagName])
+			return NewError(
+				KindDisallowedChild,
+				append(elementPathSegments(n), child.Type),
+				"",
+				child.Type,
+				fmt.Errorf("allowed children: %v", validationDependencies[HeroTagName]),
+			)
 		}
 
 		if child.Type == RawTagName {
@@ -296,7 +302,13 @@ func (h MJMLHero) renderContent(ctx *RenderContext, w io.Writer, n *node.Node) e
 		}
 
 		if childComponent == nil {
-			return fmt.Errorf("unknown child type: %s for <mj-hero>", child.Type)
+			return NewError(
+				KindDisallowedChild,
+				append(elementPathSegments(n), child.Type),
+				"",
+				child.Type,
+				fmt.Errorf("allowed children: %v", validationDependencies[HeroTagName]),
+			)
 		}
 
 		if err := InitComponent(ctx, childComponent, child); err != nil {

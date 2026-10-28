@@ -194,6 +194,11 @@ func TestInitCarouselImage(t *testing.T) {
 
 		err := initCarouselImage(image)
 		require.Error(t, err)
-		assert.Contains(t, err.Error(), "failed to validate field border-radius in <mj-carousel-image>")
+		assert.Contains(t, err.Error(), `attribute "border-radius" in <mj-carousel-image>`)
+
+		var structured *Error
+		require.ErrorAs(t, err, &structured)
+		assert.Equal(t, KindInvalidValue, structured.Kind)
+		assert.Equal(t, []string{CarouselImageTagName}, structured.Path)
 	})
 }

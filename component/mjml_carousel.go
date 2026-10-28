@@ -68,8 +68,13 @@ func (c MJMLCarousel) Render(ctx *RenderContext, w io.Writer, n *node.Node) erro
 
 	for _, child := range n.Children {
 		if !allowsChild(CarouselTagName, child.Type) {
-			return fmt.Errorf("invalid child type %s in carousel, allowed types are: %v",
-				child.Type, validationDependencies[CarouselTagName])
+			return NewError(
+				KindDisallowedChild,
+				append(elementPathSegments(n), child.Type),
+				"",
+				child.Type,
+				fmt.Errorf("allowed children: %v", validationDependencies[CarouselTagName]),
+			)
 		}
 
 		if err := initCarouselImage(child); err != nil {

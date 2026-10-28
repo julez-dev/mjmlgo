@@ -52,7 +52,7 @@ func (r *Renderer) renderDocument(callCtx context.Context, fsys fs.FS, name stri
 	}
 
 	if node.Type != "mjml" {
-		return "", fmt.Errorf("%w: %s", ErrUnknownStartingTag, node.Type)
+		return "", component.NewError(KindUnknownElement, []string{node.Type}, "", node.Type, ErrUnknownStartingTag)
 	}
 
 	if err := callCtx.Err(); err != nil {

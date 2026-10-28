@@ -85,14 +85,14 @@ func validateComponentAttributes(comp Component, n *node.Node) error {
 		}
 
 		if err := validator(attribute.Value); err != nil {
-			return fmt.Errorf("failed to validate field %s in <%s>: %w", name, comp.Name(), err)
+			return NewError(KindInvalidValue, elementPathSegments(n), name, attribute.Value, err)
 		}
 	}
 
 	return nil
 }
 
-func validateAttributes(allowed map[string]validateAttributeFunc, componentName string, n *node.Node) error {
+func validateAttributes(allowed map[string]validateAttributeFunc, n *node.Node) error {
 	for _, attribute := range n.Attributes {
 		name := attribute.Name.Local
 
@@ -106,11 +106,11 @@ func validateAttributes(allowed map[string]validateAttributeFunc, componentName 
 
 		validator, ok := allowed[name]
 		if !ok {
-			return fmt.Errorf("%w: attribute %q is not allowed on <%s>", ErrValidation, name, componentName)
+			return NewError(KindUnknownAttribute, elementPathSegments(n), name, attribute.Value, nil)
 		}
 
 		if err := validator(attribute.Value); err != nil {
-			return fmt.Errorf("failed to validate field %s in <%s>: %w", name, componentName, err)
+			return NewError(KindInvalidValue, elementPathSegments(n), name, attribute.Value, err)
 		}
 	}
 
@@ -201,12 +201,17 @@ func ValidateDocument(ctx *RenderContext, root *node.Node) error {
 
 func validateDocumentNode(ctx *RenderContext, n, parent *node.Node) error {
 	if _, known := knownTags[n.Type]; !known {
-		return fmt.Errorf("%w: %s: unknown element <%s>", ErrValidation, elementPath(n), n.Type)
+		return NewError(KindUnknownElement, elementPathSegments(n), "", n.Type, nil)
 	}
 
 	if parent != nil && !allowsChild(parent.Type, n.Type) {
-		return fmt.Errorf("%w: %s: <%s> is not allowed inside <%s> (allowed children: %s)",
-			ErrValidation, elementPath(n), n.Type, parent.Type, allowedChildList(parent.Type))
+		return NewError(
+			KindDisallowedChild,
+			elementPathSegments(n),
+			"",
+			n.Type,
+			fmt.Errorf("allowed children: %s", allowedChildList(parent.Type)),
+		)
 	}
 
 	if err := validateDocumentAttributes(n); err != nil {
@@ -265,7 +270,7 @@ func validateDocumentAttributes(n *node.Node) error {
 		return nil
 	}
 
-	path := elementPath(n)
+	path := elementPathSegments(n)
 
 	for _, attribute := range n.Attributes {
 		name := attribute.Name.Local
@@ -276,11 +281,11 @@ func validateDocumentAttributes(n *node.Node) error {
 
 		validator, ok := validators[name]
 		if !ok {
-			return fmt.Errorf("%w: %s: attribute %q is not allowed on <%s>", ErrValidation, path, name, n.Type)
+			return NewError(KindUnknownAttribute, path, name, attribute.Value, nil)
 		}
 
 		if err := validator(attribute.Value); err != nil {
-			return fmt.Errorf("%w: %s: attribute %q in <%s>: %w", ErrValidation, path, name, n.Type, err)
+			return NewError(KindInvalidValue, path, name, attribute.Value, err)
 		}
 	}
 
@@ -380,7 +385,7 @@ func validateMjClassReference(ctx *RenderContext, n *node.Node) error {
 		}
 
 		if _, declared := ctx.Classes[name]; !declared {
-			return fmt.Errorf("%w: %s: mj-class %q is not declared in <mj-attributes>", ErrValidation, elementPath(n), name)
+			return NewError(KindUndefinedMJClass, elementPathSegments(n), "mj-class", name, nil)
 		}
 	}
 
@@ -397,10 +402,10 @@ func insideHead(n *node.Node) bool {
 	return false
 }
 
-// elementPath renders the ancestry of n as "mj-body > mj-section > mj-column >
-// mj-text". The root <mjml> element is omitted so paths point at the part of the
-// document an author edits.
-func elementPath(n *node.Node) string {
+// elementPathSegments renders the ancestry of n as data: "mj-body",
+// "mj-section", "mj-column", "mj-text". The root <mjml> element is omitted so
+// paths point at the part of the document an author edits.
+func elementPathSegments(n *node.Node) []string {
 	var parts []string
 
 	for current := n; current != nil; current = current.Parent {
@@ -413,5 +418,5 @@ func elementPath(n *node.Node) string {
 		parts = parts[1:]
 	}
 
-	return strings.Join(parts, " > ")
+	return parts
 }

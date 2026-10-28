@@ -176,6 +176,135 @@ func writeFailureArtifacts(t *testing.T, fixture, want, got string) {
 	t.Logf("wrote failure artifacts to %s", dir)
 }
 
+// invalidFailure is what TestMJMLInvalid expects from a fixture in addition to
+// the recorded message: the structured kind and, where it is stable across
+// refactors, the element path and the offending attribute and value.
+type invalidFailure struct {
+	kind      ErrorKind
+	path      []string
+	attribute string
+	value     string
+	// sentinel is the error errors.Is must still find through the structured
+	// error, so wrapping did not break the older inspection style.
+	sentinel error
+}
+
+// invalidFailures records the structured failure every invalid fixture must
+// produce. A fixture without an entry fails the test, so adding an invalid
+// fixture means stating what it rejects, not just what it prints.
+var invalidFailures = map[string]invalidFailure{
+	"auto-width.mjml": {
+		kind:      KindInvalidValue,
+		path:      []string{"mj-body", "mj-section", "mj-column", "mj-image"},
+		attribute: "width",
+		value:     "auto",
+		sentinel:  ErrValidation,
+	},
+	"disallowed-child.mjml": {
+		kind:     KindDisallowedChild,
+		path:     []string{"mj-body", "mj-text"},
+		value:    "mj-text",
+		sentinel: ErrValidation,
+	},
+	"include-cycle.mjml": {
+		kind:     KindParseFailure,
+		path:     []string{"mj-body", "mj-include"},
+		value:    "partials/cycle-a.mjml",
+		sentinel: ErrIncludeCycle,
+	},
+	"include-escape.mjml": {
+		kind:      KindParseFailure,
+		path:      []string{"mj-body", "mj-include"},
+		attribute: "path",
+		value:     "../outside-the-corpus.mjml",
+		sentinel:  ErrIncludePath,
+	},
+	"include-missing-file.mjml": {
+		kind:     KindParseFailure,
+		path:     []string{"mj-body", "mj-include"},
+		value:    "partials/does-not-exist.mjml",
+		sentinel: fs.ErrNotExist,
+	},
+	"include-unknown-type.mjml": {
+		kind:     KindUnknownIncludeType,
+		path:     []string{"mj-body", "mj-include"},
+		value:    "js",
+		sentinel: ErrIncludeType,
+	},
+	"invalid-color.mjml": {
+		kind:      KindInvalidValue,
+		path:      []string{"mj-body", "mj-section", "mj-column", "mj-text"},
+		attribute: "color",
+		value:     "chartreuseish",
+		sentinel:  ErrValidation,
+	},
+	"malformed-xml.mjml": {
+		kind:     KindParseFailure,
+		path:     []string{"mjml"},
+		sentinel: ErrParsingFailed,
+	},
+	"mismatched-tags.mjml": {
+		kind:     KindParseFailure,
+		path:     []string{"mj-body", "mj-section", "mj-column"},
+		sentinel: ErrParsingFailed,
+	},
+	"missing-body.mjml": {
+		kind:     KindParseFailure,
+		path:     []string{"mjml"},
+		sentinel: component.ErrMJMLBadlyFormatted,
+	},
+	"negative-font-size.mjml": {
+		kind:      KindInvalidValue,
+		path:      []string{"mj-body", "mj-section", "mj-column", "mj-text"},
+		attribute: "font-size",
+		value:     "-12px",
+		sentinel:  ErrValidation,
+	},
+	"no-root.mjml": {
+		kind:     KindParseFailure,
+		path:     []string{"mjml"},
+		sentinel: ErrParsingFailed,
+	},
+	"undeclared-mj-class.mjml": {
+		kind:      KindUndefinedMJClass,
+		path:      []string{"mj-body", "mj-section", "mj-column", "mj-text"},
+		attribute: "mj-class",
+		value:     "missing",
+		sentinel:  ErrValidation,
+	},
+	"unknown-attribute.mjml": {
+		kind:      KindUnknownAttribute,
+		path:      []string{"mj-body", "mj-section", "mj-column", "mj-text"},
+		attribute: "made-up",
+		value:     "value",
+		sentinel:  ErrValidation,
+	},
+	"unknown-body-tag.mjml": {
+		kind:     KindUnknownElement,
+		path:     []string{"mj-body", "mj-foo"},
+		value:    "mj-foo",
+		sentinel: ErrValidation,
+	},
+	"unknown-child.mjml": {
+		kind:     KindUnknownElement,
+		path:     []string{"mj-body", "mj-section", "mj-column", "mj-foo"},
+		value:    "mj-foo",
+		sentinel: ErrValidation,
+	},
+	"unknown-head-tag.mjml": {
+		kind:     KindUnknownElement,
+		path:     []string{"mj-head", "mj-foo"},
+		value:    "mj-foo",
+		sentinel: ErrValidation,
+	},
+	"unknown-root.mjml": {
+		kind:     KindUnknownElement,
+		path:     []string{"mj-div"},
+		value:    "mj-div",
+		sentinel: ErrUnknownStartingTag,
+	},
+}
+
 // TestMJMLInvalid asserts that malformed or invalid documents are rejected with
 // a clear error. This implementation validates hard (fail fast), while MJML
 // itself only warns and keeps rendering, so these fixtures are deliberately not
@@ -198,6 +327,25 @@ func TestMJMLInvalid(t *testing.T) {
 
 			require.Error(t, err, "expected %s to be rejected, rendered:\n%s", fixture, html)
 			assert.Contains(t, err.Error(), strings.TrimSpace(string(expected)))
+
+			want, ok := invalidFailures[filepath.Base(fixture)]
+			require.True(t, ok, "fixture %s has no entry in invalidFailures", filepath.Base(fixture))
+
+			var structured *Error
+			require.ErrorAs(t, err, &structured, "fixture %s did not return a structured *Error", fixture)
+			assert.Equal(t, want.kind, structured.Kind, "fixture %s", fixture)
+			require.NotEmpty(t, structured.Path, "fixture %s returned an empty element path", fixture)
+
+			if want.path != nil {
+				assert.Equal(t, want.path, structured.Path, "fixture %s", fixture)
+			}
+
+			assert.Equal(t, want.attribute, structured.Attribute, "fixture %s", fixture)
+			assert.Equal(t, want.value, structured.Value, "fixture %s", fixture)
+
+			if want.sentinel != nil {
+				assert.ErrorIs(t, err, want.sentinel, "fixture %s lost its sentinel", fixture)
+			}
 		})
 	}
 }

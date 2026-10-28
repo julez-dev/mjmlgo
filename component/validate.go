@@ -61,7 +61,7 @@ type validateAttributeFunc func(value string) error
 func validateEnum(valid []string) validateAttributeFunc {
 	return func(value string) error {
 		if !slices.Contains(valid, value) {
-			return fmt.Errorf("%w: %s not one of %v", ErrValidation, value, valid)
+			return fmt.Errorf("%s not one of %v", value, valid)
 		}
 		return nil
 	}
@@ -77,7 +77,7 @@ func validateColor() validateAttributeFunc {
 			return nil
 		}
 
-		return fmt.Errorf("%w: %s not a valid color string", ErrValidation, value)
+		return fmt.Errorf("%s not a valid color string", value)
 	}
 }
 
@@ -108,17 +108,17 @@ func validateUnitWithNegative(validUnits []string, isMultipleValues bool) valida
 func validateUnitValues(validUnits []string, minValues, maxValues int, allowNegative bool) validateAttributeFunc {
 	return func(value string) error {
 		if value == "" {
-			return fmt.Errorf("%w: empty value is not a valid unit", ErrValidation)
+			return errors.New("empty value is not a valid unit")
 		}
 
 		values := strings.Split(value, " ")
 		if len(values) < minValues || len(values) > maxValues {
-			return fmt.Errorf("%w: %q has %d value(s), want %d to %d", ErrValidation, value, len(values), minValues, maxValues)
+			return fmt.Errorf("%q has %d value(s), want %d to %d", value, len(values), minValues, maxValues)
 		}
 
 		for _, s := range values {
 			if s == "" {
-				return fmt.Errorf("%w: empty value in %q", ErrValidation, value)
+				return fmt.Errorf("empty value in %q", value)
 			}
 
 			if s == "0" {
@@ -127,7 +127,7 @@ func validateUnitValues(validUnits []string, minValues, maxValues int, allowNega
 
 			if s == "auto" {
 				if !slices.Contains(validUnits, "auto") || len(values) != 1 {
-					return fmt.Errorf("%w: unit %q from value %q is not one of %v", ErrValidation, s, value, validUnits)
+					return fmt.Errorf("unit %q from value %q is not one of %v", s, value, validUnits)
 				}
 
 				continue
@@ -135,20 +135,20 @@ func validateUnitValues(validUnits []string, minValues, maxValues int, allowNega
 
 			matches := unitValueRegex.FindStringSubmatch(s)
 			if matches == nil {
-				return fmt.Errorf("%w: unable to parse CSS unit from: %s", ErrValidation, s)
+				return fmt.Errorf("unable to parse CSS unit from: %s", s)
 			}
 
 			negative, number, unit := matches[1], matches[2], matches[3]
 			if negative != "" && !allowNegative {
-				return fmt.Errorf("%w: negative value %q is not allowed", ErrValidation, s)
+				return fmt.Errorf("negative value %q is not allowed", s)
 			}
 
 			if number == "" {
-				return fmt.Errorf("%w: unable to parse CSS unit from: %s", ErrValidation, s)
+				return fmt.Errorf("unable to parse CSS unit from: %s", s)
 			}
 
 			if !slices.Contains(validUnits, unit) {
-				return fmt.Errorf("%w: unit %q from value %q is not one of %v", ErrValidation, unit, s, validUnits)
+				return fmt.Errorf("unit %q from value %q is not one of %v", unit, s, validUnits)
 			}
 		}
 
@@ -159,7 +159,7 @@ func validateUnitValues(validUnits []string, minValues, maxValues int, allowNega
 func validateInteger() validateAttributeFunc {
 	return func(value string) error {
 		if !integerRegex.MatchString(value) {
-			return fmt.Errorf("%w: value %q is not an integer", ErrValidation, value)
+			return fmt.Errorf("value %q is not an integer", value)
 		}
 		return nil
 	}
@@ -172,11 +172,11 @@ func validateType(expectedType string) validateAttributeFunc {
 			return nil
 		case "boolean":
 			if !strings.EqualFold(value, "true") && !strings.EqualFold(value, "false") {
-				return fmt.Errorf("%w: value %q is not a boolean", ErrValidation, value)
+				return fmt.Errorf("value %q is not a boolean", value)
 			}
 		case "number":
 			if _, err := strconv.ParseFloat(value, 64); err != nil {
-				return fmt.Errorf("%w: value %q is not a valid number", ErrValidation, value)
+				return fmt.Errorf("value %q is not a valid number", value)
 			}
 		case "integer":
 			return validateInteger()(value)

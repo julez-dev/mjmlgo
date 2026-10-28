@@ -273,5 +273,10 @@ func TestMJMLCarouselInvalidChildren(t *testing.T) {
 
 	err := component.Render(ctx, &strings.Builder{}, carousel)
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "invalid child type mj-text in carousel")
+	assert.Contains(t, err.Error(), "<mj-text> is not allowed inside <mj-carousel>")
+
+	var structured *Error
+	require.ErrorAs(t, err, &structured)
+	assert.Equal(t, KindDisallowedChild, structured.Kind)
+	assert.Equal(t, []string{CarouselTagName, TextTagName}, structured.Path)
 }

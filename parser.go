@@ -60,7 +60,7 @@ func parse(input io.Reader, keepComments bool) (*node.Node, error) {
 				break
 			}
 
-			return nil, fmt.Errorf("%w: %w", ErrParsingFailed, err)
+			return nil, component.NewError(KindParseFailure, parsePath(stack), "", "", fmt.Errorf("%w: %w", ErrParsingFailed, err))
 		}
 
 		switch t := token.(type) {
@@ -116,7 +116,7 @@ func parse(input io.Reader, keepComments bool) (*node.Node, error) {
 	}
 
 	if root == nil {
-		return nil, fmt.Errorf("%w: no root element specified", ErrParsingFailed)
+		return nil, component.NewError(KindParseFailure, parsePath(stack), "", "", fmt.Errorf("%w: no root element specified", ErrParsingFailed))
 	}
 
 	ensureHead(root)
@@ -197,7 +197,7 @@ func resolveIncludes(ctx context.Context, fsys fs.FS, name string, root *node.No
 	}
 
 	if fsys == nil {
-		return fmt.Errorf("%w: render through Renderer.Render with a caller-provided filesystem", ErrIncludeNoFS)
+		return component.NewError(KindParseFailure, parsePath(nil), "", "", fmt.Errorf("%w: render through Renderer.Render with a caller-provided filesystem", ErrIncludeNoFS))
 	}
 
 	resolver := &includeResolver{ctx: ctx, fsys: fsys, keepComments: keepComments, stack: []string{path.Clean(name)}}
@@ -286,15 +286,18 @@ func (r *includeResolver) expandChildren(parent *node.Node, dir string, head *no
 // include itself, counting the rendered document as 0.
 func (r *includeResolver) include(n *node.Node, dir string, head *node.Node, depth int) ([]*node.Node, error) {
 	if len(n.Children) > 0 || strings.TrimSpace(n.Content) != "" {
-		return nil, fmt.Errorf(
-			"%w: mj-include is replaced by the included file and must be empty",
-			ErrParsingFailed,
+		return nil, component.NewError(
+			KindParseFailure,
+			nodePath(n),
+			"",
+			"",
+			fmt.Errorf("%w: mj-include is replaced by the included file and must be empty", ErrParsingFailed),
 		)
 	}
 
 	includePath, ok := n.GetAttributeValue("path")
 	if !ok || includePath == "" {
-		return nil, fmt.Errorf("%w: mj-include requires a path attribute", ErrIncludePath)
+		return nil, component.NewError(KindParseFailure, nodePath(n), "path", "", fmt.Errorf("%w: mj-include requires a path attribute", ErrIncludePath))
 	}
 
 	kind := "mjml"
@@ -305,10 +308,10 @@ func (r *includeResolver) include(n *node.Node, dir string, head *node.Node, dep
 	switch kind {
 	case "mjml", "html", "css":
 	default:
-		return nil, fmt.Errorf("%w: %q (want mjml, html or css)", ErrIncludeType, kind)
+		return nil, component.NewError(KindUnknownIncludeType, nodePath(n), "", kind, fmt.Errorf("%w: %q (want mjml, html or css)", ErrIncludeType, kind))
 	}
 
-	files, err := r.resolve(dir, includePath)
+	files, err := r.resolve(dir, includePath, nodePath(n))
 	if err != nil {
 		return nil, err
 	}
@@ -322,7 +325,7 @@ func (r *includeResolver) include(n *node.Node, dir string, head *node.Node, dep
 				return nil, err
 			}
 
-			content, err := r.read(file)
+			content, err := r.read(file, nodePath(n))
 			if err != nil {
 				return nil, err
 			}
@@ -339,7 +342,7 @@ func (r *includeResolver) include(n *node.Node, dir string, head *node.Node, dep
 				return nil, err
 			}
 
-			content, err := r.read(file)
+			content, err := r.read(file, nodePath(n))
 			if err != nil {
 				return nil, err
 			}
@@ -358,7 +361,7 @@ func (r *includeResolver) include(n *node.Node, dir string, head *node.Node, dep
 
 			r.pending = append(r.pending, style)
 		case "mjml":
-			included, err := r.expandDocument(file, head, depth+1)
+			included, err := r.expandDocument(file, head, depth+1, nodePath(n))
 			if err != nil {
 				return nil, err
 			}
@@ -378,22 +381,22 @@ func (r *includeResolver) include(n *node.Node, dir string, head *node.Node, dep
 // which is what replaces the mj-include element. The children of its mj-head are
 // appended to the head of the rendered document instead, the same way MJML
 // merges an included document's head.
-func (r *includeResolver) expandDocument(file string, head *node.Node, depth int) ([]*node.Node, error) {
+func (r *includeResolver) expandDocument(file string, head *node.Node, depth int, at []string) ([]*node.Node, error) {
 	if depth > maxIncludeDepth {
-		return nil, fmt.Errorf("%w: %d levels at %s", ErrIncludeDepth, depth, file)
+		return nil, component.NewError(KindParseFailure, at, "", file, fmt.Errorf("%w: %d levels at %s", ErrIncludeDepth, depth, file))
 	}
 
 	if slices.Contains(r.stack, file) {
 		chain := append(slices.Clone(r.stack), file)
 
-		return nil, fmt.Errorf("%w: %s", ErrIncludeCycle, strings.Join(chain, " -> "))
+		return nil, component.NewError(KindParseFailure, at, "", file, fmt.Errorf("%w: %s", ErrIncludeCycle, strings.Join(chain, " -> ")))
 	}
 
 	if err := r.ctx.Err(); err != nil {
 		return nil, err
 	}
 
-	content, err := r.read(file)
+	content, err := r.read(file, at)
 	if err != nil {
 		return nil, err
 	}
@@ -466,13 +469,13 @@ func (r *includeResolver) expandDocument(file string, head *node.Node, depth int
 // resolve turns the path attribute of an include into the files it names,
 // relative to dir. Glob patterns are expanded with fs.Glob, in lexical order; the
 // reference implementation has no pattern support, so the ordering is ours.
-func (r *includeResolver) resolve(dir, includePath string) ([]string, error) {
+func (r *includeResolver) resolve(dir, includePath string, at []string) ([]string, error) {
 	if includePath == "" {
-		return nil, fmt.Errorf("%w: mj-include requires a path attribute", ErrIncludePath)
+		return nil, component.NewError(KindParseFailure, at, "path", includePath, fmt.Errorf("%w: mj-include requires a path attribute", ErrIncludePath))
 	}
 
 	if strings.HasPrefix(includePath, "/") {
-		return nil, fmt.Errorf("%w: %q is absolute", ErrIncludePath, includePath)
+		return nil, component.NewError(KindParseFailure, at, "path", includePath, fmt.Errorf("%w: %q is absolute", ErrIncludePath, includePath))
 	}
 
 	// The include path is joined before it is validated, so a partial may reach a
@@ -482,7 +485,7 @@ func (r *includeResolver) resolve(dir, includePath string) ([]string, error) {
 	// caller's fs.FS.
 	joined := path.Join(dir, includePath)
 	if !fs.ValidPath(joined) {
-		return nil, fmt.Errorf("%w: %q escapes the filesystem root", ErrIncludePath, includePath)
+		return nil, component.NewError(KindParseFailure, at, "path", includePath, fmt.Errorf("%w: %q escapes the filesystem root", ErrIncludePath, includePath))
 	}
 
 	if !strings.ContainsAny(includePath, "*?[") {
@@ -491,11 +494,11 @@ func (r *includeResolver) resolve(dir, includePath string) ([]string, error) {
 
 	matches, err := fs.Glob(r.fsys, joined)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrIncludePath, err)
+		return nil, component.NewError(KindParseFailure, at, "path", includePath, fmt.Errorf("%w: %w", ErrIncludePath, err))
 	}
 
 	if len(matches) == 0 {
-		return nil, fmt.Errorf("%w: %s matches no files", ErrIncludePath, joined)
+		return nil, component.NewError(KindParseFailure, at, "path", includePath, fmt.Errorf("%w: %s matches no files", ErrIncludePath, joined))
 	}
 
 	slices.Sort(matches)
@@ -505,13 +508,44 @@ func (r *includeResolver) resolve(dir, includePath string) ([]string, error) {
 
 // read reads an include target, wrapping the filesystem error with the path that
 // was attempted.
-func (r *includeResolver) read(file string) ([]byte, error) {
+func (r *includeResolver) read(file string, at []string) ([]byte, error) {
 	content, err := fs.ReadFile(r.fsys, file)
 	if err != nil {
-		return nil, fmt.Errorf("mjml: mj-include %s: %w", file, err)
+		return nil, component.NewError(KindParseFailure, at, "", file, fmt.Errorf("mjml: mj-include %s: %w", file, err))
 	}
 
 	return content, nil
+}
+
+// parsePath returns the element path a parse failure is attributed to: the
+// element that was open when parsing stopped, or the document element the
+// parser failed to build when it never opened one.
+func parsePath(stack []*node.Node) []string {
+	if len(stack) > 0 {
+		if path := nodePath(stack[len(stack)-1]); len(path) > 0 {
+			return path
+		}
+	}
+
+	return []string{component.MJMLTagName}
+}
+
+// nodePath returns the ancestry of n from the document root, with the root
+// <mjml> element omitted, like component element paths are.
+func nodePath(n *node.Node) []string {
+	var parts []string
+
+	for current := n; current != nil; current = current.Parent {
+		parts = append(parts, current.Type)
+	}
+
+	slices.Reverse(parts)
+
+	if len(parts) > 1 && parts[0] == component.MJMLTagName {
+		parts = parts[1:]
+	}
+
+	return parts
 }
 
 // containsIncludeTag reports whether n or any node below it is an mj-include.
