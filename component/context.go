@@ -25,6 +25,9 @@ type RenderContext struct {
 	// ClassDefaults holds the per-tag defaults declared inside a <mj-class>,
 	// keyed by class name and then by tag name.
 	ClassDefaults map[string]map[string]AttributeMap
+	// HTMLAttributes holds the <mj-html-attributes> selectors in declaration
+	// order. Selectors with the same path are merged in place.
+	HTMLAttributes []HTMLAttributeSelector
 
 	MJMLStylesheet              map[string][]string
 	MJMLStyleOrder              []string
@@ -37,6 +40,44 @@ type RenderContext struct {
 
 	Language  string
 	Direction string
+}
+
+// HTMLAttribute is one attribute set by <mj-html-attribute>.
+type HTMLAttribute struct {
+	Name  string
+	Value string
+}
+
+// HTMLAttributeSelector is one <mj-selector> target and the attributes it sets.
+type HTMLAttributeSelector struct {
+	Path       string
+	Attributes []HTMLAttribute
+}
+
+// addHTMLAttribute records a selector attribute, merging repeated paths and
+// attribute names the same way MJML's htmlAttributes object does.
+func (c *RenderContext) addHTMLAttribute(path, name, value string) {
+	for i := range c.HTMLAttributes {
+		if c.HTMLAttributes[i].Path != path {
+			continue
+		}
+
+		for j := range c.HTMLAttributes[i].Attributes {
+			if c.HTMLAttributes[i].Attributes[j].Name == name {
+				c.HTMLAttributes[i].Attributes[j].Value = value
+				return
+			}
+		}
+
+		c.HTMLAttributes[i].Attributes = append(c.HTMLAttributes[i].Attributes, HTMLAttribute{Name: name, Value: value})
+
+		return
+	}
+
+	c.HTMLAttributes = append(c.HTMLAttributes, HTMLAttributeSelector{
+		Path:       path,
+		Attributes: []HTMLAttribute{{Name: name, Value: value}},
+	})
 }
 
 // addMJMLStyle records a generated component stylesheet in insertion order.

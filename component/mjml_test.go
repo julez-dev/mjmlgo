@@ -232,3 +232,177 @@ func TestSetAttributeDefaultsPrecedence(t *testing.T) {
 		requireAttribute(t, text, "color", "#123456")
 	})
 }
+
+func TestPreparseHTMLAttributes(t *testing.T) {
+	t.Parallel()
+
+	head := &node.Node{
+		Type: HeadTagName,
+		Children: []*node.Node{{
+			Type: HTMLAttributesTagName,
+			Children: []*node.Node{
+				{
+					Type:       SelectorTagName,
+					Attributes: attributes("path", ".text div"),
+					Children: []*node.Node{{
+						Type:       HTMLAttributeTagName,
+						Attributes: attributes("name", "data-id"),
+						Content:    "42",
+					}},
+				},
+				{
+					Type:       SelectorTagName,
+					Attributes: attributes("path", ".image td"),
+					Children: []*node.Node{
+						{
+							Type:       HTMLAttributeTagName,
+							Attributes: attributes("name", "data-name"),
+							Content:    "43",
+						},
+						{
+							Type:       HTMLAttributeTagName,
+							Attributes: attributes("name", "title"),
+							Content:    "image-cell",
+						},
+					},
+				},
+				{
+					Type:       SelectorTagName,
+					Attributes: attributes("path", ".text div"),
+					Children: []*node.Node{{
+						Type:       HTMLAttributeTagName,
+						Attributes: attributes("name", "data-extra"),
+						Content:    "second",
+					}},
+				},
+			},
+		}},
+	}
+
+	ctx := &RenderContext{}
+	require.NoError(t, (MJML{}).preparseHeadMetaValues(ctx, head))
+
+	require.Equal(t, []HTMLAttributeSelector{
+		{
+			Path: ".text div",
+			Attributes: []HTMLAttribute{
+				{Name: "data-id", Value: "42"},
+				{Name: "data-extra", Value: "second"},
+			},
+		},
+		{
+			Path: ".image td",
+			Attributes: []HTMLAttribute{
+				{Name: "data-name", Value: "43"},
+				{Name: "title", Value: "image-cell"},
+			},
+		},
+	}, ctx.HTMLAttributes)
+}
+
+func TestValidateHTMLAttributeTags(t *testing.T) {
+	t.Parallel()
+
+	mjmlTree := func(headChild *node.Node, bodyChildren ...*node.Node) *node.Node {
+		head := &node.Node{Type: HeadTagName}
+		if headChild != nil {
+			head.Children = []*node.Node{headChild}
+		}
+
+		return &node.Node{
+			Type: MJMLTagName,
+			Children: []*node.Node{
+				head,
+				{Type: BodyTagName, Children: bodyChildren},
+			},
+		}
+	}
+
+	selector := func(path string, children ...*node.Node) *node.Node {
+		attributes := []xml.Attr{}
+		if path != "" {
+			attributes = append(attributes, attribute("path", path))
+		}
+
+		return &node.Node{Type: SelectorTagName, Attributes: attributes, Children: children}
+	}
+
+	htmlAttribute := func(name string) *node.Node {
+		attributes := []xml.Attr{}
+		if name != "" {
+			attributes = append(attributes, attribute("name", name))
+		}
+
+		return &node.Node{Type: HTMLAttributeTagName, Attributes: attributes, Content: "value"}
+	}
+
+	tests := []struct {
+		name    string
+		root    *node.Node
+		wantErr string
+	}{
+		{
+			name: "valid",
+			root: mjmlTree(&node.Node{
+				Type: HTMLAttributesTagName,
+				Children: []*node.Node{
+					selector(".text", htmlAttribute("data-id")),
+				},
+			}),
+		},
+		{
+			name:    "mj-html-attributes outside mj-head",
+			root:    mjmlTree(nil, &node.Node{Type: HTMLAttributesTagName}),
+			wantErr: "<mj-html-attributes> must be a direct child of <mj-head>",
+		},
+		{
+			name:    "mj-selector outside mj-html-attributes",
+			root:    mjmlTree(selector(".text", htmlAttribute("data-id"))),
+			wantErr: "<mj-selector> must be a direct child of <mj-html-attributes>",
+		},
+		{
+			name: "mj-html-attribute outside mj-selector",
+			root: mjmlTree(&node.Node{
+				Type:     HTMLAttributesTagName,
+				Children: []*node.Node{htmlAttribute("data-id")},
+			}),
+			wantErr: "<mj-html-attribute> must be a direct child of <mj-selector>",
+		},
+		{
+			name: "missing path",
+			root: mjmlTree(&node.Node{
+				Type:     HTMLAttributesTagName,
+				Children: []*node.Node{selector("", htmlAttribute("data-id"))},
+			}),
+			wantErr: "missing path in mj-selector element",
+		},
+		{
+			name: "missing name",
+			root: mjmlTree(&node.Node{
+				Type:     HTMLAttributesTagName,
+				Children: []*node.Node{selector(".text", htmlAttribute(""))},
+			}),
+			wantErr: "missing name in mj-html-attribute element",
+		},
+		{
+			name:    "mj-selector nested in body",
+			root:    mjmlTree(nil, selector(".text", htmlAttribute("data-id"))),
+			wantErr: "<mj-selector> must be a direct child of <mj-html-attributes>",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			err := (MJML{}).validateHTMLAttributeTags(tt.root, nil)
+
+			if tt.wantErr == "" {
+				require.NoError(t, err)
+				return
+			}
+
+			require.ErrorContains(t, err, tt.wantErr)
+		})
+	}
+}

@@ -47,6 +47,10 @@ func (m MJML) Render(ctx *RenderContext, w io.Writer, n *node.Node) error {
 		return fmt.Errorf("%w: no <mj-body> in <mjml> tag", ErrMJMLBadlyFormatted)
 	}
 
+	if err := m.validateHTMLAttributeTags(n, nil); err != nil {
+		return err
+	}
+
 	ctx.Language = n.GetAttributeValueDefault("lang")
 	ctx.ForceOWADesktop = n.GetAttributeValueDefault("owa") == "desktop"
 
@@ -207,11 +211,66 @@ func attributesToMap(attributes []xml.Attr) AttributeMap {
 	return m
 }
 
+// validateHTMLAttributeTags enforces the fixed nesting of the mj-html-attributes
+// family and rejects missing selector paths or attribute names.
+func (m MJML) validateHTMLAttributeTags(n, parent *node.Node) error {
+	parentType := ""
+	if parent != nil {
+		parentType = parent.Type
+	}
+
+	switch n.Type {
+	case HTMLAttributesTagName:
+		if parentType != HeadTagName {
+			return fmt.Errorf("%w: <mj-html-attributes> must be a direct child of <mj-head>", ErrValidation)
+		}
+	case SelectorTagName:
+		if parentType != HTMLAttributesTagName {
+			return fmt.Errorf("%w: <mj-selector> must be a direct child of <mj-html-attributes>", ErrValidation)
+		}
+
+		path, has := n.GetAttributeValue("path")
+		if !has || strings.TrimSpace(path) == "" {
+			return fmt.Errorf("%w: missing path in mj-selector element", ErrValidation)
+		}
+	case HTMLAttributeTagName:
+		if parentType != SelectorTagName {
+			return fmt.Errorf("%w: <mj-html-attribute> must be a direct child of <mj-selector>", ErrValidation)
+		}
+
+		name, has := n.GetAttributeValue("name")
+		if !has || strings.TrimSpace(name) == "" {
+			return fmt.Errorf("%w: missing name in mj-html-attribute element", ErrValidation)
+		}
+	}
+
+	for _, child := range n.Children {
+		if err := m.validateHTMLAttributeTags(child, n); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (m MJML) preparseHeadMetaValues(ctx *RenderContext, n *node.Node) error {
 	ctx.ensureFontRegistry()
 
 	for _, child := range n.Children {
 		switch child.Type {
+		case HTMLAttributesTagName:
+			for _, selector := range child.Children {
+				path, _ := selector.GetAttributeValue("path")
+
+				for _, htmlAttribute := range selector.Children {
+					if htmlAttribute.Type != HTMLAttributeTagName {
+						continue
+					}
+
+					name, _ := htmlAttribute.GetAttributeValue("name")
+					ctx.addHTMLAttribute(path, name, htmlAttribute.Content)
+				}
+			}
 		case AttributesTagName:
 			for _, nestedChild := range child.Children {
 				switch nestedChild.Type {

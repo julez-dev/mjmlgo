@@ -16,6 +16,7 @@ import (
 	"github.com/julez-dev/mjmlgo/internal/mjmltest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/net/html"
 )
 
 // baselinePath holds the recorded HTML divergences from the reference MJML
@@ -528,4 +529,45 @@ func FuzzRenderMJML(f *testing.F) {
 			t.Fatalf("output is not an HTML document: %q", html)
 		}
 	})
+}
+
+func TestApplyHTMLAttributes(t *testing.T) {
+	t.Parallel()
+
+	const document = `<html><head><title class="text">head</title></head><body>` +
+		`<div class="text"><div>first</div></div>` +
+		`<div class="text"><div>second</div></div>` +
+		`</body></html>`
+
+	doc, err := html.Parse(strings.NewReader(document))
+	require.NoError(t, err)
+
+	applyHTMLAttributes([]component.HTMLAttributeSelector{
+		{
+			Path:       ".text div",
+			Attributes: []component.HTMLAttribute{{Name: "data-id", Value: "42"}},
+		},
+		{
+			Path:       ".missing",
+			Attributes: []component.HTMLAttribute{{Name: "data-missing", Value: "never"}},
+		},
+		{
+			Path:       ".text div",
+			Attributes: []component.HTMLAttribute{{Name: "data-extra", Value: "second"}},
+		},
+	}, doc)
+
+	var out bytes.Buffer
+	require.NoError(t, html.Render(&out, doc))
+	rendered := out.String()
+
+	// Every match of the repeated selector gets both attributes.
+	require.Equal(t, 2, strings.Count(rendered, `data-id="42"`))
+	require.Equal(t, 2, strings.Count(rendered, `data-extra="second"`))
+
+	// A selector matching nothing is a no-op.
+	require.NotContains(t, rendered, "data-missing")
+
+	// The post-render pass only targets rendered body content, like MJML.
+	require.Contains(t, rendered, `<title class="text">head</title>`)
 }

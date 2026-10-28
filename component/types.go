@@ -19,6 +19,10 @@ const (
 	PreviewTagName    MJMLComponentName = "mj-preview"
 	StyleTagName      MJMLComponentName = "mj-style"
 
+	HTMLAttributesTagName MJMLComponentName = "mj-html-attributes"
+	SelectorTagName       MJMLComponentName = "mj-selector"
+	HTMLAttributeTagName  MJMLComponentName = "mj-html-attribute"
+
 	SectionTagName       MJMLComponentName = "mj-section"
 	ColumnTagName        MJMLComponentName = "mj-column"
 	WrapperTagName       MJMLComponentName = "mj-wrapper"

@@ -293,6 +293,22 @@
         }
       ]
     },
+    "testdata/parity/head-html-attributes.mjml": {
+      "mismatches": [
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]",
+          "detail": "child count mismatch: want 3, got 7"
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[1]/table[1]",
+          "detail": "child count mismatch: want 1, got 0"
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
+          "detail": "node kind mismatch: want \u003cdiv\u003e, got #conditional [if mso | IE]"
+        }
+      ]
+    },
     "testdata/parity/head-owa.mjml": {
       "mismatches": [
         {
