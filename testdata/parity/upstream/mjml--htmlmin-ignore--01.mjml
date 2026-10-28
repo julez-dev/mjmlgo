@@ -1,0 +1,13 @@
+<mjml>
+        <mj-body>
+          <mj-section>
+            <mj-column>
+              <mj-raw>
+                <!-- htmlmin:ignore --><span id="first">  spaced  </span><!-- htmlmin:ignore -->
+                <p>normal content</p>
+                <!-- htmlmin:ignore --><span id="second">  also   spaced  </span><!-- htmlmin:ignore -->
+              </mj-raw>
+            </mj-column>
+          </mj-section>
+        </mj-body>
+      </mjml>

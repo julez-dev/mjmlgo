@@ -5,3 +5,6 @@ input_s.mjml
 *fail.html
 node_modules
 testdata/.failures
+coverage.out
+benchmarks.txt
+*.pprof

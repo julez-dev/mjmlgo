@@ -48,9 +48,19 @@ func TestParseHTMLNormalization(t *testing.T) {
 			b:    `<html><body><img src="a.png"></body></html>`,
 		},
 		{
-			name: "style element contents",
-			a:    "<html><head><style type=\"text/css\">.a { color: red; }</style></head></html>",
-			b:    "<html><head><style type=\"text/css\">.b { color: blue; }</style></head></html>",
+			name: "style whitespace and comments",
+			a:    "<html><head><style>.a{color:red}</style></head></html>",
+			b:    "<html><head><style>\n  /* layout */\n  .a {\n    color: red;\n  }\n</style></head></html>",
+		},
+		{
+			name: "media query whitespace",
+			a:    "<style>@media only screen and (min-width:480px){.a{width:50%}}</style>",
+			b:    "<style>@media   only screen and (min-width:480px) { .a { width: 50%; } }</style>",
+		},
+		{
+			name: "selector list whitespace",
+			a:    "<style>.a,.b{color:red}</style>",
+			b:    "<style>.a , .b { color: red; }</style>",
 		},
 		{
 			name: "conditional comment markers with empty payload",
@@ -95,6 +105,26 @@ func TestParseHTMLNormalization(t *testing.T) {
 			b:    `<html><body><div bgcolor="#FFF"></div></body></html>`,
 		},
 		{
+			name: "style declaration value",
+			a:    "<style>.a{color:red}</style>",
+			b:    "<style>.a{color:blue}</style>",
+		},
+		{
+			name: "style rule order",
+			a:    "<style>.a{color:red}.b{color:blue}</style>",
+			b:    "<style>.b{color:blue}.a{color:red}</style>",
+		},
+		{
+			name: "style declaration order",
+			a:    "<style>.a{margin:0;margin-top:5px}</style>",
+			b:    "<style>.a{margin-top:5px;margin:0}</style>",
+		},
+		{
+			name: "media query condition",
+			a:    "<style>@media screen{.a{width:50%}}</style>",
+			b:    "<style>@media print{.a{width:50%}}</style>",
+		},
+		{
 			name: "conditional comment payload",
 			a:    `<!--[if mso]><table><tr><td>a</td></tr></table><![endif]-->`,
 			b:    `<!--[if mso]><table><tr><td>b</td></tr></table><![endif]-->`,
@@ -115,6 +145,75 @@ func TestParseHTMLNormalization(t *testing.T) {
 			assert.NotEmpty(t, mismatches, "documents should be considered different")
 		})
 	}
+}
+
+// TestParseHTMLStylesheet locks down how <style> bodies are canonicalized: the
+// cascade is order sensitive, so rule and declaration order must survive, while
+// formatting, comments and whitespace must not matter.
+func TestParseHTMLStylesheet(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		css      string
+		expected string
+	}{
+		{
+			name:     "qualified rule",
+			css:      ".a { color: red; font-size: 12px !important }",
+			expected: ".a{color:red;font-size:12px !important}",
+		},
+		{
+			name:     "selector list",
+			css:      "td , .b{color:red}",
+			expected: "td,.b{color:red}",
+		},
+		{
+			name:     "media query",
+			css:      "@media only screen and (min-width:480px) { .a { width: 50%; } }",
+			expected: "@media only screen and (min-width:480px){.a{width:50%}}",
+		},
+		{
+			name:     "import",
+			css:      `@import url(https://fonts.googleapis.com/css?family=Ubuntu:300,400,500,700);`,
+			expected: "@import url(https://fonts.googleapis.com/css?family=Ubuntu:300,400,500,700)",
+		},
+		{
+			name:     "comments dropped",
+			css:      "/* header */\n.a /* inline */ { color: red }",
+			expected: ".a{color:red}",
+		},
+	}
+
+	for _, testCase := range tests {
+		t.Run(testCase.name, func(t *testing.T) {
+			t.Parallel()
+
+			node, err := ParseHTML("<style>" + testCase.css + "</style>")
+			require.NoError(t, err)
+
+			if !assert.Equal(t, testCase.expected, Stylesheet(t, node)) {
+				t.Log(Canonical(node))
+			}
+		})
+	}
+}
+
+// Stylesheet returns the canonical CSS of the first <style> element below node.
+func Stylesheet(t *testing.T, node *Node) string {
+	t.Helper()
+
+	if node.Kind == KindElement && node.Name == "style" {
+		return node.Sheet
+	}
+
+	for _, child := range node.Children {
+		if sheet := Stylesheet(t, child); sheet != "" {
+			return sheet
+		}
+	}
+
+	return ""
 }
 
 func TestCanonical(t *testing.T) {

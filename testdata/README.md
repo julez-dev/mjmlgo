@@ -1,20 +1,34 @@
-# MJML parity tests
+# Test corpora
 
-`TestMJMLParity` (in `../render_test.go`) renders every `.mjml` file below this
-directory twice:
+Two corpora, both driven by fixtures on disk:
 
-1. with this Go implementation (`RenderMJML`), and
-2. with the **reference JavaScript implementation** of MJML, using the real
-   `mjml` CLI.
+| Directory | Purpose | Test |
+| --- | --- | --- |
+| `parity/` | Documents that must render **identically** to the reference MJML implementation. | `TestMJMLParity` |
+| `invalid/` | Documents that must be **rejected** with a specific error. | `TestMJMLInvalid` |
 
-Both HTML documents are parsed, normalized and compared structurally, so
-formatting, attribute order and CSS declaration order do not matter, while
-elements, attributes (including inline styles), text content and Outlook
-conditional markup do.
+The reference implementation is the real `mjml` CLI; its version is pinned
+project-wide in `../package.json`. See `../PLAN.md` for the overall roadmap.
 
-## Configuring the MJML version
+## Parity corpus (`parity/`)
 
-The reference version is pinned project-wide in `../package.json`:
+Every `.mjml` file below `parity/` (including subdirectories) is rendered by this
+package and by the reference MJML CLI, then compared structurally:
+
+- elements, attributes (inline styles included) and text content must match;
+- attributes are sorted, CSS declaration order inside a `style` attribute is
+  normalized, class tokens are sorted and whitespace is collapsed, so formatting
+  noise does not matter;
+- comments are ignored except Outlook conditional comments, whose payload
+  (`<table><tr><td>` MSO markup) is parsed and compared as part of the tree;
+- `<style>` bodies are parsed as CSS and compared rule by rule. Rule **and**
+  declaration order are preserved because the cascade depends on them;
+  formatting and comments are dropped.
+
+`parity/upstream/` holds fixtures extracted from the upstream MJML test suite;
+see `parity/upstream/MANIFEST.md` for provenance and the curation rule.
+
+### Configuring the MJML version
 
 ```json
 "devDependencies": {
@@ -22,22 +36,18 @@ The reference version is pinned project-wide in `../package.json`:
 }
 ```
 
-Install it once with `npm install` (Node.js >= 18, `node_modules/` is ignored by
-git) and run the tests with `go test ./...`.
+Install once with `npm install` (Node.js >= 18), then `go test ./...`.
 
-Overrides:
+| Variable | Effect |
+| --- | --- |
+| `MJML_VERSION` | Use another MJML version for this run, e.g. `MJML_VERSION=4.15.3 go test ./...`. Resolved through `npx`, so `node_modules` is optional. |
+| `MJML_BIN` | Use an existing CLI executable instead, e.g. `MJML_BIN=$(which mjml)`. |
+| `MJML_SKIP` | Skip the parity tests (useful where Node.js is unavailable). |
 
-| Variable      | Effect                                                                 |
-| ------------- | ---------------------------------------------------------------------- |
-| `MJML_VERSION`| Use another MJML version for this run, e.g. `MJML_VERSION=4.15.3 go test ./...`. Resolved through `npx`, so it works even if `node_modules` is absent. |
-| `MJML_BIN`    | Use an existing CLI executable instead, e.g. `MJML_BIN=$(which mjml)`.  |
-| `MJML_SKIP`   | Skip the parity tests entirely (useful where Node.js is unavailable).   |
+`go test -short ...` skips them too. A resolved version that differs from the pin
+fails the test instead of silently comparing against the wrong reference.
 
-`go test -short ...` also skips them. If the resolved version does not match the
-pinned one, the test fails instead of silently comparing against the wrong
-reference.
-
-### Bumping MJML
+#### Bumping MJML
 
 ```bash
 npm install --save-dev --save-exact mjml@<new-version>
@@ -45,20 +55,16 @@ go test ./ -run TestMJMLParity -update   # re-record the baseline
 git diff testdata/parity-baseline.json   # review every HTML change
 ```
 
-The baseline records the MJML version it was created with. Comparing against a
-different version fails until the baseline is re-recorded, so an accidental
-version drift cannot go unnoticed.
+### Baseline of known divergences
 
-## Baseline of known divergences
-
-This implementation is not yet byte-for-byte identical to MJML. The accepted
-differences per fixture are recorded in [`parity-baseline.json`](parity-baseline.json):
+`parity-baseline.json` records the accepted differences per fixture, scoped to
+the MJML version it was recorded with:
 
 ```json
 {
   "mjmlVersion": "4.18.0",
   "fixtures": {
-    "testdata/simple.mjml": {
+    "testdata/parity/simple.mjml": {
       "mismatches": [
         {
           "path": "/#document/html[1]/body[1]/div[1]",
@@ -66,7 +72,7 @@ differences per fixture are recorded in [`parity-baseline.json`](parity-baseline
         }
       ]
     },
-    "testdata/raw.mjml": {
+    "testdata/parity/raw.mjml": {
       "error": "failed to render column: invalid child type mj-raw in column, ..."
     }
   }
@@ -75,37 +81,51 @@ differences per fixture are recorded in [`parity-baseline.json`](parity-baseline
 
 The test compares the *set* of differences, not just their count:
 
-- a new difference (or a new render error) fails the test — no regressions;
-- a recorded difference that is gone also fails the test, so fixing the
-  implementation requires updating the baseline and thereby shrinking it.
+- an unrecorded difference (or a new render error) fails — no regressions;
+- a recorded difference that disappeared also fails, so fixes must update the
+  baseline and thereby shrink it.
 
-Regenerate after intentional changes with:
+Fixtures without an entry must match MJML exactly. Re-record with:
 
 ```bash
 go test ./ -run TestMJMLParity -update
 ```
 
-Fixtures without an entry must match MJML exactly. To check current progress:
-
-```bash
-go test ./ -run TestMJMLParity -update && git diff --stat testdata/parity-baseline.json
-```
-
 ### Failure artifacts
 
-When a fixture fails, both documents are written to `.failures/` (git-ignored)
-for inspection:
+Failing fixtures write both documents to `.failures/` (git-ignored):
 
 - `<name>.want.html` / `<name>.got.html` — raw HTML from MJML and from this package;
 - `<name>.want.canonical.txt` / `<name>.got.canonical.txt` — the normalized trees
   that are actually compared, diffable with any diff tool.
 
+## Invalid corpus (`invalid/`)
+
+This implementation validates hard and fails fast, while MJML only warns and
+keeps rendering. Documents that MJML tolerates but we reject therefore live
+here, not in the parity corpus.
+
+Each fixture needs a sibling `<name>.mjml.error.txt` containing the error text
+(or a stable substring of it) that the renderer must return:
+
+```text
+testdata/invalid/invalid-color.mjml
+testdata/invalid/invalid-color.mjml.error.txt   ->  chartreuseish not a valid color string
+```
+
 ## Adding fixtures
 
-Drop a `.mjml` file anywhere below `testdata/` (subdirectories are supported)
-and re-record the baseline. Keep fixtures small and focused: one fixture per
-feature area makes a baseline entry easy to interpret. Fixtures that currently
-cannot be rendered at all are still valuable — they record the missing feature.
+- Parity: drop a `.mjml` file under `parity/` and re-record the baseline. Keep
+  fixtures small and focused: one fixture per feature area keeps each baseline
+  entry interpretable. Fixtures that cannot render yet are still valuable — they
+  record the missing feature.
+- Invalid: add the fixture plus its `.error.txt`.
 
-Note that `mj-include` works because the reference CLI runs on the fixture path
-itself, so relative includes resolve as usual.
+`mj-include` works because the reference CLI runs on the fixture path itself, so
+relative includes resolve as usual. The Go implementation is being reworked to
+resolve includes through a caller-provided `fs.FS` (see `PLAN.md`, M2).
+
+## Benchmarks
+
+`../benchmarks/BUDGETS.md` holds the end-to-end budget table
+(`BenchmarkRenderMJML`); CI reports benchmark results without gating on them.

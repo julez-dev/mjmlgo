@@ -1,7 +1,7 @@
 {
   "mjmlVersion": "4.18.0",
   "fixtures": {
-    "testdata/button-complex.mjml": {
+    "testdata/parity/button-complex.mjml": {
       "mismatches": [
         {
           "path": "/#document/html[1]/head[1]",
@@ -18,6 +18,18 @@
         {
           "path": "/#document/html[1]/head[1]/style[2]",
           "detail": "attribute \"type\" missing, want \"text/css\""
+        },
+        {
+          "path": "/#document/html[1]/head[1]/style[2]",
+          "detail": "stylesheet rule 1 mismatch: want \"@import url(https://fonts.googleapis.com/css?family=Ubuntu:300,400,500,700)\", got \".moz-text-html .mj-column-per-100{width:100% !important;max-width:100%}\""
+        },
+        {
+          "path": "/#document/html[1]/head[1]/style[2]",
+          "detail": "stylesheet rule 2 unexpected: got \".moz-text-html .mj-column-per-50{width:50% !important;max-width:50%}\""
+        },
+        {
+          "path": "/#document/html[1]/head[1]/style[3]",
+          "detail": "stylesheet rule 1 mismatch: want \"@media only screen and (min-width:480px){.mj-column-per-100{width:100% !important;max-width:100%}.mj-column-per-50{width:50% !important;max-width:50%}}\", got \".wrapper-style{border:2px dashed #cccccc;background-color:#f0f0f0}\""
         },
         {
           "path": "/#document/html[1]/body[1]/div[1]",
@@ -113,7 +125,7 @@
         }
       ]
     },
-    "testdata/button.mjml": {
+    "testdata/parity/button.mjml": {
       "mismatches": [
         {
           "path": "/#document/html[1]/body[1]/div[1]",
@@ -125,7 +137,7 @@
         }
       ]
     },
-    "testdata/content.mjml": {
+    "testdata/parity/content.mjml": {
       "mismatches": [
         {
           "path": "/#document/html[1]/head[1]",
@@ -142,6 +154,14 @@
         {
           "path": "/#document/html[1]/head[1]/style[2]",
           "detail": "attribute \"type\" missing, want \"text/css\""
+        },
+        {
+          "path": "/#document/html[1]/head[1]/style[2]",
+          "detail": "stylesheet rule 1 mismatch: want \"@import url(https://fonts.googleapis.com/css?family=Ubuntu:300,400,500,700)\", got \".moz-text-html .mj-column-per-100{width:100% !important;max-width:100%}\""
+        },
+        {
+          "path": "/#document/html[1]/head[1]/style[3]",
+          "detail": "stylesheet rule 1 mismatch: want \"@media only screen and (min-width:480px){.mj-column-per-100{width:100% !important;max-width:100%}}\", got \"@media only screen and (max-width:479px){table.mj-full-width-mobile{width:100% !important}td.mj-full-width-mobile{width:auto !important}}\""
         },
         {
           "path": "/#document/html[1]/body[1]/div[1]",
@@ -169,7 +189,7 @@
         }
       ]
     },
-    "testdata/fluid-height-hero.mjml": {
+    "testdata/parity/fluid-height-hero.mjml": {
       "mismatches": [
         {
           "path": "/#document/html[1]/head[1]",
@@ -193,7 +213,7 @@
         }
       ]
     },
-    "testdata/head.mjml": {
+    "testdata/parity/head.mjml": {
       "mismatches": [
         {
           "path": "/#document/html[1]/head[1]",
@@ -213,7 +233,7 @@
         }
       ]
     },
-    "testdata/image-complex.mjml": {
+    "testdata/parity/image-complex.mjml": {
       "mismatches": [
         {
           "path": "/#document/html[1]/head[1]",
@@ -232,12 +252,24 @@
           "detail": "attribute \"type\" missing, want \"text/css\""
         },
         {
+          "path": "/#document/html[1]/head[1]/style[2]",
+          "detail": "stylesheet rule 1 mismatch: want \"@import url(https://fonts.googleapis.com/css?family=Ubuntu:300,400,500,700)\", got \".moz-text-html .mj-column-per-100{width:100% !important;max-width:100%}\""
+        },
+        {
+          "path": "/#document/html[1]/head[1]/style[3]",
+          "detail": "stylesheet rule 1 mismatch: want \"@media only screen and (min-width:480px){.mj-column-per-100{width:100% !important;max-width:100%}}\", got \"@media only screen and (max-width:479px){table.mj-full-width-mobile{width:100% !important}td.mj-full-width-mobile{width:auto !important}}\""
+        },
+        {
           "path": "/#document/html[1]/head[1]/style[4]",
           "detail": "attribute \"media\" missing, want \"screen and (min-width:480px)\""
         },
         {
           "path": "/#document/html[1]/head[1]/style[4]",
           "detail": "attribute \"type\" unexpected, got \"text/css\""
+        },
+        {
+          "path": "/#document/html[1]/head[1]/style[4]",
+          "detail": "stylesheet rule 1 mismatch: want \".moz-text-html .mj-column-per-100{width:100% !important;max-width:100%}\", got \".wrapper-style{border:2px dotted #ff5733;background-color:#fff5e1}\""
         },
         {
           "path": "/#document/html[1]/body[1]/div[1]",
@@ -333,7 +365,7 @@
         }
       ]
     },
-    "testdata/image.mjml": {
+    "testdata/parity/image.mjml": {
       "mismatches": [
         {
           "path": "/#document/html[1]/body[1]/div[1]",
@@ -345,8 +377,24 @@
         }
       ]
     },
-    "testdata/input_big.mjml": {
+    "testdata/parity/input_big.mjml": {
       "mismatches": [
+        {
+          "path": "/#document/html[1]/head[1]/style[2]",
+          "detail": "stylesheet rule 1 mismatch: want \"@media only screen and (min-width:390px){.mj-column-per-100{width:100% !important;max-width:100%}.mj-column-per-70{width:70% !important;max-width:70%}.mj-column-per-30{width:30% !important;max-width:30%}.mj-column-per-50{width:50% !important;max-width:50%}}\", got \"@media only screen and (min-width:390px){.mj-column-per-100{width:100% !important;max-width:100%}.mj-column-per-30{width:30% !important;max-width:30%}.mj-column-per-50{width:50% !important;max-width:50%}.mj-column-per-70{width:70% !important;max-width:70%}}\""
+        },
+        {
+          "path": "/#document/html[1]/head[1]/style[3]",
+          "detail": "stylesheet rule 2 mismatch: want \".moz-text-html .mj-column-per-70{width:70% !important;max-width:70%}\", got \".moz-text-html .mj-column-per-30{width:30% !important;max-width:30%}\""
+        },
+        {
+          "path": "/#document/html[1]/head[1]/style[3]",
+          "detail": "stylesheet rule 3 mismatch: want \".moz-text-html .mj-column-per-30{width:30% !important;max-width:30%}\", got \".moz-text-html .mj-column-per-50{width:50% !important;max-width:50%}\""
+        },
+        {
+          "path": "/#document/html[1]/head[1]/style[3]",
+          "detail": "stylesheet rule 4 mismatch: want \".moz-text-html .mj-column-per-50{width:50% !important;max-width:50%}\", got \".moz-text-html .mj-column-per-70{width:70% !important;max-width:70%}\""
+        },
         {
           "path": "/#document/html[1]/body[1]/div[2]",
           "detail": "attribute \"aria-roledescription\" missing, want \"email\""
@@ -749,7 +797,7 @@
         }
       ]
     },
-    "testdata/layout.mjml": {
+    "testdata/parity/layout.mjml": {
       "mismatches": [
         {
           "path": "/#document/html[1]/head[1]",
@@ -766,6 +814,14 @@
         {
           "path": "/#document/html[1]/head[1]/style[2]",
           "detail": "attribute \"type\" missing, want \"text/css\""
+        },
+        {
+          "path": "/#document/html[1]/head[1]/style[2]",
+          "detail": "stylesheet rule 1 mismatch: want \"@import url(https://fonts.googleapis.com/css?family=Ubuntu:300,400,500,700)\", got \".moz-text-html .mj-column-per-100{width:100% !important;max-width:100%}\""
+        },
+        {
+          "path": "/#document/html[1]/head[1]/style[2]",
+          "detail": "stylesheet rule 2 unexpected: got \".moz-text-html .mj-column-per-25{width:25% !important;max-width:25%}\""
         },
         {
           "path": "/#document/html[1]/body[1]/div[1]",
@@ -813,10 +869,10 @@
         }
       ]
     },
-    "testdata/raw.mjml": {
+    "testdata/parity/raw.mjml": {
       "error": "failed to render column: invalid child type mj-raw in column, allowed types are: [mj-divider mj-spacer mj-image mj-text mj-social mj-table mj-button]"
     },
-    "testdata/simple-hero.mjml": {
+    "testdata/parity/simple-hero.mjml": {
       "mismatches": [
         {
           "path": "/#document/html[1]/head[1]",
@@ -840,7 +896,7 @@
         }
       ]
     },
-    "testdata/simple.mjml": {
+    "testdata/parity/simple.mjml": {
       "mismatches": [
         {
           "path": "/#document/html[1]/body[1]/div[1]",
@@ -852,7 +908,7 @@
         }
       ]
     },
-    "testdata/social.mjml": {
+    "testdata/parity/social.mjml": {
       "mismatches": [
         {
           "path": "/#document/html[1]/head[1]",
@@ -869,6 +925,10 @@
         {
           "path": "/#document/html[1]/head[1]/style[2]",
           "detail": "attribute \"type\" missing, want \"text/css\""
+        },
+        {
+          "path": "/#document/html[1]/head[1]/style[2]",
+          "detail": "stylesheet rule 1 mismatch: want \"@import url(https://fonts.googleapis.com/css?family=Ubuntu:300,400,500,700)\", got \".moz-text-html .mj-column-per-100{width:100% !important;max-width:100%}\""
         },
         {
           "path": "/#document/html[1]/body[1]/div[1]",
@@ -905,6 +965,530 @@
         {
           "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[3]/tbody[1]/tr[1]/td[2]",
           "detail": "attribute \"style\" mismatch: want \"padding:4px 4px 4px 0;text-align:left;vertical-align:middle;\", got \"padding:4px 4px 4px 0;vertical-align:middle;\""
+        }
+      ]
+    },
+    "testdata/parity/upstream/mjml--accordion-fontFamily--00.mjml": {
+      "error": "failed to render column: invalid child type mj-accordion in column, allowed types are: [mj-divider mj-spacer mj-image mj-text mj-social mj-table mj-button]"
+    },
+    "testdata/parity/upstream/mjml--accordion-padding--00.mjml": {
+      "error": "failed to render column: invalid child type mj-accordion in column, allowed types are: [mj-divider mj-spacer mj-image mj-text mj-social mj-table mj-button]"
+    },
+    "testdata/parity/upstream/mjml--accordionTitle-fontWeight--00.mjml": {
+      "error": "failed to render column: invalid child type mj-accordion in column, allowed types are: [mj-divider mj-spacer mj-image mj-text mj-social mj-table mj-button]"
+    },
+    "testdata/parity/upstream/mjml--beautify-output--00.mjml": {
+      "mismatches": [
+        {
+          "path": "/#document/html[1]/head[1]",
+          "detail": "child count mismatch: want 11, got 9"
+        },
+        {
+          "path": "/#document/html[1]/head[1]/link[1]",
+          "detail": "name mismatch: want \"link\", got \"style\""
+        },
+        {
+          "path": "/#document/html[1]/head[1]/style[2]",
+          "detail": "attribute \"media\" unexpected, got \"screen and (min-width:480px)\""
+        },
+        {
+          "path": "/#document/html[1]/head[1]/style[2]",
+          "detail": "attribute \"type\" missing, want \"text/css\""
+        },
+        {
+          "path": "/#document/html[1]/head[1]/style[2]",
+          "detail": "stylesheet rule 1 mismatch: want \"@import url(https://fonts.googleapis.com/css?family=Ubuntu:300,400,500,700)\", got \".moz-text-html .mj-column-per-100{width:100% !important;max-width:100%}\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]",
+          "detail": "attribute \"aria-roledescription\" missing, want \"email\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]",
+          "detail": "attribute \"role\" missing, want \"article\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;\", got \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;\""
+        }
+      ]
+    },
+    "testdata/parity/upstream/mjml--beautify-output--01.mjml": {
+      "mismatches": [
+        {
+          "path": "/#document/html[1]/head[1]",
+          "detail": "child count mismatch: want 11, got 9"
+        },
+        {
+          "path": "/#document/html[1]/head[1]/link[1]",
+          "detail": "name mismatch: want \"link\", got \"style\""
+        },
+        {
+          "path": "/#document/html[1]/head[1]/style[2]",
+          "detail": "attribute \"media\" unexpected, got \"screen and (min-width:480px)\""
+        },
+        {
+          "path": "/#document/html[1]/head[1]/style[2]",
+          "detail": "attribute \"type\" missing, want \"text/css\""
+        },
+        {
+          "path": "/#document/html[1]/head[1]/style[2]",
+          "detail": "stylesheet rule 1 mismatch: want \"@import url(https://fonts.googleapis.com/css?family=Ubuntu:300,400,500,700)\", got \".moz-text-html .mj-column-per-100{width:100% !important;max-width:100%}\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]",
+          "detail": "attribute \"aria-roledescription\" missing, want \"email\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]",
+          "detail": "attribute \"role\" missing, want \"article\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;\", got \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;\""
+        }
+      ]
+    },
+    "testdata/parity/upstream/mjml--beautify-output--02.mjml": {
+      "error": "failed to render column: invalid child type mj-raw in column, allowed types are: [mj-divider mj-spacer mj-image mj-text mj-social mj-table mj-button]"
+    },
+    "testdata/parity/upstream/mjml--beautify-output--03.mjml": {
+      "mismatches": [
+        {
+          "path": "/#document/html[1]/head[1]",
+          "detail": "child count mismatch: want 11, got 9"
+        },
+        {
+          "path": "/#document/html[1]/head[1]/link[1]",
+          "detail": "name mismatch: want \"link\", got \"style\""
+        },
+        {
+          "path": "/#document/html[1]/head[1]/style[2]",
+          "detail": "attribute \"media\" unexpected, got \"screen and (min-width:480px)\""
+        },
+        {
+          "path": "/#document/html[1]/head[1]/style[2]",
+          "detail": "attribute \"type\" missing, want \"text/css\""
+        },
+        {
+          "path": "/#document/html[1]/head[1]/style[2]",
+          "detail": "stylesheet rule 1 mismatch: want \"@import url(https://fonts.googleapis.com/css?family=Ubuntu:300,400,500,700)\", got \".moz-text-html .mj-column-per-100{width:100% !important;max-width:100%}\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]",
+          "detail": "attribute \"aria-roledescription\" missing, want \"email\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]",
+          "detail": "attribute \"role\" missing, want \"article\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;\", got \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;\""
+        }
+      ]
+    },
+    "testdata/parity/upstream/mjml--beautify-output--04.mjml": {
+      "mismatches": [
+        {
+          "path": "/#document/html[1]/head[1]",
+          "detail": "child count mismatch: want 11, got 9"
+        },
+        {
+          "path": "/#document/html[1]/head[1]/link[1]",
+          "detail": "name mismatch: want \"link\", got \"style\""
+        },
+        {
+          "path": "/#document/html[1]/head[1]/style[2]",
+          "detail": "attribute \"media\" unexpected, got \"screen and (min-width:480px)\""
+        },
+        {
+          "path": "/#document/html[1]/head[1]/style[2]",
+          "detail": "attribute \"type\" missing, want \"text/css\""
+        },
+        {
+          "path": "/#document/html[1]/head[1]/style[2]",
+          "detail": "stylesheet rule 1 mismatch: want \"@import url(https://fonts.googleapis.com/css?family=Ubuntu:300,400,500,700)\", got \".moz-text-html .mj-column-per-100{width:100% !important;max-width:100%}\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]",
+          "detail": "attribute \"aria-roledescription\" missing, want \"email\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]",
+          "detail": "attribute \"role\" missing, want \"article\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;\", got \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;\""
+        }
+      ]
+    },
+    "testdata/parity/upstream/mjml--carousel-hoverSupported--00.mjml": {
+      "error": "failed to render column: invalid child type mj-carousel in column, allowed types are: [mj-divider mj-spacer mj-image mj-text mj-social mj-table mj-button]"
+    },
+    "testdata/parity/upstream/mjml--column-border-radius--00.mjml": {
+      "mismatches": [
+        {
+          "path": "/#document/html[1]/head[1]",
+          "detail": "child count mismatch: want 11, got 9"
+        },
+        {
+          "path": "/#document/html[1]/head[1]/link[1]",
+          "detail": "name mismatch: want \"link\", got \"style\""
+        },
+        {
+          "path": "/#document/html[1]/head[1]/style[2]",
+          "detail": "attribute \"media\" unexpected, got \"screen and (min-width:480px)\""
+        },
+        {
+          "path": "/#document/html[1]/head[1]/style[2]",
+          "detail": "attribute \"type\" missing, want \"text/css\""
+        },
+        {
+          "path": "/#document/html[1]/head[1]/style[2]",
+          "detail": "stylesheet rule 1 mismatch: want \"@import url(https://fonts.googleapis.com/css?family=Ubuntu:300,400,500,700)\", got \".moz-text-html .mj-column-per-100{width:100% !important;max-width:100%}\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]",
+          "detail": "attribute \"aria-roledescription\" missing, want \"email\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]",
+          "detail": "attribute \"role\" missing, want \"article\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]",
+          "detail": "attribute \"style\" missing, want \"border-collapse:separate;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]",
+          "detail": "attribute \"style\" mismatch: want \"border:5px solid #000;border-collapse:separate;border-radius:50px;padding:50px;vertical-align:top;\", got \"border:5px solid #666;border-radius:40px;padding:50px;vertical-align:top;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]",
+          "detail": "attribute \"style\" mismatch: want \"border:5px solid #666;border-collapse:separate;border-radius:40px;\", got \"border:5px solid #666;border-radius:40px;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;\", got \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;\""
+        }
+      ]
+    },
+    "testdata/parity/upstream/mjml--html-attributes--00.mjml": {
+      "error": "failed to render column: invalid child type mj-raw in column, allowed types are: [mj-divider mj-spacer mj-image mj-text mj-social mj-table mj-button]"
+    },
+    "testdata/parity/upstream/mjml--html-comments--00.mjml": {
+      "mismatches": [
+        {
+          "path": "/#document/html[1]/head[1]",
+          "detail": "child count mismatch: want 11, got 9"
+        },
+        {
+          "path": "/#document/html[1]/head[1]/link[1]",
+          "detail": "name mismatch: want \"link\", got \"style\""
+        },
+        {
+          "path": "/#document/html[1]/head[1]/style[2]",
+          "detail": "attribute \"media\" unexpected, got \"screen and (min-width:480px)\""
+        },
+        {
+          "path": "/#document/html[1]/head[1]/style[2]",
+          "detail": "attribute \"type\" missing, want \"text/css\""
+        },
+        {
+          "path": "/#document/html[1]/head[1]/style[2]",
+          "detail": "stylesheet rule 1 mismatch: want \"@import url(https://fonts.googleapis.com/css?family=Ubuntu:300,400,500,700)\", got \".moz-text-html .mj-column-per-100{width:100% !important;max-width:100%}\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]",
+          "detail": "attribute \"aria-roledescription\" missing, want \"email\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]",
+          "detail": "attribute \"role\" missing, want \"article\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;\", got \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
+          "detail": "child count mismatch: want 3, got 5"
+        }
+      ]
+    },
+    "testdata/parity/upstream/mjml--htmlmin-ignore--00.mjml": {
+      "error": "failed to render column: invalid child type mj-raw in column, allowed types are: [mj-divider mj-spacer mj-image mj-text mj-social mj-table mj-button]"
+    },
+    "testdata/parity/upstream/mjml--htmlmin-ignore--01.mjml": {
+      "error": "failed to render column: invalid child type mj-raw in column, allowed types are: [mj-divider mj-spacer mj-image mj-text mj-social mj-table mj-button]"
+    },
+    "testdata/parity/upstream/mjml--htmlmin-ignore--02.mjml": {
+      "error": "failed to render column: invalid child type mj-raw in column, allowed types are: [mj-divider mj-spacer mj-image mj-text mj-social mj-table mj-button]"
+    },
+    "testdata/parity/upstream/mjml--navbar-ico-padding--00.mjml": {
+      "error": "failed to render column: invalid child type mj-navbar in column, allowed types are: [mj-divider mj-spacer mj-image mj-text mj-social mj-table mj-button]"
+    },
+    "testdata/parity/upstream/mjml--social-align--00.mjml": {
+      "mismatches": [
+        {
+          "path": "/#document/html[1]/head[1]",
+          "detail": "child count mismatch: want 11, got 9"
+        },
+        {
+          "path": "/#document/html[1]/head[1]/link[1]",
+          "detail": "name mismatch: want \"link\", got \"style\""
+        },
+        {
+          "path": "/#document/html[1]/head[1]/style[2]",
+          "detail": "attribute \"media\" unexpected, got \"screen and (min-width:480px)\""
+        },
+        {
+          "path": "/#document/html[1]/head[1]/style[2]",
+          "detail": "attribute \"type\" missing, want \"text/css\""
+        },
+        {
+          "path": "/#document/html[1]/head[1]/style[2]",
+          "detail": "stylesheet rule 1 mismatch: want \"@import url(https://fonts.googleapis.com/css?family=Ubuntu:300,400,500,700)\", got \".moz-text-html .mj-column-per-100{width:100% !important;max-width:100%}\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]",
+          "detail": "attribute \"aria-roledescription\" missing, want \"email\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]",
+          "detail": "attribute \"role\" missing, want \"article\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]",
+          "detail": "attribute \"style\" mismatch: want \"padding:4px 4px 4px 0;text-align:right;vertical-align:middle;\", got \"padding:4px 4px 4px 0;vertical-align:middle;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[2]/table[1]/tbody[1]/tr[1]/td[1]/a[1]/img[1]",
+          "detail": "attribute \"height\" unexpected, got \"20\""
+        }
+      ]
+    },
+    "testdata/parity/upstream/mjml--social-icon-height--00.mjml": {
+      "mismatches": [
+        {
+          "path": "/#document/html[1]/head[1]",
+          "detail": "child count mismatch: want 11, got 9"
+        },
+        {
+          "path": "/#document/html[1]/head[1]/link[1]",
+          "detail": "name mismatch: want \"link\", got \"style\""
+        },
+        {
+          "path": "/#document/html[1]/head[1]/style[2]",
+          "detail": "attribute \"media\" unexpected, got \"screen and (min-width:480px)\""
+        },
+        {
+          "path": "/#document/html[1]/head[1]/style[2]",
+          "detail": "attribute \"type\" missing, want \"text/css\""
+        },
+        {
+          "path": "/#document/html[1]/head[1]/style[2]",
+          "detail": "stylesheet rule 1 mismatch: want \"@import url(https://fonts.googleapis.com/css?family=Ubuntu:300,400,500,700)\", got \".moz-text-html .mj-column-per-100{width:100% !important;max-width:100%}\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]",
+          "detail": "attribute \"aria-roledescription\" missing, want \"email\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]",
+          "detail": "attribute \"role\" missing, want \"article\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[1]/table[1]/tbody[1]/tr[1]",
+          "detail": "attribute \"mjml-social-test\" unexpected, got \"\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/a[1]/img[1]",
+          "detail": "attribute \"height\" unexpected, got \"40\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[2]",
+          "detail": "attribute \"style\" mismatch: want \"padding:4px 4px 4px 0;text-align:left;vertical-align:middle;\", got \"padding:4px 4px 4px 0;vertical-align:middle;\""
+        }
+      ]
+    },
+    "testdata/parity/upstream/mjml--table-cellspacing--00.mjml": {
+      "error": "failed to render column: failed to validate field width in \u003cmj-table\u003e: failed validation: unit \"auto\" from value \"auto\" is not one of [px %]"
+    },
+    "testdata/parity/upstream/mjml--tableWidth--00.mjml": {
+      "error": "failed to render column: failed to validate field width in \u003cmj-table\u003e: failed validation: unit \"auto\" from value \"auto\" is not one of [px %]"
+    },
+    "testdata/parity/upstream/mjml--template-syntax-sanitization--00.mjml": {
+      "error": "failed to render column: invalid child type mj-raw in column, allowed types are: [mj-divider mj-spacer mj-image mj-text mj-social mj-table mj-button]"
+    },
+    "testdata/parity/upstream/mjml--template-syntax-sanitization--01.mjml": {
+      "error": "error rendering \u003cmj-head\u003e: error parsing CSS: Unexpected } character: CHAR (line: 1, column: 33): \"}\""
+    },
+    "testdata/parity/upstream/mjml--template-syntax-sanitization--02.mjml": {
+      "error": "failed to render column: invalid child type mj-raw in column, allowed types are: [mj-divider mj-spacer mj-image mj-text mj-social mj-table mj-button]"
+    },
+    "testdata/parity/upstream/mjml--template-syntax-sanitization--03.mjml": {
+      "error": "failed to render column: invalid child type mj-raw in column, allowed types are: [mj-divider mj-spacer mj-image mj-text mj-social mj-table mj-button]"
+    },
+    "testdata/parity/upstream/mjml--template-syntax-sanitization--04.mjml": {
+      "error": "failed to render column: invalid child type mj-raw in column, allowed types are: [mj-divider mj-spacer mj-image mj-text mj-social mj-table mj-button]"
+    },
+    "testdata/parity/upstream/mjml--template-syntax-sanitization--05.mjml": {
+      "error": "failed to render column: invalid child type mj-raw in column, allowed types are: [mj-divider mj-spacer mj-image mj-text mj-social mj-table mj-button]"
+    },
+    "testdata/parity/upstream/mjml--template-syntax-sanitization--06.mjml": {
+      "error": "failed to render column: invalid child type mj-raw in column, allowed types are: [mj-divider mj-spacer mj-image mj-text mj-social mj-table mj-button]"
+    },
+    "testdata/parity/upstream/mjml--template-syntax-sanitization--07.mjml": {
+      "error": "failed to render column: invalid child type mj-raw in column, allowed types are: [mj-divider mj-spacer mj-image mj-text mj-social mj-table mj-button]"
+    },
+    "testdata/parity/upstream/mjml--wrapper-border-radius--00.mjml": {
+      "mismatches": [
+        {
+          "path": "/#document/html[1]/body[1]/div[1]",
+          "detail": "attribute \"aria-roledescription\" missing, want \"email\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]",
+          "detail": "attribute \"role\" missing, want \"article\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"border-radius:10px;margin:0px auto;max-width:600px;overflow:hidden;\", got \"border-radius:10px;margin:0px auto;max-width:600px;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]",
+          "detail": "attribute \"style\" mismatch: want \"border-collapse:separate;width:100%;\", got \"border-radius:10px;width:100%;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]",
+          "detail": "attribute \"style\" mismatch: want \"border:1px solid red;border-radius:10px;direction:ltr;font-size:0px;padding:20px 0;text-align:center;\", got \"border:1px solid red;direction:ltr;font-size:0px;padding:20px 0;text-align:center;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#F45E43;font-family:helvetica;font-size:20px;line-height:1;text-align:left;\", got \"color:#F45E43;font-family:helvetica;font-size:20px;line-height:1;\""
+        }
+      ]
+    },
+    "testdata/parity/upstream/mjml--wrapper-gap--00.mjml": {
+      "mismatches": [
+        {
+          "path": "/#document/html[1]/head[1]",
+          "detail": "child count mismatch: want 11, got 9"
+        },
+        {
+          "path": "/#document/html[1]/head[1]/link[1]",
+          "detail": "name mismatch: want \"link\", got \"style\""
+        },
+        {
+          "path": "/#document/html[1]/head[1]/style[2]",
+          "detail": "attribute \"media\" unexpected, got \"screen and (min-width:480px)\""
+        },
+        {
+          "path": "/#document/html[1]/head[1]/style[2]",
+          "detail": "attribute \"type\" missing, want \"text/css\""
+        },
+        {
+          "path": "/#document/html[1]/head[1]/style[2]",
+          "detail": "stylesheet rule 1 mismatch: want \"@import url(https://fonts.googleapis.com/css?family=Ubuntu:300,400,500,700)\", got \".moz-text-html .mj-column-per-100{width:100% !important;max-width:100%}\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]",
+          "detail": "attribute \"aria-roledescription\" missing, want \"email\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]",
+          "detail": "attribute \"role\" missing, want \"article\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/#conditional[1]/table[1]",
+          "detail": "attribute \"bgcolor\" mismatch: want \"#000000\", got \"#000\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[1]/table[1]/tbody[1]/tr[1]/td[1]",
+          "detail": "attribute \"class\" missing, want \"my-section-outlook\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]",
+          "detail": "attribute \"bgcolor\" unexpected, got \"#f45e43\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;\", got \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[2]/table[1]",
+          "detail": "attribute \"bgcolor\" unexpected, got \"#ccc\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[2]/table[1]",
+          "detail": "attribute \"style\" mismatch: want \"padding-top:20px;width:600px;\", got \"width:600px;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[2]",
+          "detail": "attribute \"style\" mismatch: want \"background:#cccccc;background-color:#cccccc;margin:0px auto;margin-top:20px;max-width:600px;\", got \"background:#CCCCCC;background-color:#CCCCCC;margin:0px auto;max-width:600px;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[2]/table[1]",
+          "detail": "attribute \"style\" mismatch: want \"background:#cccccc;background-color:#cccccc;width:100%;\", got \"background:#CCCCCC;background-color:#CCCCCC;width:100%;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;\", got \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[3]/table[1]",
+          "detail": "attribute \"bgcolor\" unexpected, got \"#333\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[3]/table[1]",
+          "detail": "attribute \"style\" mismatch: want \"padding-top:20px;width:600px;\", got \"width:600px;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[3]",
+          "detail": "attribute \"style\" mismatch: want \"background:#333333;background-color:#333333;margin:0px auto;margin-top:20px;max-width:600px;\", got \"background:#333333;background-color:#333333;margin:0px auto;max-width:600px;\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[3]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#ffffff;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;\", got \"color:#FFFFFF;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;\""
+        }
+      ]
+    },
+    "testdata/parity/upstream/parser-xml--preprocessors--00.mjml": {
+      "mismatches": [
+        {
+          "path": "/#document/html[1]/head[1]",
+          "detail": "child count mismatch: want 11, got 9"
+        },
+        {
+          "path": "/#document/html[1]/head[1]/link[1]",
+          "detail": "name mismatch: want \"link\", got \"style\""
+        },
+        {
+          "path": "/#document/html[1]/head[1]/style[2]",
+          "detail": "attribute \"media\" unexpected, got \"screen and (min-width:480px)\""
+        },
+        {
+          "path": "/#document/html[1]/head[1]/style[2]",
+          "detail": "attribute \"type\" missing, want \"text/css\""
+        },
+        {
+          "path": "/#document/html[1]/head[1]/style[2]",
+          "detail": "stylesheet rule 1 mismatch: want \"@import url(https://fonts.googleapis.com/css?family=Ubuntu:300,400,500,700)\", got \".moz-text-html .mj-column-per-100{width:100% !important;max-width:100%}\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]",
+          "detail": "attribute \"aria-roledescription\" missing, want \"email\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]",
+          "detail": "attribute \"role\" missing, want \"article\""
+        },
+        {
+          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]",
+          "detail": "attribute \"style\" mismatch: want \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;\", got \"color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;\""
         }
       ]
     }

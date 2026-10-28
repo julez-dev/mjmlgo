@@ -103,6 +103,10 @@ func compareNodes(mismatches *[]Mismatch, want, got *Node, path string, index in
 		}
 
 		compareAttrs(mismatches, want, got, path)
+
+		if want.Sheet != got.Sheet {
+			*mismatches = append(*mismatches, stylesheetMismatches(want.Sheet, got.Sheet, path)...)
+		}
 	}
 
 	if len(want.Children) != len(got.Children) {
@@ -246,4 +250,80 @@ func kindString(n *Node) string {
 	default:
 		return "<unknown>"
 	}
+}
+
+// stylesheetMismatches compares two canonical stylesheets rule by rule so the
+// report points at the first rule that differs instead of dumping whole sheets.
+func stylesheetMismatches(want, got, path string) []Mismatch {
+	wantRules := splitStylesheetRules(want)
+	gotRules := splitStylesheetRules(got)
+
+	var mismatches []Mismatch
+
+	limit := min(len(wantRules), len(gotRules))
+
+	for i := range limit {
+		if wantRules[i] == gotRules[i] {
+			continue
+		}
+
+		mismatches = append(mismatches, Mismatch{
+			Path:   path,
+			Detail: fmt.Sprintf("stylesheet rule %d mismatch: want %q, got %q", i+1, wantRules[i], gotRules[i]),
+		})
+
+		if len(mismatches) >= MaxMismatches {
+			return mismatches
+		}
+	}
+
+	switch {
+	case len(wantRules) > len(gotRules):
+		mismatches = append(mismatches, Mismatch{
+			Path:   path,
+			Detail: fmt.Sprintf("stylesheet rule %d missing: want %q", len(gotRules)+1, wantRules[len(gotRules)]),
+		})
+	case len(gotRules) > len(wantRules):
+		mismatches = append(mismatches, Mismatch{
+			Path:   path,
+			Detail: fmt.Sprintf("stylesheet rule %d unexpected: got %q", len(wantRules)+1, gotRules[len(wantRules)]),
+		})
+	}
+
+	return mismatches
+}
+
+// splitStylesheetRules splits a canonical stylesheet into top-level rules.
+func splitStylesheetRules(sheet string) []string {
+	if sheet == "" {
+		return nil
+	}
+
+	var (
+		rules []string
+		depth int
+		start int
+	)
+
+	for i, char := range sheet {
+		switch char {
+		case '{':
+			depth++
+		case '}':
+			depth--
+
+			if depth == 0 {
+				rules = append(rules, sheet[start:i+1])
+				start = i + 1
+			}
+		}
+	}
+
+	if start < len(sheet) {
+		if trailing := strings.TrimSpace(sheet[start:]); trailing != "" {
+			rules = append(rules, trailing)
+		}
+	}
+
+	return rules
 }

@@ -1,0 +1,11 @@
+<mjml>
+<mj-body>
+  <mj-section mj-class="content">
+    <mj-column>
+      {{ buttons.forEach(function(button) { }}
+      <mj-text>{{=button.title}}</mj-text>
+      {{ }); }}
+    </mj-column>
+  </mj-section>
+</mj-body>
+</mjml>

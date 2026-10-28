@@ -1,0 +1,69 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      # The parity tests render every fixture with the reference MJML CLI, whose
+      # version is pinned in package.json.
+      - name: Install reference MJML
+        run: npm ci
+
+      - name: gofmt
+        run: |
+          unformatted=$(gofmt -l .)
+          if [ -n "$unformatted" ]; then
+            echo "$unformatted"
+            exit 1
+          fi
+
+      - name: go vet
+        run: go vet ./...
+
+      - name: Tests (unit, parity against MJML, invalid input)
+        run: go test ./... -count=1 -coverpkg=./... -coverprofile=coverage.out -covermode=atomic
+
+      - name: Coverage report (not a gate)
+        run: go tool cover -func=coverage.out | tail -1
+
+      - name: Upload coverage profile
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage.out
+
+      - name: Fuzz smoke test (parser)
+        run: go test ./ -run '^$' -fuzz FuzzParse -fuzztime 30s .
+
+      - name: Fuzz smoke test (renderer)
+        run: go test ./ -run '^$' -fuzz FuzzRenderMJML -fuzztime 30s .
+
+      # Budgets live in benchmarks/BUDGETS.md. They are reported, not enforced.
+      - name: Benchmarks (report only)
+        run: go test ./ -run XXX -bench . -benchmem -count=1 | tee benchmarks.txt
+
+      - name: Upload benchmark results
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmarks
+          path: benchmarks.txt

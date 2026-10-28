@@ -1,0 +1,11 @@
+<mjml>
+        <mj-body>
+          <mj-section>
+            <mj-column>
+              <mj-raw>
+                <div style="[[ fontTag ]]: [[ fontWeight ]];">Token</div>
+              </mj-raw>
+            </mj-column>
+          </mj-section>
+        </mj-body>
+      </mjml>

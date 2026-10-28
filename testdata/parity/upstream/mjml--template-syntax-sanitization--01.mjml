@@ -1,0 +1,10 @@
+<mjml>
+        <mj-head>
+          <mj-style>
+            .title { color: {{headlineColor}}; }
+          </mj-style>
+        </mj-head>
+        <mj-body>
+          <mj-section><mj-column><mj-text>Token</mj-text></mj-column></mj-section>
+        </mj-body>
+      </mjml>

@@ -1,0 +1,1 @@
+no <mj-body> in <mjml> tag

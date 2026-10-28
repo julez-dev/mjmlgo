@@ -6,6 +6,8 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/aymerick/douceur/css"
+	"github.com/aymerick/douceur/parser"
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
 )
@@ -40,6 +42,7 @@ type Node struct {
 	Kind     Kind
 	Name     string // element tag name, or the condition of a conditional comment
 	Text     string // doctype value or text content
+	Sheet    string // canonical stylesheet of a <style> element
 	Attrs    []Attr
 	Children []*Node
 }
@@ -51,8 +54,9 @@ type Node struct {
 //     is parsed and compared as part of the tree;
 //   - whitespace-only text nodes are dropped and all other text has runs of
 //     whitespace collapsed to a single space;
-//   - <style> element contents are ignored (they are covered by a separate
-//     dedicated comparison if needed);
+//   - <style> contents are parsed and canonicalized so that generated CSS is
+//     compared as well, keeping rule and declaration order (the cascade is
+//     order sensitive) while ignoring formatting and comments;
 //   - attributes are sorted by name, style declarations are parsed and sorted,
 //     class tokens are sorted, and empty style/class/alt attributes are dropped.
 func ParseHTML(document string) (*Node, error) {
@@ -90,6 +94,8 @@ func convert(n *html.Node) *Node {
 		}
 
 		if name == "style" {
+			out.Sheet = canonicalStylesheet(textContent(n))
+
 			return out
 		}
 
@@ -312,6 +318,11 @@ func writeCanonical(b *strings.Builder, n *Node, depth int) {
 			b.WriteString(" " + attr.Key + `="` + attr.Val + `"`)
 		}
 
+		if n.Sheet != "" {
+			b.WriteString(">\n" + indent + "  #sheet " + n.Sheet + "\n")
+			return
+		}
+
 		if len(n.Children) == 0 {
 			b.WriteString(">\n")
 			return
@@ -323,4 +334,106 @@ func writeCanonical(b *strings.Builder, n *Node, depth int) {
 	for _, child := range n.Children {
 		writeCanonical(b, child, depth+1)
 	}
+}
+
+// textContent returns the concatenated text of a node's children.
+func textContent(n *html.Node) string {
+	var b strings.Builder
+
+	for descendant := range n.Descendants() {
+		if descendant.Type == html.TextNode {
+			b.WriteString(descendant.Data)
+		}
+	}
+
+	return b.String()
+}
+
+// canonicalStylesheet parses a stylesheet and renders it in a canonical form:
+// comments and formatting dropped, property names lowercased, whitespace
+// collapsed, while rule and declaration order are preserved because they
+// determine the cascade (and shorthand/longhand precedence).
+func canonicalStylesheet(stylesheet string) string {
+	stylesheet = cssComments.ReplaceAllString(stylesheet, "")
+
+	parsed, err := parser.Parse(stylesheet)
+	if err != nil {
+		// Keep unparsable content visible instead of hiding a divergence.
+		return normalizeText(stylesheet)
+	}
+
+	var b strings.Builder
+	writeCanonicalRules(&b, parsed.Rules)
+
+	return b.String()
+}
+
+func writeCanonicalRules(b *strings.Builder, rules []*css.Rule) {
+	for _, rule := range rules {
+		if rule.Kind == css.AtRule {
+			b.WriteString(strings.ToLower(normalizeText(rule.Name)))
+
+			if prelude := normalizeCSSValue(rule.Prelude); prelude != "" {
+				b.WriteString(" " + prelude)
+			}
+
+			switch {
+			case len(rule.Rules) > 0:
+				b.WriteString("{")
+				writeCanonicalRules(b, rule.Rules)
+				b.WriteString("}")
+			case len(rule.Declarations) > 0:
+				b.WriteString("{")
+				writeCanonicalDeclarations(b, rule.Declarations)
+				b.WriteString("}")
+			}
+
+			continue
+		}
+
+		selectors := make([]string, 0, len(rule.Selectors))
+		for _, selector := range rule.Selectors {
+			selectors = append(selectors, normalizeCSSSelector(selector))
+		}
+
+		if len(selectors) == 0 {
+			selectors = append(selectors, normalizeCSSSelector(rule.Prelude))
+		}
+
+		b.WriteString(strings.Join(selectors, ","))
+		b.WriteString("{")
+		writeCanonicalDeclarations(b, rule.Declarations)
+		b.WriteString("}")
+	}
+}
+
+func writeCanonicalDeclarations(b *strings.Builder, declarations []*css.Declaration) {
+	for i, declaration := range declarations {
+		if i > 0 {
+			b.WriteString(";")
+		}
+
+		b.WriteString(strings.ToLower(normalizeText(declaration.Property)))
+		b.WriteString(":")
+		b.WriteString(normalizeCSSValue(declaration.Value))
+
+		if declaration.Important {
+			b.WriteString(" !important")
+		}
+	}
+}
+
+var (
+	cssComments          = regexp.MustCompile(`(?s)/\*.*?\*/`)
+	cssCombinatorSpacing = regexp.MustCompile(`\s*([>+~])\s*`)
+)
+
+// normalizeCSSSelector collapses whitespace and drops it around combinators.
+func normalizeCSSSelector(selector string) string {
+	return cssCombinatorSpacing.ReplaceAllString(normalizeText(selector), "$1")
+}
+
+// normalizeCSSValue collapses runs of whitespace.
+func normalizeCSSValue(value string) string {
+	return normalizeText(strings.TrimSuffix(normalizeText(value), ";"))
 }

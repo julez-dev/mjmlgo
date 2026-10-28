@@ -22,6 +22,13 @@ import (
 // implementation. It is version scoped: bumping MJML requires re-recording it.
 const baselinePath = "testdata/parity-baseline.json"
 
+// parityDir holds the fixtures that must render identically to MJML.
+const parityDir = "testdata/parity"
+
+// invalidDir holds fixtures that must be rejected with the error recorded in
+// the sibling .error.txt file.
+const invalidDir = "testdata/invalid"
+
 var updateBaseline = flag.Bool("update", false, "re-record the MJML parity baseline in "+baselinePath)
 
 // parityBaseline records the known differences between this implementation and
@@ -82,8 +89,8 @@ func TestMJMLParity(t *testing.T) {
 		t.Skip("skipping parity test against the reference MJML implementation in short mode")
 	}
 
-	fixtures := mjmlFixtures(t, "testdata")
-	require.NotEmpty(t, fixtures, "no .mjml fixtures found in testdata")
+	fixtures := mjmlFixtures(t, parityDir)
+	require.NotEmpty(t, fixtures, "no .mjml fixtures found in %s", parityDir)
 
 	cli := mjmltest.NewCLI(t)
 	t.Logf("reference implementation: MJML %s (%s)", cli.Version, cli.Source)
@@ -265,8 +272,37 @@ func writeFailureArtifacts(t *testing.T, fixture, want, got string) {
 	t.Logf("wrote failure artifacts to %s", dir)
 }
 
+// TestMJMLInvalid asserts that malformed or invalid documents are rejected with
+// a clear error. This implementation validates hard (fail fast), while MJML
+// itself only warns and keeps rendering, so these fixtures are deliberately not
+// part of the parity corpus.
+func TestMJMLInvalid(t *testing.T) {
+	t.Parallel()
+
+	fixtures := mjmlFixtures(t, invalidDir)
+	require.NotEmpty(t, fixtures, "no .mjml fixtures found in %s", invalidDir)
+
+	for _, fixture := range fixtures {
+		t.Run(filepath.ToSlash(fixture), func(t *testing.T) {
+			t.Parallel()
+
+			input, err := os.ReadFile(fixture)
+			require.NoError(t, err)
+
+			html, err := RenderMJML(bytes.NewReader(input))
+
+			expectedPath := fixture + ".error.txt"
+			expected, readErr := os.ReadFile(expectedPath)
+			require.NoError(t, readErr, "fixture %s needs a %s with the expected error", fixture, filepath.Base(expectedPath))
+
+			require.Error(t, err, "expected %s to be rejected, rendered:\n%s", fixture, html)
+			assert.Contains(t, err.Error(), strings.TrimSpace(string(expected)))
+		})
+	}
+}
+
 // mjmlFixtures returns all .mjml files below dir, sorted for stable output.
-func mjmlFixtures(t *testing.T, dir string) []string {
+func mjmlFixtures(t testing.TB, dir string) []string {
 	t.Helper()
 
 	var fixtures []string
