@@ -113,3 +113,63 @@ func TestMJMLSection(t *testing.T) {
 		require.Equal(t, want, b.String())
 	})
 }
+
+func TestMJMLSectionOutlookSeats(t *testing.T) {
+	t.Parallel()
+
+	newSection := func(t *testing.T, children ...*node.Node) (*RenderContext, *node.Node) {
+		t.Helper()
+
+		ctx := &RenderContext{
+			ContainerWidth: "600px",
+			MJMLStylesheet: make(map[string][]string),
+		}
+		parent := &node.Node{Type: "mj-body"}
+		n := &node.Node{Type: "mj-section", Parent: parent}
+		parent.Children = append(parent.Children, n)
+
+		for _, child := range children {
+			child.Parent = n
+			n.Children = append(n.Children, child)
+		}
+
+		return ctx, n
+	}
+
+	t.Run("column seat uses the column width", func(t *testing.T) {
+		ctx, n := newSection(t,
+			&node.Node{Type: ColumnTagName, Attributes: []xml.Attr{{Name: xml.Name{Local: "width"}, Value: "30%"}}},
+			&node.Node{Type: ColumnTagName, Attributes: []xml.Attr{{Name: xml.Name{Local: "width"}, Value: "70%"}}},
+		)
+
+		var section MJMLSection
+		require.NoError(t, InitComponent(ctx, section, n))
+
+		b := strings.Builder{}
+		require.NoError(t, section.Render(ctx, &b, n))
+
+		out := b.String()
+		require.Contains(t, out, `style="vertical-align:top;width:180px;"`)
+		require.Contains(t, out, `style="vertical-align:top;width:420px;"`)
+	})
+
+	t.Run("group gets its own Outlook seat", func(t *testing.T) {
+		group := &node.Node{
+			Type: GroupTagName,
+			Children: []*node.Node{
+				{Type: ColumnTagName, Parent: &node.Node{}},
+			},
+		}
+		group.Children[0].Parent = group
+
+		ctx, n := newSection(t, group)
+
+		var section MJMLSection
+		require.NoError(t, InitComponent(ctx, section, n))
+
+		b := strings.Builder{}
+		require.NoError(t, section.Render(ctx, &b, n))
+
+		require.Contains(t, b.String(), `<!--[if mso | IE]><td style="width:600px;"><![endif]-->`)
+	})
+}

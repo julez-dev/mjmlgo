@@ -1,31 +1,11 @@
 {
   "mjmlVersion": "4.18.0",
   "fixtures": {
-    "testdata/parity/button-complex.mjml": {
-      "mismatches": [
-        {
-          "path": "/#document/html[1]/body[1]/div[1]/div[7]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[1]/table[1]/tbody[1]/tr[1]/td[1]",
-          "detail": "attribute \"style\" mismatch: want \"vertical-align:top;width:300px;\", got \"vertical-align:top;width:600px;\""
-        },
-        {
-          "path": "/#document/html[1]/body[1]/div[1]/div[10]/table[1]/tbody[1]/tr[1]/td[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[1]/table[1]/tbody[1]/tr[1]/td[1]",
-          "detail": "attribute \"style\" mismatch: want \"vertical-align:top;width:300px;\", got \"vertical-align:top;width:600px;\""
-        }
-      ]
-    },
     "testdata/parity/content.mjml": {
       "mismatches": [
         {
           "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]",
           "detail": "attribute \"style\" mismatch: want \"background-color:#fafafa;padding:10px;vertical-align:top;\", got \"padding:10px;vertical-align:top;\""
-        },
-        {
-          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[2]/td[1]/#conditional[1]/table[1]",
-          "detail": "attribute \"style\" mismatch: want \"border-top:dashed 2px #ff0000;font-size:1px;margin:0px auto;width:424px;\", got \"border-top:dashed 2px #ff0000;font-size:1px;margin:0px auto;width:0px;\""
-        },
-        {
-          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[2]/td[1]/#conditional[1]/table[1]",
-          "detail": "attribute \"width\" mismatch: want \"424px\", got \"0px\""
         }
       ]
     },
@@ -100,70 +80,6 @@
           "detail": "attribute \"style\" mismatch: want \"border-radius:12px;direction:ltr;font-size:0px;padding:20px;text-align:center;\", got \"direction:ltr;font-size:0px;padding:20px;text-align:center;\""
         },
         {
-          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[8]/table[1]/tbody[1]/tr[1]/td[1]/div[3]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[1]/table[1]",
-          "detail": "attribute \"style\" mismatch: want \"border-top:solid 1px #E5E5E5;font-size:1px;margin:0px auto;width:518px;\", got \"border-top:solid 1px #E5E5E5;font-size:1px;margin:0px auto;width:560px;\""
-        },
-        {
-          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[8]/table[1]/tbody[1]/tr[1]/td[1]/div[3]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[1]/table[1]",
-          "detail": "attribute \"width\" mismatch: want \"518px\", got \"560px\""
-        },
-        {
-          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[8]/table[1]/tbody[1]/tr[1]/td[1]/div[5]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[1]/table[1]",
-          "detail": "attribute \"style\" mismatch: want \"border-top:solid 1px #E5E5E5;font-size:1px;margin:0px auto;width:518px;\", got \"border-top:solid 1px #E5E5E5;font-size:1px;margin:0px auto;width:560px;\""
-        },
-        {
-          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[8]/table[1]/tbody[1]/tr[1]/td[1]/div[5]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[1]/table[1]",
-          "detail": "attribute \"width\" mismatch: want \"518px\", got \"560px\""
-        },
-        {
-          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[8]/table[1]/tbody[1]/tr[1]/td[1]/div[7]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[1]/table[1]",
-          "detail": "attribute \"style\" mismatch: want \"border-top:solid 1px #E5E5E5;font-size:1px;margin:0px auto;width:518px;\", got \"border-top:solid 1px #E5E5E5;font-size:1px;margin:0px auto;width:560px;\""
-        },
-        {
-          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[8]/table[1]/tbody[1]/tr[1]/td[1]/div[7]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[1]/table[1]",
-          "detail": "attribute \"width\" mismatch: want \"518px\", got \"560px\""
-        },
-        {
-          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[8]/table[1]/tbody[1]/tr[1]/td[1]/div[8]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[1]/table[1]/tbody[1]/tr[1]",
-          "detail": "child count mismatch: want 1, got 0"
-        },
-        {
-          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[8]/table[1]/tbody[1]/tr[1]/td[1]/div[8]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/#conditional[1]/table[1]/tbody[1]/tr[1]/td[1]",
-          "detail": "attribute \"style\" mismatch: want \"vertical-align:top;width:362px;\", got \"vertical-align:top;width:392px;\""
-        },
-        {
-          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[8]/table[1]/tbody[1]/tr[1]/td[1]/div[9]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[1]/table[1]/tbody[1]/tr[1]",
-          "detail": "child count mismatch: want 1, got 0"
-        },
-        {
-          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[8]/table[1]/tbody[1]/tr[1]/td[1]/div[9]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/#conditional[1]/table[1]/tbody[1]/tr[1]/td[1]",
-          "detail": "attribute \"style\" mismatch: want \"vertical-align:top;width:362px;\", got \"vertical-align:top;width:392px;\""
-        },
-        {
-          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[8]/table[1]/tbody[1]/tr[1]/td[1]/div[11]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[1]/table[1]",
-          "detail": "attribute \"style\" mismatch: want \"border-top:solid 1px #E5E5E5;font-size:1px;margin:0px auto;width:518px;\", got \"border-top:solid 1px #E5E5E5;font-size:1px;margin:0px auto;width:560px;\""
-        },
-        {
-          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[8]/table[1]/tbody[1]/tr[1]/td[1]/div[11]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[1]/table[1]",
-          "detail": "attribute \"width\" mismatch: want \"518px\", got \"560px\""
-        },
-        {
-          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[8]/table[1]/tbody[1]/tr[1]/td[1]/div[12]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[1]/table[1]/tbody[1]/tr[1]",
-          "detail": "child count mismatch: want 1, got 0"
-        },
-        {
-          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[8]/table[1]/tbody[1]/tr[1]/td[1]/div[12]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/#conditional[1]/table[1]/tbody[1]/tr[1]/td[1]",
-          "detail": "attribute \"style\" mismatch: want \"vertical-align:top;width:362px;\", got \"vertical-align:top;width:392px;\""
-        },
-        {
-          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[8]/table[1]/tbody[1]/tr[1]/td[1]/div[13]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[1]/table[1]/tbody[1]/tr[1]",
-          "detail": "child count mismatch: want 1, got 0"
-        },
-        {
-          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[8]/table[1]/tbody[1]/tr[1]/td[1]/div[13]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/#conditional[1]/table[1]/tbody[1]/tr[1]/td[1]",
-          "detail": "attribute \"style\" mismatch: want \"vertical-align:top;width:362px;\", got \"vertical-align:top;width:392px;\""
-        },
-        {
           "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[10]",
           "detail": "attribute \"style\" mismatch: want \"background:#FFFFFF;background-color:#FFFFFF;border-radius:12px;margin:0px auto;max-width:600px;overflow:hidden;\", got \"background:#FFFFFF;background-color:#FFFFFF;border-radius:12px;margin:0px auto;max-width:600px;\""
         },
@@ -200,10 +116,6 @@
           "detail": "attribute \"style\" mismatch: want \"border-radius:12px;direction:ltr;font-size:0px;padding:20px;text-align:center;\", got \"direction:ltr;font-size:0px;padding:20px;text-align:center;\""
         },
         {
-          "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[14]/table[1]/tbody[1]/tr[1]/td[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[1]/table[1]/tbody[1]/tr[1]/td[1]",
-          "detail": "attribute \"style\" mismatch: want \"vertical-align:middle;width:280px;\", got \"vertical-align:middle;width:560px;\""
-        },
-        {
           "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[14]/table[1]/tbody[1]/tr[1]/td[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/img[1]",
           "detail": "attribute \"height\" unexpected, got \"18\""
         },
@@ -218,50 +130,6 @@
         {
           "path": "/#document/html[1]/body[1]/div[2]/div[1]/div[14]/table[1]/tbody[1]/tr[1]/td[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[2]",
           "detail": "attribute \"style\" mismatch: want \"padding:0px 0px 0px 16px;text-align:left;vertical-align:middle;\", got \"padding:0px 0px 0px 16px;vertical-align:middle;\""
-        },
-        {
-          "path": "/#document/html[1]/body[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[5]/td[1]/#conditional[1]/table[1]",
-          "detail": "attribute \"style\" mismatch: want \"border-top:solid 2px #F5F5F5;font-size:1px;margin:0px auto;width:568px;\", got \"border-top:solid 2px #F5F5F5;font-size:1px;margin:0px auto;width:600px;\""
-        },
-        {
-          "path": "/#document/html[1]/body[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[5]/td[1]/#conditional[1]/table[1]",
-          "detail": "attribute \"width\" mismatch: want \"568px\", got \"600px\""
-        },
-        {
-          "path": "/#document/html[1]/body[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[8]/td[1]/#conditional[1]/table[1]",
-          "detail": "attribute \"style\" mismatch: want \"border-top:solid 2px #F5F5F5;font-size:1px;margin:0px auto;width:568px;\", got \"border-top:solid 2px #F5F5F5;font-size:1px;margin:0px auto;width:600px;\""
-        },
-        {
-          "path": "/#document/html[1]/body[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[8]/td[1]/#conditional[1]/table[1]",
-          "detail": "attribute \"width\" mismatch: want \"568px\", got \"600px\""
-        },
-        {
-          "path": "/#document/html[1]/body[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[10]/td[1]/#conditional[1]/table[1]",
-          "detail": "attribute \"style\" mismatch: want \"border-top:solid 2px #F5F5F5;font-size:1px;margin:0px auto;width:568px;\", got \"border-top:solid 2px #F5F5F5;font-size:1px;margin:0px auto;width:600px;\""
-        },
-        {
-          "path": "/#document/html[1]/body[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[10]/td[1]/#conditional[1]/table[1]",
-          "detail": "attribute \"width\" mismatch: want \"568px\", got \"600px\""
-        }
-      ]
-    },
-    "testdata/parity/layout.mjml": {
-      "mismatches": [
-        {
-          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[1]/table[1]/tbody[1]/tr[1]/td[1]",
-          "detail": "attribute \"style\" mismatch: want \"vertical-align:top;width:174.24px;\", got \"vertical-align:top;width:528px;\""
-        },
-        {
-          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[1]/table[1]/tbody[1]/tr[1]",
-          "detail": "child count mismatch: want 1, got 0"
-        }
-      ]
-    },
-    "testdata/parity/raw-in-group.mjml": {
-      "mismatches": [
-        {
-          "path": "/#document/html[1]/body[1]/div[1]/div[1]/table[1]/tbody[1]/tr[1]/td[1]/#conditional[1]/table[1]/tbody[1]/tr[1]",
-          "detail": "child count mismatch: want 1, got 0"
         }
       ]
     },

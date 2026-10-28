@@ -147,3 +147,25 @@ func TestMJMLColumnRender(t *testing.T) {
 		require.Less(t, raw, secondTR, "raw markup must precede the second row")
 	})
 }
+
+func TestMJMLColumnChildContainerWidth(t *testing.T) {
+	t.Parallel()
+
+	n := &node.Node{
+		Attributes: []xml.Attr{
+			{Name: xml.Name{Local: "width"}, Value: "50%"},
+			{Name: xml.Name{Local: "padding"}, Value: "10px 25px"},
+			{Name: xml.Name{Local: "inner-border-left"}, Value: "5px solid #000"},
+			{Name: xml.Name{Local: "inner-border-right"}, Value: "5px solid #000"},
+		},
+		Parent: &node.Node{
+			Children: []*node.Node{{Type: ColumnTagName}},
+		},
+	}
+
+	var column MJMLColumn
+	width, err := column.childContainerWidth(&RenderContext{ContainerWidth: "600px"}, n)
+	require.NoError(t, err)
+	// 600 * 50% - (2*25 + 2*5) = 240
+	require.Equal(t, "240px", width)
+}

@@ -80,6 +80,17 @@ func (c MJMLColumn) Render(ctx *RenderContext, w io.Writer, n *node.Node) error 
 	divStyle = append(divStyle, Style{Property: "width", Value: divWidth})
 	divAttr["style"] = divStyle.InlineString()
 
+	childWidth, err := c.childContainerWidth(ctx, n)
+	if err != nil {
+		return fmt.Errorf("failed to get child container width: %w", err)
+	}
+
+	previousContainerWidth := ctx.ContainerWidth
+	ctx.ContainerWidth = childWidth
+	defer func() {
+		ctx.ContainerWidth = previousContainerWidth
+	}()
+
 	_, _ = io.WriteString(w, "<div "+divAttr.InlineString()+">\n")
 	if c.hasGutter(n) {
 		if err := c.renderGutter(ctx, w, n); err != nil {
@@ -271,6 +282,46 @@ func (c MJMLColumn) renderGutter(ctx *RenderContext, w io.Writer, n *node.Node) 
 	_, _ = io.WriteString(w, "</table>\n")
 
 	return nil
+}
+
+// childContainerWidth implements mj-column's getChildContext: children are
+// rendered at the column width minus its paddings, borders and inner borders.
+func (c MJMLColumn) childContainerWidth(ctx *RenderContext, n *node.Node) (string, error) {
+	parentWidth, err := parseFloatWidth(ctx.ContainerWidth)
+	if err != nil {
+		return "", err
+	}
+
+	unit, width, err := getParsedWidth(n)
+	if err != nil {
+		return "", err
+	}
+
+	var containerWidth float64
+	if unit == "%" {
+		containerWidth = parentWidth * width / 100
+	} else {
+		containerWidth = width
+	}
+
+	paddingLeft, err := getShorthandAttrValue(n, "padding", "left")
+	if err != nil {
+		return "", err
+	}
+
+	paddingRight, err := getShorthandAttrValue(n, "padding", "right")
+	if err != nil {
+		return "", err
+	}
+
+	borderLeft := getShorthandBorderValue(n, "left", "border")
+	borderRight := getShorthandBorderValue(n, "right", "border")
+	innerBorderLeft := getShorthandBorderValue(n, "left", "inner-border")
+	innerBorderRight := getShorthandBorderValue(n, "right", "inner-border")
+
+	containerWidth -= float64(paddingLeft + paddingRight + borderLeft + borderRight + innerBorderLeft + innerBorderRight)
+
+	return formatPixelWidth(containerWidth), nil
 }
 
 func (c MJMLColumn) tdAttribute(n *node.Node) inlineAttributes {
