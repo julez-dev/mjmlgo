@@ -38,9 +38,9 @@
 //     registered components they belong to, and IsContentTag, which reports
 //     whether a built-in tag is one of the content components a container may
 //     declare.
-//   - RenderContext.AddComponentHeadStyle, AddMediaQuery and
-//     AddFluidOnMobileClass, the head-contribution mechanisms the built-in
-//     components use.
+//   - RenderContext.AddComponentHeadStyle, AddInstanceComponentHeadStyle,
+//     AddMediaQuery and AddFluidOnMobileClass, the head-contribution mechanisms
+//     the built-in components use.
 //   - DefaultIDGenerator and the TagName constants.
 //
 // # Custom components
@@ -83,9 +83,10 @@
 //
 // A container contributes CSS to the head through the mechanisms the built-in
 // components use: AddComponentHeadStyle for a named block (de-duplicated by
-// name), AddMediaQuery for class rules inside the document's breakpoint media
+// name), AddInstanceComponentHeadStyle for a per-instance block that must never be
+// merged, AddMediaQuery for class rules inside the document's breakpoint media
 // query, and AddFluidOnMobileClass for MJML's fluid-on-mobile rule on a class of
-// its own. All three keep registration order, so a document's head is
+// its own. All four keep registration order, so a document's head is
 // deterministic across renders.
 //
 // example/customcomponent is the in-repo example of the whole contract: Badge is

@@ -135,9 +135,13 @@ Known divergences at the start: 214 records / 15 root causes (see
   children; registration rejects a declared child that is neither a content component
   (`component.IsContentTag`) nor a registered custom one. Undeclared children still fail
   validation with the element path. `RenderContext.AddComponentHeadStyle`,
-  `AddMediaQuery` and `AddFluidOnMobileClass` export the three head mechanisms the
-  built-ins use, all ordered by first registration and de-duplicated, so the head is
-  byte-deterministic across repeated renders; mj-image's fluid block is unchanged.
+  `AddInstanceComponentHeadStyle`, `AddMediaQuery` and `AddFluidOnMobileClass` export
+  the head mechanisms the built-ins use, all in registration order, so the head is
+  byte-deterministic across repeated renders; the named and class-level mechanisms
+  de-duplicate, the instance-level one never does, like MJML. Raw children are marked
+  so a container may place them in a table body without the inliner foster-parenting
+  them out. mj-image's fluid block is unchanged, and the built-in column and hero
+  renderers now share the one dispatch table in `childComponent`.
   `example/customcomponent` gained the `mj-notice` container. No `Component` interface
   change; see ADR-0004 for the added methods. Parity is still at zero divergences.
 - **M3 done**: inline stylesheet selectors are compiled once per stylesheet, style

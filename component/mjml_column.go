@@ -141,124 +141,22 @@ func (c MJMLColumn) renderColumn(ctx *RenderContext, w io.Writer, n *node.Node) 
 			continue
 		}
 
+		component, ok := childComponent(ctx, child.Type)
+		if !ok {
+			// Unreachable while ValidateDocument runs first: every other child
+			// of mj-column is a disallowed-child error before rendering. Report
+			// the broken invariant as internal, not as author input.
+			return fmt.Errorf("no component for allowed child <%s> in <mj-column>", child.Type)
+		}
+
+		if err := InitComponent(ctx, component, child); err != nil {
+			return err
+		}
+
 		_, _ = io.WriteString(w, "<tr>\n")
-		switch child.Type {
-		case DividerTagName:
-			var divider MJMLDivider
-			if err := InitComponent(ctx, divider, child); err != nil {
-				return err
-			}
-			_, _ = io.WriteString(w, "<td "+c.tdAttribute(child).InlineString()+">\n")
-			if err := divider.Render(ctx, w, child); err != nil {
-				return fmt.Errorf("failed to render divider: %w", err)
-			}
-		case SpacerTagName:
-			var spacer MJMLSpacer
-			if err := InitComponent(ctx, spacer, child); err != nil {
-				return err
-			}
-
-			_, _ = io.WriteString(w, "<td "+c.tdAttribute(child).InlineString()+">\n")
-			if err := spacer.Render(ctx, w, child); err != nil {
-				return fmt.Errorf("failed to render spacer: %w", err)
-			}
-		case ImageTagName:
-			var image MJMLImage
-			if err := InitComponent(ctx, image, child); err != nil {
-				return err
-			}
-
-			_, _ = io.WriteString(w, "<td "+c.tdAttribute(child).InlineString()+">\n")
-			if err := image.Render(ctx, w, child); err != nil {
-				return fmt.Errorf("failed to render image: %w", err)
-			}
-		case TextTagName:
-			var text MJMLText
-			if err := InitComponent(ctx, text, child); err != nil {
-				return err
-			}
-
-			_, _ = io.WriteString(w, "<td "+c.tdAttribute(child).InlineString()+">\n")
-			if err := text.Render(ctx, w, child); err != nil {
-				return fmt.Errorf("failed to render text: %w", err)
-			}
-		case SocialTagName:
-			var social MJMLSocial
-			if err := InitComponent(ctx, social, child); err != nil {
-				return err
-			}
-
-			_, _ = io.WriteString(w, "<td "+c.tdAttribute(child).InlineString()+">\n")
-			if err := social.Render(ctx, w, child); err != nil {
-				return fmt.Errorf("failed to render social: %w", err)
-			}
-		case TableTagName:
-			var table MJMLTable
-			if err := InitComponent(ctx, table, child); err != nil {
-				return err
-			}
-
-			_, _ = io.WriteString(w, "<td "+c.tdAttribute(child).InlineString()+">\n")
-			if err := table.Render(ctx, w, child); err != nil {
-				return fmt.Errorf("failed to render table: %w", err)
-			}
-		case ButtonTagName:
-			var button MJMLButton
-			if err := InitComponent(ctx, button, child); err != nil {
-				return err
-			}
-
-			_, _ = io.WriteString(w, "<td "+c.tdAttribute(child).InlineString()+">\n")
-			if err := button.Render(ctx, w, child); err != nil {
-				return fmt.Errorf("failed to render button: %w", err)
-			}
-		case NavbarTagName:
-			var navbar MJMLNavbar
-			if err := InitComponent(ctx, navbar, child); err != nil {
-				return err
-			}
-
-			_, _ = io.WriteString(w, "<td "+c.tdAttribute(child).InlineString()+">\n")
-			if err := navbar.Render(ctx, w, child); err != nil {
-				return fmt.Errorf("failed to render navbar: %w", err)
-			}
-		case AccordionTagName:
-			var accordion MJMLAccordion
-			if err := InitComponent(ctx, accordion, child); err != nil {
-				return err
-			}
-
-			_, _ = io.WriteString(w, "<td "+c.tdAttribute(child).InlineString()+">\n")
-			if err := accordion.Render(ctx, w, child); err != nil {
-				return fmt.Errorf("failed to render accordion: %w", err)
-			}
-		case CarouselTagName:
-			var carousel MJMLCarousel
-			if err := InitComponent(ctx, carousel, child); err != nil {
-				return err
-			}
-
-			_, _ = io.WriteString(w, "<td "+c.tdAttribute(child).InlineString()+">\n")
-			if err := carousel.Render(ctx, w, child); err != nil {
-				return fmt.Errorf("failed to render carousel: %w", err)
-			}
-		default:
-			custom, isCustom := customComponent(ctx, child.Type)
-			if !isCustom {
-				// Unreachable while ValidateDocument runs first: every other child
-				// of mj-column is a disallowed-child error before rendering. Report
-				// the broken invariant as internal, not as author input.
-				return fmt.Errorf("no component for allowed child <%s> in <mj-column>", child.Type)
-			}
-
-			if err := InitComponent(ctx, custom, child); err != nil {
-				return err
-			}
-
-			_, _ = io.WriteString(w, "<td "+c.tdAttribute(child).InlineString()+">\n")
-			if err := custom.Render(ctx, w, child); err != nil {
-				return fmt.Errorf("failed to render <%s>: %w", child.Type, err)
-			}
+		_, _ = io.WriteString(w, "<td "+c.tdAttribute(child).InlineString()+">\n")
+		if err := component.Render(ctx, w, child); err != nil {
+			return fmt.Errorf("failed to render <%s>: %w", child.Type, err)
 		}
 
 		_, _ = io.WriteString(w, "</td>\n")

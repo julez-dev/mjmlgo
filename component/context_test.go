@@ -139,3 +139,27 @@ func TestAddFluidOnMobileClass(t *testing.T) {
 
 	require.Equal(t, []string{"mj-notice-fluid", "mj-panel-fluid"}, ctx.fluidOnMobileClasses)
 }
+
+// TestAddInstanceComponentHeadStyle asserts instance-scoped stylesheets are never
+// merged: two instances contribute two blocks, in registration order, ahead of
+// the named component styles.
+func TestAddInstanceComponentHeadStyle(t *testing.T) {
+	t.Parallel()
+
+	ctx := &RenderContext{}
+	ctx.AddComponentHeadStyle("mj-notice", func(string) string { return "notice\n" })
+	ctx.AddInstanceComponentHeadStyle("mj-carousel", func(string) string { return "first\n" })
+	ctx.AddInstanceComponentHeadStyle("mj-carousel", func(string) string { return "second\n" })
+
+	require.Len(t, ctx.InstanceComponentHeadStyles, 2)
+	require.Equal(t, "first\n", ctx.InstanceComponentHeadStyles[0].Style("480px"))
+	require.Equal(t, "second\n", ctx.InstanceComponentHeadStyles[1].Style("480px"))
+
+	head := renderHead(t, ctx)
+	first := strings.Index(head, "first\n")
+	second := strings.Index(head, "second\n")
+	named := strings.Index(head, "notice\n")
+	require.GreaterOrEqual(t, first, 0)
+	require.Greater(t, second, first, "instance blocks keep registration order")
+	require.Greater(t, named, second, "instance blocks are emitted before named ones")
+}

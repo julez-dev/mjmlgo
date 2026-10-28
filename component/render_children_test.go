@@ -106,7 +106,9 @@ func TestRenderChildrenRendersNestedContainers(t *testing.T) {
 }
 
 // TestRenderChildrenRendersRawChildren asserts mj-raw children are emitted at
-// their document position, like the built-in content containers do.
+// their document position inside the raw-block markers, so the inliner cannot
+// foster-parent them out of a table body the container may have placed them in.
+// The renderer strips the markers from the finished document.
 func TestRenderChildrenRendersRawChildren(t *testing.T) {
 	t.Parallel()
 
@@ -120,7 +122,33 @@ func TestRenderChildrenRendersRawChildren(t *testing.T) {
 	var output strings.Builder
 	require.NoError(t, RenderChildren(&RenderContext{}, &output, container))
 
-	assert.Equal(t, `<div class="raw">raw</div>`, output.String())
+	assert.Equal(t, RawBlockStartMarker+`<div class="raw">raw</div>`+RawBlockEndMarker, output.String())
+}
+
+// TestRenderChildrenEnforcesTheDeclaredChildList asserts RenderChildren checks a
+// registered container's own AllowedChildren, not only ValidateDocument, so a
+// component rendered without prior validation cannot emit a child it rejected.
+func TestRenderChildrenEnforcesTheDeclaredChildList(t *testing.T) {
+	t.Parallel()
+
+	ctx := contextWith(containerComponent{tag: "mj-panel"})
+
+	container := &node.Node{Type: "mj-panel"}
+	child := &node.Node{Type: ImageTagName}
+	child.Parent = container
+	container.Children = []*node.Node{child}
+
+	var output strings.Builder
+	err := RenderChildren(ctx, &output, container)
+
+	require.Error(t, err)
+
+	var structured *Error
+	require.ErrorAs(t, err, &structured)
+	assert.Equal(t, KindDisallowedChild, structured.Kind)
+	assert.Equal(t, []string{"mj-panel", ImageTagName}, structured.Path)
+	assert.Equal(t, ImageTagName, structured.Value)
+	assert.Empty(t, output.String(), "nothing of the rejected child is written")
 }
 
 // TestRenderChildrenReportsAnUnrenderableChild asserts a child no component can

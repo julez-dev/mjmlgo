@@ -168,9 +168,8 @@ func (c *RenderContext) addHTMLAttribute(path, name, value string) {
 // classes: the rules are emitted inside
 // `@media only screen and (min-width: <breakpoint>)` for className, and repeated
 // in the Thunderbird, print and desktop-Outlook variants MJML generates. A class
-// is emitted in first-registration order and registered once, so two instances
-// of a component contribute one block; registering a class again replaces its
-// rules.
+// keeps its first-registration position; registering it again replaces its
+// rules, so two instances of one component contribute a single class block.
 func (c *RenderContext) AddMediaQuery(className string, declarations []string) {
 	c.addMJMLStyle(className, declarations)
 }
@@ -183,6 +182,15 @@ func (c *RenderContext) AddMediaQuery(className string, declarations []string) {
 // deterministic block per component.
 func (c *RenderContext) AddComponentHeadStyle(name string, style func(breakpoint string) string) {
 	c.addComponentHeadStyle(name, style)
+}
+
+// AddInstanceComponentHeadStyle contributes a stylesheet specific to one rendered
+// instance - CSS that embeds an id or a count, as mj-carousel's does - and so
+// must not be merged with another instance's block. Blocks are emitted in
+// registration order, before the named component styles, and are never
+// de-duplicated: two instances contribute two blocks.
+func (c *RenderContext) AddInstanceComponentHeadStyle(name string, style func(breakpoint string) string) {
+	c.addInstanceComponentHeadStyle(name, style)
 }
 
 // AddFluidOnMobileClass makes the head emit MJML's fluid-on-mobile rule for
@@ -200,10 +208,10 @@ func (c *RenderContext) AddFluidOnMobileClass(className string) {
 	c.fluidOnMobileClasses = append(c.fluidOnMobileClasses, className)
 }
 
-// fluidOnMobileClassList is the ordered, de-duplicated list of classes that
+// fluidOnMobileRuleClasses is the ordered, de-duplicated list of classes that
 // receive the fluid-on-mobile rule: mj-image's fixed class first when the
 // document has an image, then the classes custom components registered.
-func (c RenderContext) fluidOnMobileClassList() []string {
+func (c RenderContext) fluidOnMobileRuleClasses() []string {
 	if !c.IncludeMobileFullWidthStyle && len(c.fluidOnMobileClasses) == 0 {
 		return nil
 	}

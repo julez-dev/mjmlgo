@@ -276,39 +276,11 @@ func (h MJMLHero) renderContent(ctx *RenderContext, w io.Writer, n *node.Node) e
 			continue
 		}
 
-		var childComponent Component
-
-		switch child.Type {
-		case TextTagName:
-			childComponent = MJMLText{}
-		case ImageTagName:
-			childComponent = MJMLImage{}
-		case ButtonTagName:
-			childComponent = MJMLButton{}
-		case DividerTagName:
-			childComponent = MJMLDivider{}
-		case SpacerTagName:
-			childComponent = MJMLSpacer{}
-		case SocialTagName:
-			childComponent = MJMLSocial{}
-		case TableTagName:
-			childComponent = MJMLTable{}
-		case CarouselTagName:
-			childComponent = MJMLCarousel{}
-		case NavbarTagName:
-			childComponent = MJMLNavbar{}
-		case AccordionTagName:
-			childComponent = MJMLAccordion{}
-		}
-
-		if childComponent == nil {
-			childComponent, _ = customComponent(ctx, child.Type)
-		}
-
-		if childComponent == nil {
-			// Unreachable while the switch above covers every built-in allowed
-			// child and validation accepts only registered custom tags on top;
-			// report the broken invariant as internal, not as author input.
+		childComponent, ok := childComponent(ctx, child.Type)
+		if !ok {
+			// Unreachable while childComponent covers every built-in allowed
+			// child and registration accepts only custom tags it can render on
+			// top; report the broken invariant as internal, not as author input.
 			return fmt.Errorf("no component for allowed child <%s> in <mj-hero>", child.Type)
 		}
 

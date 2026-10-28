@@ -3,6 +3,7 @@ package component
 import (
 	"fmt"
 	"io"
+	"strings"
 
 	"github.com/julez-dev/mjmlgo/node"
 )
@@ -41,7 +42,9 @@ func IsContentTag(tag string) bool {
 // the built-in component that renders its tag or to the custom component
 // registered for it, with its author attributes validated and its defaults
 // applied first - exactly what the built-in content containers do for their
-// children.
+// children. A child outside the container's AllowedChildren is a
+// KindDisallowedChild error carrying the element path, so a component that
+// renders without prior validation still enforces its own contract.
 //
 // The component owns all markup around the children. It may render them straight
 // into w, or into a buffer of its own first so every child is rendered before
@@ -53,12 +56,39 @@ func IsContentTag(tag string) bool {
 //	}
 //	// ... write the wrapper and children.String() ...
 //
-// A custom container that renders an mj-raw child gets that child's content
-// verbatim, without the raw-block markers the built-in containers add when the
-// content sits directly in a table body: the marker scheme depends on the
-// surrounding markup, which only the component knows.
+// An mj-raw child is rendered the way a built-in container renders raw content
+// that sits directly in a table body: inside the raw-block markers, which the
+// renderer strips from the finished document. A container may put its children in
+// a <tbody>, and the marker is what keeps html.Parse from foster-parenting raw
+// markup out of the table; the inliner parses such a block as a fragment at its
+// position, so the limits the built-in containers have for raw content apply here
+// too (a selector that needs an ancestor outside the block cannot match inside
+// it).
 func RenderChildren(ctx *RenderContext, w io.Writer, n *node.Node) error {
+	var container ChildComponent
+	if parent, custom := customComponent(ctx, n.Type); custom {
+		container, _ = parent.(ChildComponent)
+	}
+
 	for _, child := range n.Children {
+		if container != nil && !allowsCustomComponentChild(container, child.Type) {
+			return NewError(
+				KindDisallowedChild,
+				elementPathSegments(child),
+				"",
+				child.Type,
+				fmt.Errorf("allowed children: %s", strings.Join(container.AllowedChildren(), ", ")),
+			)
+		}
+
+		if child.Type == RawTagName {
+			if err := renderRawChildInTableBody(ctx, w, child); err != nil {
+				return err
+			}
+
+			continue
+		}
+
 		comp, ok := childComponent(ctx, child.Type)
 		if !ok {
 			// Unreachable while registration rejects a declared child nothing
@@ -82,7 +112,9 @@ func RenderChildren(ctx *RenderContext, w io.Writer, n *node.Node) error {
 // childComponent resolves the component that renders one child of a custom
 // container: a built-in content component first, then a component registered on
 // this renderer. A custom component can never shadow a built-in one, so the
-// order only documents the intent.
+// order only documents the intent. It is the single dispatch table every
+// container uses - the built-in ones and RenderChildren - so a new content
+// component is listed once.
 func childComponent(ctx *RenderContext, tag string) (Component, bool) {
 	if builtin, ok := contentComponents[tag]; ok {
 		return builtin, true

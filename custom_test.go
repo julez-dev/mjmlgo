@@ -594,3 +594,50 @@ func TestCustomContainerRejectsUndeclaredChild(t *testing.T) {
 	assert.ErrorIs(t, err, component.ErrValidation)
 	assert.Contains(t, err.Error(), "allowed children: mj-text")
 }
+
+// rawTableComponent is a container that places its children directly in a table
+// body, the position where html.Parse foster-parents raw markup out of the table
+// unless the block is protected.
+type rawTableComponent struct{}
+
+func (rawTableComponent) Name() string { return "mj-raw-table" }
+
+func (rawTableComponent) AllowedAttributes() map[string]component.AttributeValidator { return nil }
+
+func (rawTableComponent) DefaultAttributes(*component.RenderContext) map[string]string {
+	return nil
+}
+
+func (rawTableComponent) AllowedChildren() []string { return []string{component.RawTagName} }
+
+func (rawTableComponent) Render(ctx *component.RenderContext, w io.Writer, n *node.Node) error {
+	_, _ = io.WriteString(w, `<table class="raw-table"><tbody>`)
+	if err := component.RenderChildren(ctx, w, n); err != nil {
+		return err
+	}
+	_, err := io.WriteString(w, `</tbody></table>`)
+
+	return err
+}
+
+// TestCustomContainerKeepsRawChildrenInPlace asserts a container that puts its
+// children in a table body keeps mj-raw content where the container placed it,
+// even when the inliner round-trips the document: RenderChildren marks the raw
+// block, so html.Parse cannot foster-parent it out of the table.
+func TestCustomContainerKeepsRawChildrenInPlace(t *testing.T) {
+	t.Parallel()
+
+	const document = `<mjml><mj-head><mj-style inline="inline">.raw { color: red; }</mj-style></mj-head>` +
+		`<mj-body><mj-section><mj-column>` +
+		`<mj-raw-table><mj-raw><tr><td class="raw">raw</td></tr></mj-raw></mj-raw-table>` +
+		`</mj-column></mj-section></mj-body></mjml>`
+
+	rendered := renderWithComponents(t, document, rawTableComponent{})
+
+	// The inline stylesheet forces the HTML round-trip; the marker keeps the raw
+	// row inside the container's table, the inliner styles the block as a
+	// fragment there, and the marker itself is stripped.
+	assert.Contains(t, rendered,
+		`<table class="raw-table"><tbody><tr><td class="raw" style="color:red;">raw</td></tr></tbody></table>`)
+	assert.NotContains(t, rendered, component.RawBlockStartMarker)
+}

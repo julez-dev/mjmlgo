@@ -184,3 +184,23 @@ func TestHeadEmitsMJMLImageFluidRulesUnchanged(t *testing.T) {
 			"        td.mj-full-width-mobile { width: auto !important; }\n"+
 			"    }")
 }
+
+// TestHeadOrdersMJMLImageFluidRulesBeforeCustomClasses asserts mj-image's own
+// fluid class stays first when a custom component adds one, so built-in output
+// keeps its position and the custom rule follows deterministically.
+func TestHeadOrdersMJMLImageFluidRulesBeforeCustomClasses(t *testing.T) {
+	t.Parallel()
+
+	ctx := &RenderContext{IncludeMobileFullWidthStyle: true}
+	ctx.AddFluidOnMobileClass("mj-notice-fluid")
+
+	head := renderHead(t, ctx)
+
+	require.Contains(t, head,
+		"    @media only screen and (max-width:479px) {\n"+
+			"        table.mj-full-width-mobile { width: 100% !important; }\n"+
+			"        td.mj-full-width-mobile { width: auto !important; }\n"+
+			"        table.mj-notice-fluid { width: 100% !important; }\n"+
+			"        td.mj-notice-fluid { width: auto !important; }\n"+
+			"    }")
+}

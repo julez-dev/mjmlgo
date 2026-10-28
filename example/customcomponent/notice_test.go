@@ -23,7 +23,7 @@ func noticeHTML(children string) string {
 // renderNotice runs the public contract the renderer uses: InitComponent applies
 // the defaults, then Render writes the wrapper around the children it renders
 // with component.RenderChildren.
-func renderNotice(t *testing.T, ctx *component.RenderContext, pairs ...string) (string, *node.Node) {
+func renderNotice(t *testing.T, ctx *component.RenderContext, pairs ...string) string {
 	t.Helper()
 
 	n := &node.Node{Type: NoticeTagName, Attributes: attributes(pairs...)}
@@ -37,7 +37,7 @@ func renderNotice(t *testing.T, ctx *component.RenderContext, pairs ...string) (
 	var output strings.Builder
 	require.NoError(t, Notice{}.Render(ctx, &output, n))
 
-	return output.String(), n
+	return output.String()
 }
 
 // TestNoticeWrapsItsRenderedChildren asserts the container's exact HTML: its own
@@ -45,7 +45,7 @@ func renderNotice(t *testing.T, ctx *component.RenderContext, pairs ...string) (
 func TestNoticeWrapsItsRenderedChildren(t *testing.T) {
 	t.Parallel()
 
-	rendered, _ := renderNotice(t, &component.RenderContext{})
+	rendered := renderNotice(t, &component.RenderContext{})
 
 	assert.Equal(t, noticeHTML(
 		`<div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;`+
@@ -62,7 +62,7 @@ func TestNoticeWrapsItsRenderedChildren(t *testing.T) {
 func TestNoticeAuthorAttributesWinOverItsDefaults(t *testing.T) {
 	t.Parallel()
 
-	rendered, _ := renderNotice(t, &component.RenderContext{}, "background-color", "#111827")
+	rendered := renderNotice(t, &component.RenderContext{}, "background-color", "#111827")
 
 	assert.Contains(t, rendered, "background-color:#111827;border:1px solid #f59e0b;")
 }

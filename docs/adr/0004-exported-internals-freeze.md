@@ -112,8 +112,9 @@ fields too: `AttributeMap` (`map[string]string`), `Stylesheet` (`Rules`,
   custom-component contract by replacing its unexported validator type with the
   exported `AttributeValidator`, and added `ChildComponent` for declared child
   lists. T4 (issue #5) did not change the interface: it added the methods
-  `RenderContext.AddComponentHeadStyle`, `AddMediaQuery` and
-  `AddFluidOnMobileClass`, the exported `RenderChildren` and `IsContentTag`, and
+  `RenderContext.AddComponentHeadStyle`, `AddInstanceComponentHeadStyle`,
+  `AddMediaQuery` and `AddFluidOnMobileClass`, the exported `RenderChildren` and
+  `IsContentTag`, and
   the unexported `fluidOnMobileClasses` state the fluid-on-mobile method fills.
   Methods and unexported fields may be added freely; the frozen field list above
   is unchanged, and `IncludeMobileFullWidthStyle` keeps its meaning (mj-image's
