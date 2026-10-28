@@ -9,14 +9,6 @@
         }
       ]
     },
-    "testdata/parity/image-complex.mjml": {
-      "mismatches": [
-        {
-          "path": "/#document/html[1]/body[1]/div[1]/div[6]/table[1]/tbody[1]/tr[1]/td[1]/div[1]/table[1]/tbody[1]/tr[5]/td[1]/table[1]/tbody[1]/tr[1]/td[1]/img[1]",
-          "detail": "attribute \"style\" mismatch: want \"border:0;border-radius:25px;display:block;font-size:13px;height:auto;outline:none;text-decoration:none;width:100%;\", got \"border:0;display:block;font-size:13px;height:auto;outline:none;text-decoration:none;width:100%;\""
-        }
-      ]
-    },
     "testdata/parity/simple-hero.mjml": {
       "mismatches": [
         {
