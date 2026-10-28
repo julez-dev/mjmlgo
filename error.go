@@ -17,28 +17,18 @@ type Error = component.Error
 type ErrorKind = component.ErrorKind
 
 // The closed set of structured-error kinds, re-exported from the component
-// package.
+// package. Each kind's meaning is documented on the component constant of the
+// same name; the block is the whole set: KindUnknownElement,
+// KindUnknownAttribute, KindInvalidValue, KindDisallowedChild,
+// KindUnknownIncludeType, KindUndefinedMJClass and KindParseFailure.
 const (
-	// KindUnknownElement reports an element that is not part of MJML.
-	KindUnknownElement = component.KindUnknownElement
-	// KindUnknownAttribute reports an attribute that is not allowed on its
-	// element.
-	KindUnknownAttribute = component.KindUnknownAttribute
-	// KindInvalidValue reports an attribute value that does not match MJML's
-	// type for it, or a required attribute that is missing.
-	KindInvalidValue = component.KindInvalidValue
-	// KindDisallowedChild reports an element nested where MJML's dependency
-	// table does not allow it.
-	KindDisallowedChild = component.KindDisallowedChild
-	// KindUnknownIncludeType reports an mj-include whose type is not mjml, html
-	// or css.
+	KindUnknownElement     = component.KindUnknownElement
+	KindUnknownAttribute   = component.KindUnknownAttribute
+	KindInvalidValue       = component.KindInvalidValue
+	KindDisallowedChild    = component.KindDisallowedChild
 	KindUnknownIncludeType = component.KindUnknownIncludeType
-	// KindUndefinedMJClass reports an mj-class reference to a class the document
-	// does not declare in mj-attributes.
-	KindUndefinedMJClass = component.KindUndefinedMJClass
-	// KindParseFailure reports a document that could not be read into a
-	// renderable MJML tree.
-	KindParseFailure = component.KindParseFailure
+	KindUndefinedMJClass   = component.KindUndefinedMJClass
+	KindParseFailure       = component.KindParseFailure
 )
 
 // ErrValidation reports a document that failed validation. A structured error

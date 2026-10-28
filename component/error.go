@@ -36,6 +36,17 @@ const (
 	KindParseFailure ErrorKind = "parse failure"
 )
 
+// validationKinds are the kinds errors.Is reports as ErrValidation. The include
+// type has its own sentinel (ErrIncludeType), and a parse failure never counts
+// as validation.
+var validationKinds = map[ErrorKind]struct{}{
+	KindUnknownElement:   {},
+	KindUnknownAttribute: {},
+	KindInvalidValue:     {},
+	KindDisallowedChild:  {},
+	KindUndefinedMJClass: {},
+}
+
 // Error is the structured failure returned by every validation and parse site.
 // It carries the offending element's path as data, the attribute and value when
 // they are what failed, and the underlying cause.
@@ -127,15 +138,13 @@ func (e *Error) Unwrap() error {
 // ErrValidation even though their cause is a detailed message rather than the
 // sentinel; every other sentinel is reached through Err.
 func (e *Error) Is(target error) bool {
-	switch target {
-	case ErrValidation:
-		switch e.Kind {
-		case KindUnknownElement, KindUnknownAttribute, KindInvalidValue, KindDisallowedChild, KindUndefinedMJClass:
-			return true
-		}
+	if target != ErrValidation {
+		return false
 	}
 
-	return false
+	_, isValidation := validationKinds[e.Kind]
+
+	return isValidation
 }
 
 // element returns the element the failure is about: the last path segment.
@@ -148,9 +157,14 @@ func (e *Error) element() string {
 }
 
 // parent returns the element the offending child sits in: the second-to-last
-// path segment.
+// path segment. A one-segment path is a direct child of the document's root
+// element, which element paths omit, so the root is the parent.
 func (e *Error) parent() string {
 	if len(e.Path) < 2 {
+		if len(e.Path) == 1 && e.Path[0] != MJMLTagName {
+			return MJMLTagName
+		}
+
 		return ""
 	}
 

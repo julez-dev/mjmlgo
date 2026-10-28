@@ -1,0 +1,8 @@
+<mjml>
+  <mj-body>
+    <mj-section>
+      <mj-column></mj-column>
+    </mj-section>
+  </mj-body>
+  <mj-text>Text cannot be a direct child of mjml</mj-text>
+</mjml>

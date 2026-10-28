@@ -38,6 +38,11 @@ func TestErrorText(t *testing.T) {
 			want: "mj-body > mj-text: <mj-text> is not allowed inside <mj-body> (allowed children: mj-section)",
 		},
 		{
+			name: "disallowed child of the document root",
+			err:  NewError(KindDisallowedChild, []string{"mj-text"}, "", "mj-text", errors.New("allowed children: mj-body, mj-head, mj-raw")),
+			want: "mj-text: <mj-text> is not allowed inside <mjml> (allowed children: mj-body, mj-head, mj-raw)",
+		},
+		{
 			name: "undefined mj-class",
 			err:  NewError(KindUndefinedMJClass, []string{"mj-text"}, "mj-class", "missing", nil),
 			want: `mj-text: mj-class "missing" is not declared in <mj-attributes>`,

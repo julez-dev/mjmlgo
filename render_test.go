@@ -206,6 +206,12 @@ var invalidFailures = map[string]invalidFailure{
 		value:    "mj-text",
 		sentinel: ErrValidation,
 	},
+	"disallowed-root-child.mjml": {
+		kind:     KindDisallowedChild,
+		path:     []string{"mj-text"},
+		value:    "mj-text",
+		sentinel: ErrValidation,
+	},
 	"include-cycle.mjml": {
 		kind:     KindParseFailure,
 		path:     []string{"mj-body", "mj-include"},
@@ -314,6 +320,12 @@ func TestMJMLInvalid(t *testing.T) {
 
 	fixtures := mjmlFixtures(t, invalidDir)
 	require.NotEmpty(t, fixtures, "no .mjml fixtures found in %s", invalidDir)
+
+	// Every recorded expectation must still have a fixture, so a deleted
+	// fixture cannot leave a stale entry behind.
+	for name := range invalidFailures {
+		require.FileExists(t, filepath.Join(invalidDir, name), "invalidFailures entry %s has no fixture", name)
+	}
 
 	for _, fixture := range fixtures {
 		t.Run(filepath.ToSlash(fixture), func(t *testing.T) {

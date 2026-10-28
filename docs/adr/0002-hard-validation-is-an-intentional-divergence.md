@@ -53,9 +53,14 @@ Two mapping decisions follow from that closed set:
   attribute is known, its value is absent. Template nesting violations such as
   `mj-html-attributes` outside `mj-head` are disallowed children.
 
+CSS parsing inside `<mj-style>` is not one of these failures: it is a stylesheet
+parse with no MJML element path, so it keeps its own error instead of inventing a
+kind for it.
+
 `errors.Is` keeps working for the older sentinels, including `ErrValidation` for
-every validation kind, so migrating a caller to the structured error does not
-require a flag day. Error text remains part of the tested surface and is
+the element, attribute, value, child and `mj-class` kinds (an unknown include
+type keeps its `ErrIncludeType` sentinel), so migrating a caller to the
+structured error does not require a flag day. Error text remains part of the tested surface and is
 deliberately regenerated when it changes, but callers are told to branch on
 `Kind`, not on the message.
 
