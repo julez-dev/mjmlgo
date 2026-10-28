@@ -173,3 +173,31 @@ func TestMJMLSectionOutlookSeats(t *testing.T) {
 		require.Contains(t, b.String(), `<!--[if mso | IE]><td style="width:600px;"><![endif]-->`)
 	})
 }
+
+func TestMJMLSectionBorderRadius(t *testing.T) {
+	t.Parallel()
+
+	ctx := &RenderContext{
+		ContainerWidth: "600px",
+		MJMLStylesheet: make(map[string][]string),
+	}
+	parent := &node.Node{Type: "mj-body"}
+	n := &node.Node{
+		Type:       "mj-section",
+		Parent:     parent,
+		Attributes: []xml.Attr{{Name: xml.Name{Local: "border-radius"}, Value: "10px"}},
+	}
+	parent.Children = append(parent.Children, n)
+
+	var section MJMLSection
+	require.NoError(t, InitComponent(ctx, section, n))
+
+	b := strings.Builder{}
+	require.NoError(t, section.Render(ctx, &b, n))
+
+	out := b.String()
+	require.Contains(t, out, `overflow:hidden;`)
+	require.Contains(t, out, `border-collapse:separate;`)
+	require.NotContains(t, out, `<table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-radius:10px;width:100%;">`)
+	require.Contains(t, out, `border-radius:10px;direction:ltr;`)
+}

@@ -85,7 +85,6 @@ func (s MJMLSection) renderFullWidth(ctx *RenderContext, w io.Writer, n *node.No
 	}
 
 	tableStyle := inlineStyle{
-		{Property: "border-radius", Value: n.GetAttributeValueDefault("border-radius")},
 		{Property: "width", Value: "100%"},
 	}
 
@@ -187,6 +186,8 @@ func (s MJMLSection) renderSection(ctx *RenderContext, w io.Writer, n *node.Node
 	}
 
 	containerWidth := ctx.ContainerWidth
+	borderRadius, hasBorderRadius := n.GetAttributeValue("border-radius")
+	hasBorderRadius = hasBorderRadius && borderRadius != ""
 
 	box, err := getBoxWidths(ctx, n)
 	if err != nil {
@@ -223,6 +224,10 @@ func (s MJMLSection) renderSection(ctx *RenderContext, w io.Writer, n *node.Node
 		{Property: "border-radius", Value: n.GetAttributeValueDefault("border-radius")},
 	}
 
+	if hasBorderRadius {
+		divStyle = append(divStyle, Style{Property: "overflow", Value: "hidden"})
+	}
+
 	divStyle = append(divStyle, Style{Property: "max-width", Value: containerWidth})
 
 	innerDivStyle := inlineStyle{
@@ -240,11 +245,14 @@ func (s MJMLSection) renderSection(ctx *RenderContext, w io.Writer, n *node.Node
 
 	tableStyle := inlineStyle{
 		{Property: "width", Value: "100%"},
-		{Property: "border-radius", Value: n.GetAttributeValueDefault("border-radius")},
 	}
 
 	if !isFullWidth {
 		tableStyle = append(tableStyle, backgroundStyle...)
+	}
+
+	if hasBorderRadius {
+		tableStyle = append(tableStyle, Style{Property: "border-collapse", Value: "separate"})
 	}
 
 	tableAttr := inlineAttributes{
@@ -264,6 +272,7 @@ func (s MJMLSection) renderSection(ctx *RenderContext, w io.Writer, n *node.Node
 		{Property: "border", Value: n.GetAttributeValueDefault("border")},
 		{Property: "border-bottom", Value: n.GetAttributeValueDefault("border-bottom")},
 		{Property: "border-left", Value: n.GetAttributeValueDefault("border-left")},
+		{Property: "border-radius", Value: n.GetAttributeValueDefault("border-radius")},
 		{Property: "border-right", Value: n.GetAttributeValueDefault("border-right")},
 		{Property: "border-top", Value: n.GetAttributeValueDefault("border-top")},
 		{Property: "direction", Value: n.GetAttributeValueDefault("direction")},

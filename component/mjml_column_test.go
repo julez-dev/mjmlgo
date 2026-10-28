@@ -169,3 +169,29 @@ func TestMJMLColumnChildContainerWidth(t *testing.T) {
 	// 600 * 50% - (2*25 + 2*5) = 240
 	require.Equal(t, "240px", width)
 }
+
+func TestMJMLColumnBorderRadiusStyles(t *testing.T) {
+	t.Parallel()
+
+	n := &node.Node{
+		Attributes: []xml.Attr{
+			{Name: xml.Name{Local: "border-radius"}, Value: "50px"},
+			{Name: xml.Name{Local: "inner-border-radius"}, Value: "40px"},
+			{Name: xml.Name{Local: "padding"}, Value: "50px"},
+			{Name: xml.Name{Local: "border"}, Value: "5px solid #000"},
+			{Name: xml.Name{Local: "inner-border"}, Value: "5px solid #666"},
+		},
+		Parent: &node.Node{Children: []*node.Node{{Type: ColumnTagName}}},
+	}
+
+	var column MJMLColumn
+
+	outer := column.outerTableStyle(n).InlineString()
+	require.Contains(t, outer, "border-radius:50px;")
+	require.Contains(t, outer, "border-collapse:separate;")
+
+	inner := column.tableStyle(n).InlineString()
+	require.Contains(t, inner, "border-radius:40px;")
+	require.Contains(t, inner, "border-collapse:separate;")
+	require.Contains(t, inner, "border:5px solid #666;")
+}
