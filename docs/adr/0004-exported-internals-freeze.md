@@ -40,6 +40,7 @@ passes down the tree, and what components contribute back to the head.
 | `FontOrder` | `[]string` | Font families in emission order; caller-supplied registries are sorted because a map has no order. |
 | `FontsConfigured` | `bool` | Reports that `Fonts` came from the caller and must not be extended with the built-ins. |
 | `BodyContent` | `string` | The rendered body HTML, used to detect which registered web fonts the document actually uses. |
+| `CustomComponents` | `map[string]Component` | The custom components the renderer was configured with, keyed by tag name; nil when the renderer has none. The map belongs to the renderer and is shared by its renders, so component code must not modify it. |
 | `AttributeDefaults` | `map[string]AttributeMap` | Per-tag defaults from `<mj-attributes>`, keyed by tag name; `mj-all` lives under the key `mj-all`. |
 | `Classes` | `map[string]AttributeMap` | Attributes of each `<mj-class>`, keyed by class name. |
 | `ClassDefaults` | `map[string]map[string]AttributeMap` | Per-tag defaults declared inside an `<mj-class>`, keyed by class name and then tag name. |

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"html"
 	"io"
 	"strings"
 	"testing"
@@ -22,13 +23,31 @@ import (
 func renderWithComponents(t *testing.T, document string, components ...component.Component) string {
 	t.Helper()
 
-	fsys := fstest.MapFS{"doc.mjml": &fstest.MapFile{Data: []byte(document)}}
-
-	rendered, err := mjmlgo.NewRenderer(mjmlgo.WithComponents(components...)).
-		RenderString(context.Background(), fsys, "doc.mjml")
+	rendered, err := renderErr(t, document, components...)
 	require.NoError(t, err)
 
 	return rendered
+}
+
+// renderErr renders document and returns the HTML and the error, so a test can
+// inspect the structured failure.
+func renderErr(t *testing.T, document string, components ...component.Component) (string, error) {
+	t.Helper()
+
+	fsys := fstest.MapFS{"doc.mjml": &fstest.MapFile{Data: []byte(document)}}
+
+	return mjmlgo.NewRenderer(mjmlgo.WithComponents(components...)).
+		RenderString(context.Background(), fsys, "doc.mjml")
+}
+
+// structuredError requires err to be a *component.Error and returns it.
+func structuredError(t *testing.T, err error) *component.Error {
+	t.Helper()
+
+	var structured *component.Error
+	require.ErrorAs(t, err, &structured)
+
+	return structured
 }
 
 // bodyContent returns the rendered content of the body div, so a test can assert
@@ -50,6 +69,20 @@ func bodyContent(t *testing.T, rendered string) string {
 	return rest[:end]
 }
 
+// badgeHTML is the exact output of the example component for the attributes the
+// tests below give it.
+func badgeHTML(text, background, color, class string) string {
+	classAttribute := ""
+	if class != "" {
+		classAttribute = fmt.Sprintf(` class="%s"`, class)
+	}
+
+	return `<table role="presentation" border="0" cellpadding="0" cellspacing="0"` + classAttribute + `>` +
+		`<tbody><tr><td align="center" style="background-color:` + background + `;border-radius:4px;color:` + color + `;` +
+		`font-family:Helvetica,Arial,sans-serif;font-size:13px;line-height:1;padding:8px 12px;">` +
+		text + `</td></tr></tbody></table>`
+}
+
 // TestWithComponentsRendersCustomComponent asserts the example component's
 // output exactly, at its document position: mj-badge sits directly in mj-body,
 // where a content leaf is allowed, and the component's own defaults are applied.
@@ -59,10 +92,7 @@ func TestWithComponentsRendersCustomComponent(t *testing.T) {
 	const document = `<mjml><mj-body><mj-badge text="Body" /></mj-body></mjml>`
 
 	assert.Equal(t,
-		`<table role="presentation" border="0" cellpadding="0" cellspacing="0">`+
-			`<tbody><tr><td align="center" style="background-color:#1f2937;border-radius:4px;color:#ffffff;`+
-			`font-family:Helvetica,Arial,sans-serif;font-size:13px;line-height:1;padding:8px 12px;">`+
-			`Body</td></tr></tbody></table>`,
+		badgeHTML("Body", "#1f2937", "#ffffff", ""),
 		bodyContent(t, renderWithComponents(t, document, customcomponent.Badge{})),
 	)
 }
@@ -79,33 +109,28 @@ func TestCustomComponentInColumn(t *testing.T) {
 	rendered := renderWithComponents(t, document, customcomponent.Badge{})
 
 	assert.Contains(t, rendered, "<tr>\n<td style=\"font-size:0px;word-break:break-word;\">\n"+
-		`<table role="presentation" border="0" cellpadding="0" cellspacing="0">`+
-		`<tbody><tr><td align="center" style="background-color:#fde68a;border-radius:4px;color:#111827;`+
-		`font-family:Helvetica,Arial,sans-serif;font-size:13px;line-height:1;padding:8px 12px;">`+
-		"New</td></tr></tbody></table></td>\n</tr>")
+		badgeHTML("New", "#fde68a", "#111827", "")+"</td>\n</tr>")
 }
 
 // TestCustomComponentReceivesAttributeDefaults asserts the document-level
 // default layers reach a custom tag: per-tag defaults from mj-attributes and
-// attributes from a referenced mj-class are applied before Render runs, and the
-// component's own default fills what neither layer set.
+// attributes from a referenced mj-class are applied before Render runs, the
+// component's own default fills what neither layer set, and the universal
+// css-class survives document validation.
 func TestCustomComponentReceivesAttributeDefaults(t *testing.T) {
 	t.Parallel()
 
 	const document = `<mjml><mj-head><mj-attributes>` +
 		`<mj-badge text="Default label" />` +
 		`<mj-class name="accent" background-color="#fde68a" />` +
-		`</mj-attributes></mj-head><mj-body><mj-section><mj-column>` +
-		`<mj-badge mj-class="accent" />` +
-		`</mj-column></mj-section></mj-body></mjml>`
+		`</mj-attributes></mj-head><mj-body>` +
+		`<mj-badge mj-class="accent" css-class="promo" />` +
+		`</mj-body></mjml>`
 
-	rendered := renderWithComponents(t, document, customcomponent.Badge{})
-
-	assert.Contains(t, rendered,
-		`<table role="presentation" border="0" cellpadding="0" cellspacing="0">`+
-			`<tbody><tr><td align="center" style="background-color:#fde68a;border-radius:4px;color:#ffffff;`+
-			`font-family:Helvetica,Arial,sans-serif;font-size:13px;line-height:1;padding:8px 12px;">`+
-			"Default label</td></tr></tbody></table>")
+	assert.Equal(t,
+		badgeHTML("Default label", "#fde68a", "#ffffff", "promo"),
+		bodyContent(t, renderWithComponents(t, document, customcomponent.Badge{})),
+	)
 }
 
 // TestCustomComponentValidationErrors asserts every validation failure a custom
@@ -165,18 +190,15 @@ func TestCustomComponentValidationErrors(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			fsys := fstest.MapFS{"doc.mjml": &fstest.MapFile{Data: []byte(tt.document)}}
-
-			_, err := mjmlgo.NewRenderer(mjmlgo.WithComponents(customcomponent.Badge{})).
-				RenderString(context.Background(), fsys, "doc.mjml")
+			_, err := renderErr(t, tt.document, customcomponent.Badge{})
 			require.Error(t, err)
 
-			var structured *component.Error
-			require.ErrorAs(t, err, &structured)
+			structured := structuredError(t, err)
 			assert.Equal(t, tt.kind, structured.Kind)
 			assert.Equal(t, tt.path, structured.Path)
 			assert.Equal(t, tt.attribute, structured.Attribute)
 			assert.Equal(t, tt.value, structured.Value)
+			assert.ErrorIs(t, err, component.ErrValidation)
 		})
 	}
 }
@@ -198,32 +220,46 @@ func (namedComponent) Render(*component.RenderContext, io.Writer, *node.Node) er
 // TestWithComponentsRejectsInvalidRegistration asserts a renderer refuses a
 // component it cannot register, with a structured error instead of a plain one.
 // The failure is about the renderer's configuration, so it applies to every
-// document, including one that never uses the tag.
+// document, including one that never uses the tag, and its path names the tag.
 func TestWithComponentsRejectsInvalidRegistration(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name       string
-		components []component.Component
-		value      string
+		name     string
+		renderer *mjmlgo.Renderer
+		path     []string
+		value    string
 	}{
 		{
-			name:       "duplicate tag",
-			components: []component.Component{customcomponent.Badge{}, customcomponent.Badge{}},
-			value:      customcomponent.BadgeTagName,
+			name:     "duplicate tag",
+			renderer: mjmlgo.NewRenderer(mjmlgo.WithComponents(customcomponent.Badge{}, customcomponent.Badge{})),
+			path:     []string{customcomponent.BadgeTagName},
+			value:    customcomponent.BadgeTagName,
 		},
 		{
-			name:       "tag shadowing a built-in element",
-			components: []component.Component{namedComponent{tag: component.TextTagName}},
-			value:      component.TextTagName,
+			name: "duplicate tag across option calls",
+			renderer: mjmlgo.NewRenderer(
+				mjmlgo.WithComponents(customcomponent.Badge{}),
+				mjmlgo.WithComponents(customcomponent.Badge{}),
+			),
+			path:  []string{customcomponent.BadgeTagName},
+			value: customcomponent.BadgeTagName,
 		},
 		{
-			name:       "empty tag",
-			components: []component.Component{namedComponent{tag: ""}},
+			name:     "tag shadowing a built-in element",
+			renderer: mjmlgo.NewRenderer(mjmlgo.WithComponents(namedComponent{tag: component.TextTagName})),
+			path:     []string{component.TextTagName},
+			value:    component.TextTagName,
 		},
 		{
-			name:       "nil component",
-			components: []component.Component{nil},
+			name:     "empty tag",
+			renderer: mjmlgo.NewRenderer(mjmlgo.WithComponents(namedComponent{tag: ""})),
+			path:     []string{component.MJMLTagName},
+		},
+		{
+			name:     "nil component",
+			renderer: mjmlgo.NewRenderer(mjmlgo.WithComponents(nil)),
+			path:     []string{component.MJMLTagName},
 		},
 	}
 
@@ -231,20 +267,18 @@ func TestWithComponentsRejectsInvalidRegistration(t *testing.T) {
 		`<mj-text>built-in only</mj-text>` +
 		`</mj-column></mj-section></mj-body></mjml>`
 
+	fsys := fstest.MapFS{"doc.mjml": &fstest.MapFile{Data: []byte(document)}}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			fsys := fstest.MapFS{"doc.mjml": &fstest.MapFile{Data: []byte(document)}}
-
-			_, err := mjmlgo.NewRenderer(mjmlgo.WithComponents(tt.components...)).
-				RenderString(context.Background(), fsys, "doc.mjml")
+			_, err := tt.renderer.RenderString(context.Background(), fsys, "doc.mjml")
 			require.Error(t, err)
 
-			var structured *component.Error
-			require.ErrorAs(t, err, &structured)
+			structured := structuredError(t, err)
 			assert.Equal(t, component.KindInvalidComponent, structured.Kind)
-			assert.Equal(t, []string{component.MJMLTagName}, structured.Path)
+			assert.Equal(t, tt.path, structured.Path)
 			assert.Equal(t, tt.value, structured.Value)
 			assert.NotErrorIs(t, err, component.ErrValidation, "registration is not document validation")
 		})
@@ -263,71 +297,97 @@ func TestCustomComponentsArePerRenderer(t *testing.T) {
 
 	assert.Contains(t, renderWithComponents(t, document, customcomponent.Badge{}), ">New</td>")
 
-	fsys := fstest.MapFS{"doc.mjml": &fstest.MapFile{Data: []byte(document)}}
-
-	_, err := mjmlgo.NewRenderer().RenderString(context.Background(), fsys, "doc.mjml")
+	_, err := renderErr(t, document)
 	require.Error(t, err)
 
-	var structured *component.Error
-	require.ErrorAs(t, err, &structured)
+	structured := structuredError(t, err)
 	assert.Equal(t, component.KindUnknownElement, structured.Kind)
 	assert.Equal(t, "mj-badge", structured.Value)
 }
 
-// childListComponent is a ChildComponent whose only job is to declare its
-// children: rendering them is the container work of ticket T4, so its Render
-// writes a marker instead.
-type childListComponent struct{}
+// chipComponent is a tiny leaf component that a custom container renders.
+type chipComponent struct{}
 
-func (childListComponent) Name() string { return "mj-panel" }
+func (chipComponent) Name() string { return "mj-chip" }
 
-func (childListComponent) AllowedAttributes() map[string]component.AttributeValidator {
-	return map[string]component.AttributeValidator{"title": func(string) error { return nil }}
+func (chipComponent) AllowedAttributes() map[string]component.AttributeValidator {
+	return map[string]component.AttributeValidator{"label": nil}
 }
 
-func (childListComponent) DefaultAttributes(*component.RenderContext) map[string]string { return nil }
+func (chipComponent) DefaultAttributes(*component.RenderContext) map[string]string { return nil }
 
-func (childListComponent) AllowedChildren() []string {
-	return []string{component.TextTagName}
+func (chipComponent) Render(_ *component.RenderContext, w io.Writer, n *node.Node) error {
+	_, err := fmt.Fprintf(w, `<span class="mj-chip">%s</span>`, html.EscapeString(n.GetAttributeValueDefault("label")))
+
+	return err
 }
 
-func (childListComponent) Render(_ *component.RenderContext, w io.Writer, n *node.Node) error {
-	_, err := fmt.Fprintf(w, `<div class="mj-panel">%s</div>`, n.GetAttributeValueDefault("title"))
+// panelComponent is a ChildComponent: it declares mj-chip as its only allowed
+// child and renders that child itself, through the exported context and node it
+// receives. Dispatching built-in children into a custom tag is ticket T4.
+type panelComponent struct{}
+
+func (panelComponent) Name() string { return "mj-panel" }
+
+func (panelComponent) AllowedAttributes() map[string]component.AttributeValidator { return nil }
+
+func (panelComponent) DefaultAttributes(*component.RenderContext) map[string]string { return nil }
+
+func (panelComponent) AllowedChildren() []string { return []string{"mj-chip"} }
+
+func (panelComponent) Render(ctx *component.RenderContext, w io.Writer, n *node.Node) error {
+	_, _ = io.WriteString(w, `<div class="mj-panel">`)
+
+	for _, child := range n.Children {
+		childComponent, ok := ctx.CustomComponents[child.Type]
+		if !ok {
+			return fmt.Errorf("no component registered for <%s>", child.Type)
+		}
+
+		if err := component.InitComponent(ctx, childComponent, child); err != nil {
+			return err
+		}
+
+		if err := childComponent.Render(ctx, w, child); err != nil {
+			return err
+		}
+	}
+
+	_, err := io.WriteString(w, `</div>`)
 
 	return err
 }
 
 // TestCustomComponentAllowedChildren asserts a custom component's declared child
-// list is enforced in both directions.
+// list is enforced in both directions, and that a ChildComponent renders the
+// children it accepted itself.
 func TestCustomComponentAllowedChildren(t *testing.T) {
 	t.Parallel()
 
-	t.Run("a declared child is accepted", func(t *testing.T) {
+	t.Run("a declared child is accepted and rendered", func(t *testing.T) {
 		t.Parallel()
 
 		const document = `<mjml><mj-body><mj-section><mj-column>` +
-			`<mj-panel title="Panel"><mj-text>inside</mj-text></mj-panel>` +
+			`<mj-panel><mj-chip label="One" /><mj-chip label="Two" /></mj-panel>` +
 			`</mj-column></mj-section></mj-body></mjml>`
 
-		rendered := renderWithComponents(t, document, childListComponent{})
-		assert.Contains(t, rendered, `<div class="mj-panel">Panel</div>`)
+		rendered := renderWithComponents(t, document, panelComponent{}, chipComponent{})
+
+		assert.Contains(t, rendered,
+			`<div class="mj-panel"><span class="mj-chip">One</span><span class="mj-chip">Two</span></div>`)
 	})
 
 	t.Run("an undeclared child is rejected", func(t *testing.T) {
 		t.Parallel()
 
 		const document = `<mjml><mj-body><mj-section><mj-column>` +
-			`<mj-panel title="Panel"><mj-image src="a.png" /></mj-panel>` +
+			`<mj-panel><mj-image src="a.png" /></mj-panel>` +
 			`</mj-column></mj-section></mj-body></mjml>`
 
-		fsys := fstest.MapFS{"doc.mjml": &fstest.MapFile{Data: []byte(document)}}
-
-		_, err := mjmlgo.NewRenderer(mjmlgo.WithComponents(childListComponent{})).
-			RenderString(context.Background(), fsys, "doc.mjml")
+		_, err := renderErr(t, document, panelComponent{}, chipComponent{})
 		require.Error(t, err)
 
-		var structured *component.Error
-		require.ErrorAs(t, err, &structured)
+		structured := structuredError(t, err)
 		assert.Equal(t, component.KindDisallowedChild, structured.Kind)
 		assert.Equal(t, []string{"mj-body", "mj-section", "mj-column", "mj-panel", "mj-image"}, structured.Path)
 		assert.Equal(t, "mj-image", structured.Value)
@@ -339,12 +399,11 @@ func TestCustomComponentAllowedChildren(t *testing.T) {
 func TestComponentRenderErrorIsPropagated(t *testing.T) {
 	t.Parallel()
 
-	fsys := fstest.MapFS{"doc.mjml": &fstest.MapFile{Data: []byte(
-		`<mjml><mj-body><mj-section><mj-column><mj-badge text="New" /></mj-column></mj-section></mj-body></mjml>`,
-	)}}
+	const document = `<mjml><mj-body><mj-section><mj-column>` +
+		`<mj-badge text="New" />` +
+		`</mj-column></mj-section></mj-body></mjml>`
 
-	_, err := mjmlgo.NewRenderer(mjmlgo.WithComponents(failingComponent{})).
-		RenderString(context.Background(), fsys, "doc.mjml")
+	_, err := renderErr(t, document, failingComponent{})
 	require.Error(t, err)
 	assert.ErrorIs(t, err, errCustomRender)
 }

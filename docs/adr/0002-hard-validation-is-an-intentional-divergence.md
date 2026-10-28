@@ -31,6 +31,14 @@ Invalid documents are deliberately not part of the parity corpus: their output
 under the reference is exactly what we refuse to produce, so comparing the two
 would be pointless.
 
+One class of rule cannot live in that corpus: validation that depends on the
+renderer's configuration - the attributes, children and placement of a
+registered custom component - because every fixture renders through a renderer
+without components. Those rules are pinned by Go tests instead
+(`custom_test.go`, `component/custom_test.go`), which assert the same structured
+kind, path, attribute and value the fixtures assert, including the element path
+to the custom tag.
+
 ## Failures are structured, and the kinds are closed
 
 Every validation and parse site returns a `*Error{Kind, Path, Attribute, Value,

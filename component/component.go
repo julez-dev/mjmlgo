@@ -47,9 +47,10 @@ type Component interface {
 //
 // AllowedChildren returns the child tag names the component accepts, in the
 // order they are reported in error messages. Declaring children makes the tag a
-// container for validation; rendering those children is the component's own
-// job and gets no help from the built-in container renderers, which is the
-// container support added by ticket T4 (issue #5).
+// container for validation. Render receives the children and is responsible for
+// them: it can look each one up in RenderContext.CustomComponents and render it,
+// but the built-in container renderers do not descend into a custom tag. That
+// dispatch, together with head-style contribution, is ticket T4 (issue #5).
 type ChildComponent interface {
 	Component
 	AllowedChildren() []string
@@ -287,10 +288,10 @@ func allowsChild(ctx *RenderContext, parent, child string) bool {
 			return true
 		}
 
-		return isComponentTag(ctx, child)
+		return acceptsPerTagDefaults(ctx, child)
 	case ClassTagName:
 		// Nested per-tag defaults inside <mj-class>.
-		return isComponentTag(ctx, child)
+		return acceptsPerTagDefaults(ctx, child)
 	}
 
 	if _, custom := customComponent(ctx, child); custom {

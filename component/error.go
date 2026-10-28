@@ -38,8 +38,9 @@ const (
 	// register: a nil component, an empty tag, a tag registered twice, or a tag
 	// that shadows a built-in element. It is a renderer-configuration failure
 	// rather than a document failure, so it does not match ErrValidation. There
-	// is no offending element; Path is the document element the misconfigured
-	// renderer cannot build, and Value is the tag when there is one.
+	// is no offending document element: Path names the tag that cannot be
+	// registered, or the document element when the component has no tag, and
+	// Value is the tag when there is one.
 	KindInvalidComponent ErrorKind = "invalid component"
 )
 
@@ -121,12 +122,7 @@ func (e *Error) Error() string {
 		b.WriteString("parse failure")
 		e.writeCause(&b)
 	case KindInvalidComponent:
-		if e.Value != "" {
-			fmt.Fprintf(&b, "invalid component %q", e.Value)
-		} else {
-			b.WriteString("invalid component")
-		}
-
+		b.WriteString("invalid component")
 		e.writeCause(&b)
 	default:
 		fmt.Fprintf(&b, "validation failed (%s)", e.Kind)

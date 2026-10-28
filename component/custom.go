@@ -13,14 +13,8 @@ var customComponentParents = map[string]struct{}{
 	HeroTagName:   {},
 }
 
-// customComponent returns the custom component registered for tag. A nil render
-// context has no components, so the built-in behaviour is unchanged for callers
-// that never configure any.
+// customComponent returns the custom component registered for tag.
 func customComponent(ctx *RenderContext, tag string) (Component, bool) {
-	if ctx == nil {
-		return nil, false
-	}
-
 	comp, ok := ctx.CustomComponents[tag]
 
 	return comp, ok
@@ -38,11 +32,12 @@ func allowsCustomComponentChild(parent Component, child string) bool {
 	return slices.Contains(container.AllowedChildren(), child)
 }
 
-// isComponentTag reports whether tag is backed by a component (or an MJML head
-// handler): a built-in one, or a custom component registered on the renderer.
-// These are the tags mj-attributes accepts as per-tag defaults and mj-class
-// accepts as nested per-tag defaults.
-func isComponentTag(ctx *RenderContext, tag string) bool {
+// acceptsPerTagDefaults reports whether tag may carry per-tag defaults inside
+// mj-attributes, or nested per-tag defaults inside mj-class. That is every tag
+// backed by a component or an MJML head handler - componentTags - plus a custom
+// component registered on this renderer. It is narrower than IsBuiltinTag, which
+// also covers mj-all, mj-class and the document elements.
+func acceptsPerTagDefaults(ctx *RenderContext, tag string) bool {
 	if _, builtin := componentTags[tag]; builtin {
 		return true
 	}

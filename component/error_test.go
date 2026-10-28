@@ -64,8 +64,8 @@ func TestErrorText(t *testing.T) {
 		},
 		{
 			name: "invalid component",
-			err:  NewError(KindInvalidComponent, []string{MJMLTagName}, "", "mj-text", errors.New("tag <mj-text> is a built-in MJML element")),
-			want: `mjml: invalid component "mj-text": tag <mj-text> is a built-in MJML element`,
+			err:  NewError(KindInvalidComponent, []string{"mj-text"}, "", "mj-text", errors.New("tag <mj-text> is a built-in MJML element")),
+			want: "mj-text: invalid component: tag <mj-text> is a built-in MJML element",
 		},
 		{
 			name: "invalid component without a tag",

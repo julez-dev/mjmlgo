@@ -18,13 +18,15 @@ import (
 // its own tag unless it implements component.ChildComponent. Its tag must not be
 // empty, must not be registered twice and must not shadow a built-in element;
 // such a renderer is rejected with a *component.Error of kind
-// component.KindInvalidComponent when it renders.
+// component.KindInvalidComponent, whose Path names the offending tag, when it
+// renders. Calling WithComponents more than once registers the union, so a
+// duplicate tag across calls is rejected like a duplicate within one call.
 func WithComponents(components ...component.Component) Option {
 	registered := make([]component.Component, len(components))
 	copy(registered, components)
 
 	return func(config *rendererConfig) {
-		config.components = registered
+		config.components = append(config.components, registered...)
 	}
 }
 
@@ -65,13 +67,19 @@ func componentTable(components []component.Component) (map[string]component.Comp
 }
 
 // registrationError builds the structured failure for a component the renderer
-// cannot register. There is no offending document element, so the path is the
-// document element the renderer would fail to build; value is the tag, when the
-// component has one.
+// cannot register. There is no offending document element, so the path names the
+// tag that cannot be registered; a component without a tag (a nil component or
+// an empty tag) uses the document element instead. Value carries the tag when
+// there is one.
 func registrationError(tag string, err error) error {
+	path := []string{component.MJMLTagName}
+	if tag != "" {
+		path = []string{tag}
+	}
+
 	return component.NewError(
 		component.KindInvalidComponent,
-		[]string{component.MJMLTagName},
+		path,
 		"",
 		tag,
 		err,
