@@ -15,30 +15,32 @@ func (h MJMLHero) Name() string {
 	return "mj-hero"
 }
 
+var heroAllowedAttributes = map[string]AttributeValidator{
+	"mode":                       validateType("string"),
+	"height":                     validateUnit([]string{"px", "%"}, false),
+	"background-url":             validateType("string"),
+	"background-width":           validateUnit([]string{"px", "%"}, false),
+	"background-height":          validateUnit([]string{"px", "%"}, false),
+	"background-position":        validateType("string"),
+	"border-radius":              validateType("string"),
+	"container-background-color": validateColor(),
+	"inner-background-color":     validateColor(),
+	"inner-padding":              validateUnit([]string{"px", "%"}, true),
+	"inner-padding-top":          validateUnit([]string{"px", "%"}, false),
+	"inner-padding-bottom":       validateUnit([]string{"px", "%"}, false),
+	"inner-padding-left":         validateUnit([]string{"px", "%"}, false),
+	"inner-padding-right":        validateUnit([]string{"px", "%"}, false),
+	"padding":                    validateUnit([]string{"px", "%"}, true),
+	"padding-top":                validateUnit([]string{"px", "%"}, false),
+	"padding-bottom":             validateUnit([]string{"px", "%"}, false),
+	"padding-left":               validateUnit([]string{"px", "%"}, false),
+	"padding-right":              validateUnit([]string{"px", "%"}, false),
+	"background-color":           validateColor(),
+	"vertical-align":             validateEnum([]string{"top", "middle", "bottom"}),
+}
+
 func (h MJMLHero) AllowedAttributes() map[string]AttributeValidator {
-	return map[string]AttributeValidator{
-		"mode":                       validateType("string"),
-		"height":                     validateUnit([]string{"px", "%"}, false),
-		"background-url":             validateType("string"),
-		"background-width":           validateUnit([]string{"px", "%"}, false),
-		"background-height":          validateUnit([]string{"px", "%"}, false),
-		"background-position":        validateType("string"),
-		"border-radius":              validateType("string"),
-		"container-background-color": validateColor(),
-		"inner-background-color":     validateColor(),
-		"inner-padding":              validateUnit([]string{"px", "%"}, true),
-		"inner-padding-top":          validateUnit([]string{"px", "%"}, false),
-		"inner-padding-bottom":       validateUnit([]string{"px", "%"}, false),
-		"inner-padding-left":         validateUnit([]string{"px", "%"}, false),
-		"inner-padding-right":        validateUnit([]string{"px", "%"}, false),
-		"padding":                    validateUnit([]string{"px", "%"}, true),
-		"padding-top":                validateUnit([]string{"px", "%"}, false),
-		"padding-bottom":             validateUnit([]string{"px", "%"}, false),
-		"padding-left":               validateUnit([]string{"px", "%"}, false),
-		"padding-right":              validateUnit([]string{"px", "%"}, false),
-		"background-color":           validateColor(),
-		"vertical-align":             validateEnum([]string{"top", "middle", "bottom"}),
-	}
+	return heroAllowedAttributes
 }
 
 func (h MJMLHero) DefaultAttributes(ctx *RenderContext) map[string]string {

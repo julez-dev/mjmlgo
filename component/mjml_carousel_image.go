@@ -20,19 +20,21 @@ func (i MJMLCarouselImage) Name() string {
 	return "mj-carousel-image"
 }
 
+var carouselImageAllowedAttributes = map[string]AttributeValidator{
+	"alt":              validateType("string"),
+	"border-radius":    validateUnit([]string{"px", "%"}, true),
+	"href":             validateType("string"),
+	"rel":              validateType("string"),
+	"src":              validateType("string"),
+	"target":           validateType("string"),
+	"tb-border":        validateType("string"),
+	"tb-border-radius": validateUnit([]string{"px", "%"}, true),
+	"thumbnails-src":   validateType("string"),
+	"title":            validateType("string"),
+}
+
 func (i MJMLCarouselImage) AllowedAttributes() map[string]AttributeValidator {
-	return map[string]AttributeValidator{
-		"alt":              validateType("string"),
-		"border-radius":    validateUnit([]string{"px", "%"}, true),
-		"href":             validateType("string"),
-		"rel":              validateType("string"),
-		"src":              validateType("string"),
-		"target":           validateType("string"),
-		"tb-border":        validateType("string"),
-		"tb-border-radius": validateUnit([]string{"px", "%"}, true),
-		"thumbnails-src":   validateType("string"),
-		"title":            validateType("string"),
-	}
+	return carouselImageAllowedAttributes
 }
 
 func (i MJMLCarouselImage) DefaultAttributes(_ *RenderContext) map[string]string {

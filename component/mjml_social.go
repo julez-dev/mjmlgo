@@ -12,32 +12,34 @@ func (s MJMLSocial) Name() string {
 	return "mj-social"
 }
 
+var socialAllowedAttributes = map[string]AttributeValidator{
+	"align":                      validateEnum([]string{"left", "right", "center"}),
+	"border-radius":              validateUnit([]string{"px", "%"}, false),
+	"container-background-color": validateColor(),
+	"color":                      validateColor(),
+	"font-family":                validateType("string"),
+	"font-size":                  validateUnit([]string{"px"}, false),
+	"font-style":                 validateType("string"),
+	"font-weight":                validateType("string"),
+	"icon-size":                  validateUnit([]string{"px", "%"}, false),
+	"icon-height":                validateUnit([]string{"px", "%"}, false),
+	"icon-padding":               validateUnit([]string{"px", "%"}, true),
+	"inner-padding":              validateUnit([]string{"px", "%"}, true),
+	"line-height":                validateUnit([]string{"px", "%", ""}, false),
+	"mode":                       validateEnum([]string{"horizontal", "vertical"}),
+	"padding-bottom":             validateUnit([]string{"px", "%"}, false),
+	"padding-left":               validateUnit([]string{"px", "%"}, false),
+	"padding-right":              validateUnit([]string{"px", "%"}, false),
+	"padding-top":                validateUnit([]string{"px", "%"}, false),
+	"padding":                    validateUnit([]string{"px", "%"}, true),
+	"table-layout":               validateEnum([]string{"auto", "fixed"}),
+	"text-padding":               validateUnit([]string{"px", "%"}, true),
+	"text-decoration":            validateType("string"),
+	"vertical-align":             validateEnum([]string{"top", "bottom", "middle"}),
+}
+
 func (s MJMLSocial) AllowedAttributes() map[string]AttributeValidator {
-	return map[string]AttributeValidator{
-		"align":                      validateEnum([]string{"left", "right", "center"}),
-		"border-radius":              validateUnit([]string{"px", "%"}, false),
-		"container-background-color": validateColor(),
-		"color":                      validateColor(),
-		"font-family":                validateType("string"),
-		"font-size":                  validateUnit([]string{"px"}, false),
-		"font-style":                 validateType("string"),
-		"font-weight":                validateType("string"),
-		"icon-size":                  validateUnit([]string{"px", "%"}, false),
-		"icon-height":                validateUnit([]string{"px", "%"}, false),
-		"icon-padding":               validateUnit([]string{"px", "%"}, true),
-		"inner-padding":              validateUnit([]string{"px", "%"}, true),
-		"line-height":                validateUnit([]string{"px", "%", ""}, false),
-		"mode":                       validateEnum([]string{"horizontal", "vertical"}),
-		"padding-bottom":             validateUnit([]string{"px", "%"}, false),
-		"padding-left":               validateUnit([]string{"px", "%"}, false),
-		"padding-right":              validateUnit([]string{"px", "%"}, false),
-		"padding-top":                validateUnit([]string{"px", "%"}, false),
-		"padding":                    validateUnit([]string{"px", "%"}, true),
-		"table-layout":               validateEnum([]string{"auto", "fixed"}),
-		"text-padding":               validateUnit([]string{"px", "%"}, true),
-		"text-decoration":            validateType("string"),
-		"vertical-align":             validateEnum([]string{"top", "bottom", "middle"}),
-	}
+	return socialAllowedAttributes
 }
 
 func (s MJMLSocial) DefaultAttributes(_ *RenderContext) map[string]string {

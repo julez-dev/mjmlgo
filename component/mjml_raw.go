@@ -22,10 +22,12 @@ func (r MJMLRaw) Name() string {
 	return "mj-raw"
 }
 
+var rawAllowedAttributes = map[string]AttributeValidator{
+	"position": validateEnum([]string{"file-start"}),
+}
+
 func (r MJMLRaw) AllowedAttributes() map[string]AttributeValidator {
-	return map[string]AttributeValidator{
-		"position": validateEnum([]string{"file-start"}),
-	}
+	return rawAllowedAttributes
 }
 
 func (r MJMLRaw) DefaultAttributes(_ *RenderContext) map[string]string {

@@ -19,12 +19,14 @@ func (m MJML) Name() string {
 	return "mjml"
 }
 
+var mjmlAllowedAttributes = map[string]AttributeValidator{
+	"owa":  validateEnum([]string{"desktop"}),
+	"lang": validateType("string"),
+	"dir":  validateEnum([]string{"ltr", "rtl", "auto"}),
+}
+
 func (m MJML) AllowedAttributes() map[string]AttributeValidator {
-	return map[string]AttributeValidator{
-		"owa":  validateEnum([]string{"desktop"}),
-		"lang": validateType("string"),
-		"dir":  validateEnum([]string{"ltr", "rtl", "auto"}),
-	}
+	return mjmlAllowedAttributes
 }
 
 func (m MJML) DefaultAttributes(_ *RenderContext) map[string]string {

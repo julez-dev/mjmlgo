@@ -30,7 +30,9 @@ type Component interface {
 	// AllowedAttributes maps every attribute the component accepts to its
 	// validator. An author attribute that is not in the map is rejected; the
 	// universal css-class and mj-class attributes are accepted without an entry.
-	// A nil validator accepts every value.
+	// A nil validator accepts every value. The returned map is read-only: the
+	// renderer may share one table across renders, so a component must not
+	// modify the map it returns.
 	AllowedAttributes() map[string]AttributeValidator
 	// DefaultAttributes returns the values to apply for attributes the author
 	// did not write. They are applied after author attributes have been
@@ -76,6 +78,21 @@ var universalAttributes = map[string]struct{}{
 var internalSyntheticAttributes = map[string]struct{}{
 	"mobileWidth": {},
 }
+
+// emptyAllowedAttributes is the shared empty table. Tags that accept no
+// attributes return it instead of building a fresh map per validated node.
+var emptyAllowedAttributes = map[string]AttributeValidator{}
+
+// The head-handler tables are static like the component tables. They are
+// package-level values so document validation does not rebuild them for every
+// element.
+var (
+	breakpointAllowedAttributes    = map[string]AttributeValidator{"width": validateUnit([]string{"px"}, false)}
+	fontAllowedAttributes          = map[string]AttributeValidator{"name": validateType("string"), "href": validateType("string")}
+	styleAllowedAttributes         = map[string]AttributeValidator{"inline": validateType("string")}
+	selectorAllowedAttributes      = map[string]AttributeValidator{"path": validateType("string")}
+	htmlAttributeAllowedAttributes = map[string]AttributeValidator{"name": validateType("string")}
+)
 
 // InitComponent prepares n for rendering with comp: it validates the attributes
 // the author wrote and then sets the component's default for every attribute the
@@ -341,8 +358,6 @@ func validateDocumentAttributes(ctx *RenderContext, n *node.Node) error {
 		return nil
 	}
 
-	path := elementPathSegments(n)
-
 	for _, attribute := range n.Attributes {
 		name := attribute.Name.Local
 
@@ -352,11 +367,11 @@ func validateDocumentAttributes(ctx *RenderContext, n *node.Node) error {
 
 		validator, ok := validators[name]
 		if !ok {
-			return NewError(KindUnknownAttribute, path, name, attribute.Value, nil)
+			return NewError(KindUnknownAttribute, elementPathSegments(n), name, attribute.Value, nil)
 		}
 
 		if err := runValidator(validator, attribute.Value); err != nil {
-			return NewError(KindInvalidValue, path, name, attribute.Value, err)
+			return NewError(KindInvalidValue, elementPathSegments(n), name, attribute.Value, err)
 		}
 	}
 
@@ -424,24 +439,21 @@ func documentAttributeValidators(ctx *RenderContext, tag string) (map[string]Att
 	case MJMLTagName:
 		return MJML{}.AllowedAttributes(), true
 	case BreakpointTagName:
-		return map[string]AttributeValidator{"width": validateUnit([]string{"px"}, false)}, true
+		return breakpointAllowedAttributes, true
 	case FontTagName:
-		return map[string]AttributeValidator{
-			"name": validateType("string"),
-			"href": validateType("string"),
-		}, true
+		return fontAllowedAttributes, true
 	case StyleTagName:
-		return map[string]AttributeValidator{"inline": validateType("string")}, true
+		return styleAllowedAttributes, true
 	case SelectorTagName:
 		// MJML reads path from the raw attributes even though the component has
 		// no allowedAttributes table.
-		return map[string]AttributeValidator{"path": validateType("string")}, true
+		return selectorAllowedAttributes, true
 	case HTMLAttributeTagName:
 		// MJML reads name from the raw attributes even though the component has
 		// no allowedAttributes table.
-		return map[string]AttributeValidator{"name": validateType("string")}, true
+		return htmlAttributeAllowedAttributes, true
 	case HeadTagName, AttributesTagName, PreviewTagName, TitleTagName, HTMLAttributesTagName:
-		return map[string]AttributeValidator{}, true
+		return emptyAllowedAttributes, true
 	default:
 		return nil, false
 	}

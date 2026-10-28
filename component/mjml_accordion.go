@@ -30,25 +30,27 @@ func (a MJMLAccordion) Name() string {
 	return "mj-accordion"
 }
 
+var accordionAllowedAttributes = map[string]AttributeValidator{
+	"container-background-color": validateColor(),
+	"border":                     validateType("string"),
+	"font-family":                validateType("string"),
+	"icon-align":                 validateEnum([]string{"top", "middle", "bottom"}),
+	"icon-width":                 validateUnit([]string{"px", "%"}, false),
+	"icon-height":                validateUnit([]string{"px", "%"}, false),
+	"icon-wrapped-url":           validateType("string"),
+	"icon-wrapped-alt":           validateType("string"),
+	"icon-unwrapped-url":         validateType("string"),
+	"icon-unwrapped-alt":         validateType("string"),
+	"icon-position":              validateEnum([]string{"left", "right"}),
+	"padding-bottom":             validateUnit([]string{"px", "%"}, false),
+	"padding-left":               validateUnit([]string{"px", "%"}, false),
+	"padding-right":              validateUnit([]string{"px", "%"}, false),
+	"padding-top":                validateUnit([]string{"px", "%"}, false),
+	"padding":                    validateUnit([]string{"px", "%"}, true),
+}
+
 func (a MJMLAccordion) AllowedAttributes() map[string]AttributeValidator {
-	return map[string]AttributeValidator{
-		"container-background-color": validateColor(),
-		"border":                     validateType("string"),
-		"font-family":                validateType("string"),
-		"icon-align":                 validateEnum([]string{"top", "middle", "bottom"}),
-		"icon-width":                 validateUnit([]string{"px", "%"}, false),
-		"icon-height":                validateUnit([]string{"px", "%"}, false),
-		"icon-wrapped-url":           validateType("string"),
-		"icon-wrapped-alt":           validateType("string"),
-		"icon-unwrapped-url":         validateType("string"),
-		"icon-unwrapped-alt":         validateType("string"),
-		"icon-position":              validateEnum([]string{"left", "right"}),
-		"padding-bottom":             validateUnit([]string{"px", "%"}, false),
-		"padding-left":               validateUnit([]string{"px", "%"}, false),
-		"padding-right":              validateUnit([]string{"px", "%"}, false),
-		"padding-top":                validateUnit([]string{"px", "%"}, false),
-		"padding":                    validateUnit([]string{"px", "%"}, true),
-	}
+	return accordionAllowedAttributes
 }
 
 func (a MJMLAccordion) DefaultAttributes(_ *RenderContext) map[string]string {
@@ -142,20 +144,22 @@ func (e MJMLAccordionElement) Name() string {
 	return "mj-accordion-element"
 }
 
+var accordionElementAllowedAttributes = map[string]AttributeValidator{
+	"background-color":   validateColor(),
+	"border":             validateType("string"),
+	"font-family":        validateType("string"),
+	"icon-align":         validateEnum([]string{"top", "middle", "bottom"}),
+	"icon-width":         validateUnit([]string{"px", "%"}, false),
+	"icon-height":        validateUnit([]string{"px", "%"}, false),
+	"icon-wrapped-url":   validateType("string"),
+	"icon-wrapped-alt":   validateType("string"),
+	"icon-unwrapped-url": validateType("string"),
+	"icon-unwrapped-alt": validateType("string"),
+	"icon-position":      validateEnum([]string{"left", "right"}),
+}
+
 func (e MJMLAccordionElement) AllowedAttributes() map[string]AttributeValidator {
-	return map[string]AttributeValidator{
-		"background-color":   validateColor(),
-		"border":             validateType("string"),
-		"font-family":        validateType("string"),
-		"icon-align":         validateEnum([]string{"top", "middle", "bottom"}),
-		"icon-width":         validateUnit([]string{"px", "%"}, false),
-		"icon-height":        validateUnit([]string{"px", "%"}, false),
-		"icon-wrapped-url":   validateType("string"),
-		"icon-wrapped-alt":   validateType("string"),
-		"icon-unwrapped-url": validateType("string"),
-		"icon-unwrapped-alt": validateType("string"),
-		"icon-position":      validateEnum([]string{"left", "right"}),
-	}
+	return accordionElementAllowedAttributes
 }
 
 func (e MJMLAccordionElement) DefaultAttributes(_ *RenderContext) map[string]string {
@@ -267,19 +271,21 @@ func (t MJMLAccordionTitle) Name() string {
 	return "mj-accordion-title"
 }
 
+var accordionTitleAllowedAttributes = map[string]AttributeValidator{
+	"background-color": validateColor(),
+	"color":            validateColor(),
+	"font-size":        validateUnit([]string{"px"}, false),
+	"font-family":      validateType("string"),
+	"font-weight":      validateType("string"),
+	"padding-bottom":   validateUnit([]string{"px", "%"}, false),
+	"padding-left":     validateUnit([]string{"px", "%"}, false),
+	"padding-right":    validateUnit([]string{"px", "%"}, false),
+	"padding-top":      validateUnit([]string{"px", "%"}, false),
+	"padding":          validateUnit([]string{"px", "%"}, true),
+}
+
 func (t MJMLAccordionTitle) AllowedAttributes() map[string]AttributeValidator {
-	return map[string]AttributeValidator{
-		"background-color": validateColor(),
-		"color":            validateColor(),
-		"font-size":        validateUnit([]string{"px"}, false),
-		"font-family":      validateType("string"),
-		"font-weight":      validateType("string"),
-		"padding-bottom":   validateUnit([]string{"px", "%"}, false),
-		"padding-left":     validateUnit([]string{"px", "%"}, false),
-		"padding-right":    validateUnit([]string{"px", "%"}, false),
-		"padding-top":      validateUnit([]string{"px", "%"}, false),
-		"padding":          validateUnit([]string{"px", "%"}, true),
-	}
+	return accordionTitleAllowedAttributes
 }
 
 func (t MJMLAccordionTitle) DefaultAttributes(_ *RenderContext) map[string]string {
@@ -346,21 +352,23 @@ func (t MJMLAccordionText) Name() string {
 	return "mj-accordion-text"
 }
 
+var accordionTextAllowedAttributes = map[string]AttributeValidator{
+	"background-color": validateColor(),
+	"font-size":        validateUnit([]string{"px"}, false),
+	"font-family":      validateType("string"),
+	"font-weight":      validateType("string"),
+	"letter-spacing":   validateUnitWithNegative([]string{"px", "em"}, false),
+	"line-height":      validateUnit([]string{"px", "%", ""}, false),
+	"color":            validateColor(),
+	"padding-bottom":   validateUnit([]string{"px", "%"}, false),
+	"padding-left":     validateUnit([]string{"px", "%"}, false),
+	"padding-right":    validateUnit([]string{"px", "%"}, false),
+	"padding-top":      validateUnit([]string{"px", "%"}, false),
+	"padding":          validateUnit([]string{"px", "%"}, true),
+}
+
 func (t MJMLAccordionText) AllowedAttributes() map[string]AttributeValidator {
-	return map[string]AttributeValidator{
-		"background-color": validateColor(),
-		"font-size":        validateUnit([]string{"px"}, false),
-		"font-family":      validateType("string"),
-		"font-weight":      validateType("string"),
-		"letter-spacing":   validateUnitWithNegative([]string{"px", "em"}, false),
-		"line-height":      validateUnit([]string{"px", "%", ""}, false),
-		"color":            validateColor(),
-		"padding-bottom":   validateUnit([]string{"px", "%"}, false),
-		"padding-left":     validateUnit([]string{"px", "%"}, false),
-		"padding-right":    validateUnit([]string{"px", "%"}, false),
-		"padding-top":      validateUnit([]string{"px", "%"}, false),
-		"padding":          validateUnit([]string{"px", "%"}, true),
-	}
+	return accordionTextAllowedAttributes
 }
 
 func (t MJMLAccordionText) DefaultAttributes(_ *RenderContext) map[string]string {

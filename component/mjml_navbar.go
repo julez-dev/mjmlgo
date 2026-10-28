@@ -18,31 +18,33 @@ func (n MJMLNavbar) Name() string {
 	return "mj-navbar"
 }
 
+var navbarAllowedAttributes = map[string]AttributeValidator{
+	"align":               validateEnum([]string{"left", "center", "right"}),
+	"base-url":            validateType("string"),
+	"hamburger":           validateType("string"),
+	"ico-align":           validateEnum([]string{"left", "center", "right"}),
+	"ico-open":            validateType("string"),
+	"ico-close":           validateType("string"),
+	"ico-color":           validateColor(),
+	"ico-font-size":       validateUnit([]string{"px", "%"}, false),
+	"ico-font-family":     validateType("string"),
+	"ico-text-transform":  validateType("string"),
+	"ico-text-decoration": validateType("string"),
+	"ico-line-height":     validateUnit([]string{"px", "%", ""}, false),
+	"ico-padding":         validateUnit([]string{"px", "%"}, true),
+	"ico-padding-left":    validateUnit([]string{"px", "%"}, false),
+	"ico-padding-top":     validateUnit([]string{"px", "%"}, false),
+	"ico-padding-right":   validateUnit([]string{"px", "%"}, false),
+	"ico-padding-bottom":  validateUnit([]string{"px", "%"}, false),
+	"padding":             validateUnit([]string{"px", "%"}, true),
+	"padding-left":        validateUnit([]string{"px", "%"}, false),
+	"padding-top":         validateUnit([]string{"px", "%"}, false),
+	"padding-right":       validateUnit([]string{"px", "%"}, false),
+	"padding-bottom":      validateUnit([]string{"px", "%"}, false),
+}
+
 func (n MJMLNavbar) AllowedAttributes() map[string]AttributeValidator {
-	return map[string]AttributeValidator{
-		"align":               validateEnum([]string{"left", "center", "right"}),
-		"base-url":            validateType("string"),
-		"hamburger":           validateType("string"),
-		"ico-align":           validateEnum([]string{"left", "center", "right"}),
-		"ico-open":            validateType("string"),
-		"ico-close":           validateType("string"),
-		"ico-color":           validateColor(),
-		"ico-font-size":       validateUnit([]string{"px", "%"}, false),
-		"ico-font-family":     validateType("string"),
-		"ico-text-transform":  validateType("string"),
-		"ico-text-decoration": validateType("string"),
-		"ico-line-height":     validateUnit([]string{"px", "%", ""}, false),
-		"ico-padding":         validateUnit([]string{"px", "%"}, true),
-		"ico-padding-left":    validateUnit([]string{"px", "%"}, false),
-		"ico-padding-top":     validateUnit([]string{"px", "%"}, false),
-		"ico-padding-right":   validateUnit([]string{"px", "%"}, false),
-		"ico-padding-bottom":  validateUnit([]string{"px", "%"}, false),
-		"padding":             validateUnit([]string{"px", "%"}, true),
-		"padding-left":        validateUnit([]string{"px", "%"}, false),
-		"padding-top":         validateUnit([]string{"px", "%"}, false),
-		"padding-right":       validateUnit([]string{"px", "%"}, false),
-		"padding-bottom":      validateUnit([]string{"px", "%"}, false),
-	}
+	return navbarAllowedAttributes
 }
 
 func (n MJMLNavbar) DefaultAttributes(_ *RenderContext) map[string]string {
@@ -175,27 +177,29 @@ func (l MJMLNavbarLink) Name() string {
 	return "mj-navbar-link"
 }
 
+var navbarLinkAllowedAttributes = map[string]AttributeValidator{
+	"color":           validateColor(),
+	"font-family":     validateType("string"),
+	"font-size":       validateUnit([]string{"px"}, false),
+	"font-style":      validateType("string"),
+	"font-weight":     validateType("string"),
+	"href":            validateType("string"),
+	"name":            validateType("string"),
+	"target":          validateType("string"),
+	"rel":             validateType("string"),
+	"letter-spacing":  validateUnitWithNegative([]string{"px", "em"}, false),
+	"line-height":     validateUnit([]string{"px", "%", ""}, false),
+	"padding-bottom":  validateUnit([]string{"px", "%"}, false),
+	"padding-left":    validateUnit([]string{"px", "%"}, false),
+	"padding-right":   validateUnit([]string{"px", "%"}, false),
+	"padding-top":     validateUnit([]string{"px", "%"}, false),
+	"padding":         validateUnit([]string{"px", "%"}, true),
+	"text-decoration": validateType("string"),
+	"text-transform":  validateType("string"),
+}
+
 func (l MJMLNavbarLink) AllowedAttributes() map[string]AttributeValidator {
-	return map[string]AttributeValidator{
-		"color":           validateColor(),
-		"font-family":     validateType("string"),
-		"font-size":       validateUnit([]string{"px"}, false),
-		"font-style":      validateType("string"),
-		"font-weight":     validateType("string"),
-		"href":            validateType("string"),
-		"name":            validateType("string"),
-		"target":          validateType("string"),
-		"rel":             validateType("string"),
-		"letter-spacing":  validateUnitWithNegative([]string{"px", "em"}, false),
-		"line-height":     validateUnit([]string{"px", "%", ""}, false),
-		"padding-bottom":  validateUnit([]string{"px", "%"}, false),
-		"padding-left":    validateUnit([]string{"px", "%"}, false),
-		"padding-right":   validateUnit([]string{"px", "%"}, false),
-		"padding-top":     validateUnit([]string{"px", "%"}, false),
-		"padding":         validateUnit([]string{"px", "%"}, true),
-		"text-decoration": validateType("string"),
-		"text-transform":  validateType("string"),
-	}
+	return navbarLinkAllowedAttributes
 }
 
 func (l MJMLNavbarLink) DefaultAttributes(_ *RenderContext) map[string]string {

@@ -56,7 +56,8 @@
 //     An undeclared author attribute and a value its validator rejects are
 //     validation errors carrying the element path, exactly as for a built-in
 //     component. css-class and mj-class are universal and need no entry, and a
-//     nil validator accepts every value.
+//     nil validator accepts every value. The returned map is read-only: the
+//     renderer may share one table across renders, so it must not be modified.
 //   - DefaultAttributes returns the values applied when the author wrote none,
 //     after author attributes have been validated. Per-tag defaults from
 //     mj-attributes and attributes from mj-class are applied before those, so a

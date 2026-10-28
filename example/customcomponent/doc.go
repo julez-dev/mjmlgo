@@ -34,7 +34,8 @@
 //   - Name returns the tag, which must not shadow a built-in element and must be
 //     registered only once per renderer.
 //   - AllowedAttributes declares every accepted attribute with its validator.
-//     Only the universal css-class and mj-class need no entry.
+//     Only the universal css-class and mj-class need no entry, and the returned
+//     map is read-only because the renderer may share it across renders.
 //   - DefaultAttributes returns the values applied when the author wrote none.
 //   - Render writes HTML from the node it is handed and the render context; it
 //     reads attributes through node.Node, never through package internals.
