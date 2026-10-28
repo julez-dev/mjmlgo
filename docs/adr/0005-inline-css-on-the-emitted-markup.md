@@ -18,17 +18,32 @@ normalized the document, it also rewrote bytes it was not asked to touch.
 
 ## The tree
 
-The tree is a record of what was emitted, not a reconstruction of what a browser
-would build: `buildEmittedDocument` tokenizes the emitted markup and records the
-ancestor/sibling relations plus the byte span of every start tag. No implied
-elements, no table fix-ups, no parser-inserted tags, no text or comment nodes
-(the selector engine's matchers count element nodes only).
+The tree is a record of what was emitted, built by tokenizing the emitted markup
+and recording the ancestor/sibling relations plus the byte span of every start
+tag. It is not a browser's reconstruction of the document: no implied elements,
+no table fix-ups, no foster parenting, no text or comment nodes (the selector
+engine's matchers count element nodes only).
 
-Two consequences are deliberate:
+It does, however, follow the tree the **reference inliner** builds, because that
+is the tree the reference's selectors match. juice 10 parses the document with
+htmlparser2 in HTML mode (`juice/lib/cheerio.js` sets `_useHtmlParser2` and
+leaves `xmlMode` off), so this tree reproduces htmlparser2 8.0.2's rules:
 
-- a self-closing tag is a leaf, because the renderer writes `<img ... />` and
-  `<td ... />` that way and the reference inliner's parser (htmlparser2, through
-  juice) is equally tolerant;
+- the `openImpliesClose` table: a `<div>` closes an open `<p>`, an `<li>` closes
+  the previous `<li>`, a `<tr>` closes a preceding `<tr>`, a `<td>` a preceding
+  `<td>`, `<dd>`/`<dt>`, `<option>`/`<optgroup>`, `<tbody>`/`<tfoot>` versus the
+  table sections, and the rest of that table verbatim. Without these, markup such
+  as `<p>text<div class="inner">` would keep the `div` inside the paragraph and a
+  `p div` rule would style content the reference never styles;
+- the self-closing flag is **ignored** on HTML elements: `<div class="wrap" />`
+  stays open, so what follows it is inside the div and `.wrap .inner` matches,
+  exactly as the reference sees it. The flag is honoured only inside foreign
+  content (`<svg>`, `<math>`), because that is where htmlparser2 honours it - the
+  renderer's self-closed `<td ... />` cells therefore stay open and are closed by
+  the next cell or row, as in the reference;
+- htmlparser2's void-element list decides what is a leaf (`br`, `img`, `meta`,
+  `input`, `hr`, `col`, `link`, `param`, `source`, `track`, `wbr`, plus the
+  legacy `basefont`, `command`, `frame`, `isindex`, `keygen`);
 - an end tag closes the nearest matching open element and is otherwise ignored,
   so author raw content with unbalanced markup nests the way it was written.
 
@@ -37,6 +52,20 @@ everything else: an author's `<div>` in a `<tbody>` is an ancestor of its own
 children, so both the block's own selectors and selectors that depend on the
 elements around it match. The raw-block markers, the placeholder machinery and
 the per-block fragment parse that existed only to survive `html.Parse` are gone.
+
+## Residual limits
+
+- A stray `</p>` or `</br>` in author raw content makes htmlparser2 materialize
+  an empty element; this tree has no node for it, because there is no emitted
+  markup to carry one. Only a rule matching an empty `p`/`br` in that situation
+  could tell the difference, and no fixture has one.
+- htmlparser2 applies no HTML5 scope checks in its implied-close table, so the
+  table above is the whole rule set - there is nothing further to emulate.
+- The selector engine (`github.com/ericchiang/css`) applies `+` and `~` in both
+  directions, so `li + li` styles both items where the reference styles the
+  second. That is a property of the engine, not of this tree: it reproduces on
+  the parent commit with the pre-change pipeline, and fixing it means replacing
+  or wrapping the matcher, which the ticket puts out of scope.
 
 ## What "during emission" means here, and what it costs
 
@@ -71,6 +100,11 @@ MJML_BIN=$PWD/../<this-checkout>/node_modules/.bin/mjml \
 It reports three mismatches - the source-order `margin`, the
 importance-versus-specificity `bgcolor` and the mirrored `align` attribute. All
 three pass now.
+
+The same probe works for the parser fidelity fixtures: on the parent commit
+`testdata/parity/inline-implied-end-tags.mjml` and
+`testdata/parity/inline-self-closed-html.mjml` fail (three and one mismatch), and
+both pass with the implied-close table and the HTML-mode self-closing rule.
 
 ## The cascade
 

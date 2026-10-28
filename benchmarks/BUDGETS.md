@@ -95,17 +95,18 @@ through `Renderer.RenderString` (fs reads included).
 The inline stage no longer round-trips the document through `html.Parse` and
 `html.Render`. It tokenizes the markup the components emitted, matches the
 selectors against that tree and rewrites only the start tags a rule changed
-(`BenchmarkInlineStage`, document already rendered, medians of 7):
+(`BenchmarkInlineStage`, document already rendered, medians of 5):
 
 | Fixture | Before ns/op | After ns/op | Before allocs/op | After allocs/op |
 | --- | ---: | ---: | ---: | ---: |
-| `input_big.mjml` | 817,000 | 610,000 | 7,815 | 6,830 |
-| `head.mjml` | 25,400 | 19,100 | 298 | 255 |
+| `input_big.mjml` | 817,000 | 625,000 | 7,815 | 6,853 |
+| `head.mjml` | 25,400 | 19,900 | 298 | 257 |
 
 End to end that is `input_big.mjml` 2.59 ms -> 2.31 ms (35,781 -> 34,776 allocs/op)
 and `head.mjml` 94.6 us -> 83.7 us (1,493 -> 1,448 allocs/op), measured by running
-the pre-change and the post-change tree alternately in one session; the per-fixture
-numbers above come from single runs of each tree and are medians of 7 and 5.
+the pre-change and the post-change tree alternately in one session. The per-fixture
+stage numbers above come from single runs of each tree (medians of 5) and carry a
+few percent of machine noise.
 
 That is ~0.21 ms of the ~0.54 ms the round-trip used to cost on `input_big.mjml`:
 the rest of the round-trip's cost came back as the element tree the selector

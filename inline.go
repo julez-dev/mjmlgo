@@ -52,23 +52,27 @@ type emittedDocument struct {
 // sibling and positional pseudo-classes included - counts element nodes only, so
 // a document node per text token would buy nothing.
 //
-// Two deliberate simplifications follow from matching the emitted markup instead
-// of re-parsing the document the way a browser would:
-//
-//   - a self-closing tag is a leaf. The renderer writes <img ... /> and
-//     <td ... /> that way; the reference inliner uses the same tolerant parser
-//     (htmlparser2) it always has, and neither inserts implied end tags;
-//   - an end tag closes the nearest matching open element and is otherwise
-//     ignored, so author raw content with unbalanced markup nests the way it was
-//     written.
+// The tree follows the reference inliner's parser, not a browser: juice 10 parses
+// the document with htmlparser2 in HTML mode (juice/lib/cheerio.js sets
+// _useHtmlParser2 and leaves xmlMode off), so the rules below mirror that parser
+// rather than the HTML5 tree-construction algorithm - no table fix-ups, no foster
+// parenting, but the same implied end tags and the same self-closing handling.
+// Matching its tree is what keeps this stage's styling identical to the
+// reference's.
 func buildEmittedDocument(source string) *emittedDocument {
 	doc := &emittedDocument{
 		source: source,
 		root:   &html.Node{Type: html.DocumentNode},
 	}
 
-	stack := []*html.Node{doc.root}
-	offset := 0
+	var (
+		// stack holds the open elements, innermost last; stack[0] is the document.
+		stack = []*html.Node{doc.root}
+		// foreign mirrors the parser's foreignContent stack: true inside <svg> or
+		// <math>, false inside an HTML integration point.
+		foreign = []bool{false}
+		offset  int
+	)
 
 	tokenizer := html.NewTokenizer(strings.NewReader(source))
 
@@ -83,28 +87,179 @@ func buildEmittedDocument(source string) *emittedDocument {
 			break
 		}
 
-		parent := stack[len(stack)-1]
-
 		switch tokenType {
 		case html.StartTagToken, html.SelfClosingTagToken:
 			element := newElementNode(tokenizer)
-			parent.AppendChild(element)
+
+			// A start tag first closes what it implies closed, then becomes the
+			// parent of everything that follows.
+			stack = closeImplied(stack, element.Data)
+			stack[len(stack)-1].AppendChild(element)
 
 			selfClosing := tokenType == html.SelfClosingTagToken
 			doc.spans = append(doc.spans, startTag{start: offset, end: offset + length, selfClosing: selfClosing})
 
-			if !selfClosing && !voidElements[element.Data] {
+			switch {
+			case voidElements[element.Data]:
+				// A void element never has content, so it is a leaf.
+			case selfClosing && foreign[len(foreign)-1]:
+				// The self-closing flag is honoured only in foreign content;
+				// in HTML content htmlparser2 ignores it and keeps the element
+				// open, which is why a self-closed <td ... /> still closes on the
+				// next cell and a self-closed <div> still contains what follows.
+			default:
 				stack = append(stack, element)
+
+				if foreignRoots[element.Data] {
+					foreign = append(foreign, true)
+				} else if htmlIntegrationPoints[element.Data] {
+					foreign = append(foreign, false)
+				}
 			}
 		case html.EndTagToken:
 			name, _ := tokenizer.TagName()
-			stack = popToElement(stack, string(name))
+			tag := string(name)
+
+			if (foreignRoots[tag] || htmlIntegrationPoints[tag]) && len(foreign) > 1 {
+				foreign = foreign[:len(foreign)-1]
+			}
+
+			if voidElements[tag] {
+				// A stray </br> and friends have no open element to close. The
+				// reference parser materializes an empty element for them; this
+				// tree has no node for it, because there is no emitted markup to
+				// carry it (see ADR-0005).
+				continue
+			}
+
+			stack = closeToElement(stack, tag)
 		}
 
 		offset += length
 	}
 
 	return doc
+}
+
+// closeImplied closes the open elements that the start tag name implies closed,
+// innermost first: htmlparser2's openImpliesClose table, so the tree the
+// selectors match is the tree the reference inliner matches.
+//
+// It is not the HTML5 algorithm - htmlparser2 applies no implied "tbody", no
+// foster parenting and no scope checks - but it does close a <p> at a block
+// start and an <li> at the next <li>, which is what makes `p div` and
+// `li + li` mean the same thing here as in the reference.
+func closeImplied(stack []*html.Node, name string) []*html.Node {
+	closes, ok := impliedClose[name]
+	if !ok {
+		return stack
+	}
+
+	for len(stack) > 1 && closes[stack[len(stack)-1].Data] {
+		stack = stack[:len(stack)-1]
+	}
+
+	return stack
+}
+
+// closeToElement closes every open element up to and including the nearest one
+// named name and returns the remaining stack. An end tag without a matching open
+// element is ignored.
+func closeToElement(stack []*html.Node, name string) []*html.Node {
+	for i := len(stack) - 1; i > 0; i-- {
+		if stack[i].Data == name {
+			return stack[:i]
+		}
+	}
+
+	return stack
+}
+
+// The tables below are copied from htmlparser2 8.0.2, the parser juice 10 runs
+// the reference document through (see ADR-0005).
+var (
+	pTag             = elementSet("p")
+	formTags         = elementSet("input", "option", "optgroup", "select", "button", "datalist", "textarea")
+	tableSectionTags = elementSet("thead", "tbody")
+	ddtTags          = elementSet("dd", "dt")
+	rtpTags          = elementSet("rt", "rp")
+)
+
+// impliedClose lists, per start tag, the open elements it closes.
+var impliedClose = map[string]map[string]bool{
+	"tr":         elementSet("tr", "th", "td"),
+	"th":         elementSet("th"),
+	"td":         elementSet("thead", "th", "td"),
+	"body":       elementSet("head", "link", "script"),
+	"li":         elementSet("li"),
+	"p":          pTag,
+	"h1":         pTag,
+	"h2":         pTag,
+	"h3":         pTag,
+	"h4":         pTag,
+	"h5":         pTag,
+	"h6":         pTag,
+	"select":     formTags,
+	"input":      formTags,
+	"output":     formTags,
+	"button":     formTags,
+	"datalist":   formTags,
+	"textarea":   formTags,
+	"option":     elementSet("option"),
+	"optgroup":   elementSet("optgroup", "option"),
+	"dd":         ddtTags,
+	"dt":         ddtTags,
+	"address":    pTag,
+	"article":    pTag,
+	"aside":      pTag,
+	"blockquote": pTag,
+	"details":    pTag,
+	"div":        pTag,
+	"dl":         pTag,
+	"fieldset":   pTag,
+	"figcaption": pTag,
+	"figure":     pTag,
+	"footer":     pTag,
+	"form":       pTag,
+	"header":     pTag,
+	"hr":         pTag,
+	"main":       pTag,
+	"nav":        pTag,
+	"ol":         pTag,
+	"pre":        pTag,
+	"section":    pTag,
+	"table":      pTag,
+	"ul":         pTag,
+	"rt":         rtpTags,
+	"rp":         rtpTags,
+	"tbody":      tableSectionTags,
+	"tfoot":      tableSectionTags,
+}
+
+// voidElements never have content, so a start tag for one is a leaf.
+var voidElements = elementSet(
+	"area", "base", "basefont", "br", "col", "command", "embed", "frame", "hr",
+	"img", "input", "isindex", "keygen", "link", "meta", "param", "source",
+	"track", "wbr",
+)
+
+// foreignRoots open foreign content, where the self-closing flag is honoured.
+var foreignRoots = elementSet("math", "svg")
+
+// htmlIntegrationPoints switch back to HTML rules inside foreign content.
+var htmlIntegrationPoints = elementSet(
+	"mi", "mo", "mn", "ms", "mtext", "annotation-xml", "foreignobject", "desc", "title",
+)
+
+// elementSet builds a set of element names.
+func elementSet(names ...string) map[string]bool {
+	set := make(map[string]bool, len(names))
+
+	for _, name := range names {
+		set[name] = true
+	}
+
+	return set
 }
 
 // newElementNode builds the element node for the start tag the tokenizer is
@@ -153,25 +308,6 @@ func popToElement(stack []*html.Node, name string) []*html.Node {
 	}
 
 	return stack
-}
-
-// voidElements are the elements that never have content, so an emitted
-// <img ...> must not swallow the markup that follows it.
-var voidElements = map[string]bool{
-	"area":   true,
-	"base":   true,
-	"br":     true,
-	"col":    true,
-	"embed":  true,
-	"hr":     true,
-	"img":    true,
-	"input":  true,
-	"link":   true,
-	"meta":   true,
-	"param":  true,
-	"source": true,
-	"track":  true,
-	"wbr":    true,
 }
 
 // write serializes the document: the emitted markup with the start tag of every

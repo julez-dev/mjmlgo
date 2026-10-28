@@ -523,3 +523,79 @@ func BenchmarkInlineStage(b *testing.B) {
 		})
 	}
 }
+
+// TestInlineCSSMatchesTheReferenceTree asserts the emitted markup is turned into
+// the tree the reference inliner's parser builds (htmlparser2 in HTML mode), so
+// selectors match what the reference matches: a block start closes an open
+// paragraph, a list item closes the previous one, a table row and cell close
+// their predecessor, and the self-closing flag is ignored outside foreign
+// content.
+func TestInlineCSSMatchesTheReferenceTree(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		document string
+		sheet    component.Stylesheet
+		want     string
+	}{
+		{
+			name:     "a block start closes a paragraph",
+			document: `<html><body><p>text<div class="inner">nested</div></body></html>`,
+			sheet:    inlineSheet("p div, p > .inner", component.Style{Property: "color", Value: "red"}),
+			want:     `<html><body><p>text<div class="inner">nested</div></body></html>`,
+		},
+		{
+			name:     "a list item closes the previous one",
+			document: `<html><body><ul><li class="item">first<li class="item">second</ul></body></html>`,
+			sheet:    inlineSheet("li li", component.Style{Property: "color", Value: "red"}),
+			want:     `<html><body><ul><li class="item">first<li class="item">second</ul></body></html>`,
+		},
+		{
+			name:     "a row and a cell close their predecessor",
+			document: `<html><body><table><tr><td>one<td>two<tr><td>three</table></body></html>`,
+			sheet:    inlineSheet("tr tr td", component.Style{Property: "color", Value: "red"}),
+			want:     `<html><body><table><tr><td>one<td>two<tr><td>three</table></body></html>`,
+		},
+		{
+			name:     "a self-closed HTML element keeps the content that follows",
+			document: `<html><body><div class="wrap" /><span class="inner">text</span></body></html>`,
+			sheet:    inlineSheet(".wrap .inner", component.Style{Property: "color", Value: "red"}),
+			want:     `<html><body><div class="wrap" /><span class="inner" style="color:red;">text</span></body></html>`,
+		},
+		{
+			name:     "a self-closed element in foreign content is a leaf",
+			document: `<html><body><svg><rect class="shape" /><circle class="shape" /></svg></body></html>`,
+			sheet:    inlineSheet(".shape", component.Style{Property: "fill", Value: "#00f"}),
+			want:     `<html><body><svg><rect class="shape" style="fill:#00f;" /><circle class="shape" style="fill:#00f;" /></svg></body></html>`,
+		},
+		{
+			name:     "a self-closed shape does not contain the next shape",
+			document: `<html><body><svg><rect class="shape" /><circle class="shape" /></svg></body></html>`,
+			sheet:    inlineSheet(".shape .shape", component.Style{Property: "stroke", Value: "#000"}),
+			want:     `<html><body><svg><rect class="shape" /><circle class="shape" /></svg></body></html>`,
+		},
+		{
+			name:     "a self-closed cell is closed by the next cell",
+			document: `<html><body><table><tr><td class="pad" /><td class="cell">x</td></tr></table></body></html>`,
+			sheet:    inlineSheet("td td", component.Style{Property: "color", Value: "red"}),
+			want:     `<html><body><table><tr><td class="pad" /><td class="cell">x</td></tr></table></body></html>`,
+		},
+		{
+			name:     "a void element stays a leaf",
+			document: `<html><body><div><img class="icon" src="i.png"><span class="next">x</span></div></body></html>`,
+			sheet:    inlineSheet("img span", component.Style{Property: "color", Value: "red"}),
+			want:     `<html><body><div><img class="icon" src="i.png"><span class="next">x</span></div></body></html>`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			var out bytes.Buffer
+			require.NoError(t, inlineCSS(inlineContext(tt.sheet), strings.NewReader(tt.document), &out))
+			require.Equal(t, tt.want, out.String())
+		})
+	}
+}

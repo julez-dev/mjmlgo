@@ -201,7 +201,11 @@ Known divergences at the start: 214 records / 15 root causes (see
 - **T6 done**: the inline stage runs on the emitted markup (ADR-0005). The
   document is tokenized once into an element tree, the `<mj-html-attributes>`
   selectors and the inline stylesheets are matched against it, and the writer
-  patches only the start tags that changed. The raw-block markers, placeholders
+  patches only the start tags that changed. The tree follows the reference
+  inliner's parser (htmlparser2 in HTML mode) rather than a browser: the
+  `openImpliesClose` table and the ignored self-closing flag are implemented, so
+  `p div`, `li li` and `.wrap .inner` mean the same thing here as in the
+  reference. The raw-block markers, placeholders
   and per-block fragment parse are gone with the round-trip they protected
   against. Declarations now cascade like CSS (importance, then specificity, then
   source order) instead of "first declaration wins", mirrored
