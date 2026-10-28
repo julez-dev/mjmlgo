@@ -2,6 +2,7 @@ package mjmltest
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -25,10 +26,12 @@ type RenderConfig struct {
 	IgnoreIncludes *bool
 	// PrinterSupport is MJML's printerSupport option (default false).
 	PrinterSupport *bool
-	// Fonts replaces the web-font registry; nil means the MJML defaults.
+	// Fonts replaces the web-font registry. It is a JSON object from the
+	// sidecar, so it is never nil: an empty object replaces the defaults with
+	// nothing, and a fixture that wants the defaults omits the flag.
 	Fonts map[string]string
-	// FontsSet reports that the sidecar sets fonts, so an explicit empty or
-	// null registry is distinguishable from "not configured".
+	// FontsSet reports that the sidecar configures fonts, so an empty registry
+	// is distinguishable from "not configured".
 	FontsSet bool
 }
 
@@ -96,7 +99,8 @@ func Config(t testing.TB, fixture string) RenderConfig {
 //   - ignoreIncludes and printerSupport: the CLI hands the raw string to
 //     mjml-core, where a non-empty string is truthy - so "false" enables them.
 //     Sidecars therefore use "true" to switch them on.
-//   - fonts: JSON, parsed by the CLI. null means the default registry.
+//   - fonts: JSON, parsed by the CLI. Only an object is a usable registry; every
+//     other value reaches mjml-core as the string the CLI saw. See parseFonts.
 func ParseConfig(fixture string, args []string) (RenderConfig, error) {
 	var config RenderConfig
 
@@ -167,16 +171,26 @@ func truthy(value string) bool {
 	return value != ""
 }
 
-// parseFonts decodes the JSON font registry of -c.fonts. null (and an omitted
-// value) means the MJML default registry.
+// parseFonts decodes the JSON font registry of -c.fonts.
+//
+// Only a JSON object is a usable registry. The CLI parses nothing else into an
+// object: null, "", false and friends reach mjml-core as the string the CLI saw,
+// and [] as an array, so the registry stops being a name-to-URL map. <mj-font>
+// registration then throws ("Cannot create property 'Unused Font' on string
+// 'null'") or the emitted links are built from characters and attribute names.
+// A sidecar asking for that would compare the reference under a broken
+// configuration against one of our options, so it fails instead. Omit the flag
+// to keep the default registry and use {} to replace it with nothing.
 func parseFonts(value string) (map[string]string, error) {
-	if value == "" || value == "null" {
-		return nil, nil
-	}
-
 	var fonts map[string]string
 	if err := json.Unmarshal([]byte(value), &fonts); err != nil {
 		return nil, fmt.Errorf("decode JSON font registry: %w", err)
+	}
+
+	if fonts == nil {
+		return nil, errors.New(
+			"-c.fonts needs a JSON object (`{...}`); the reference CLI passes null to mjml-core " +
+				"as the string \"null\", which breaks the font registry - omit the flag for the defaults")
 	}
 
 	return fonts, nil

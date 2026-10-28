@@ -9,8 +9,9 @@ Policy: CI prints benchmark results but does not fail on them. Update this table
 in the same commit as a change that moves a budget materially.
 
 Measured with Go 1.24 on an AMD Ryzen 9 9950X3D, `-benchmem -count=3`, medians,
-over the whole parity corpus. Fixtures with `mj-include` are measured through
-`Renderer.RenderString` (fs reads included).
+over the whole parity corpus. A fixture with a `.cli-args` sidecar is measured
+with the options it records, from memory; fixtures with `mj-include` are measured
+through `Renderer.RenderString` (fs reads included).
 
 | Fixture | Budget ns/op | Budget B/op | Budget allocs/op | Measured ns/op | Measured B/op | Measured allocs/op |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -22,26 +23,26 @@ over the whole parity corpus. Fixtures with `mj-include` are measured through
 | `comments-between-components.mjml` | 124,325 | 257,898 | 2,838 | 77,703 | 161,186 | 1,774 |
 | `comments-containers.mjml` | 194,027 | 365,347 | 3,488 | 121,267 | 228,342 | 2,180 |
 | `comments-head.mjml` | 58,405 | 109,282 | 1,299 | 36,503 | 68,301 | 812 |
-| `comments-keep-false.mjml` | 59,350 | 121,134 | 1,282 | 37,094 | 75,709 | 801 |
+| `comments-keep-false.mjml` | 63,245 | 110,979 | 1,242 | 39,528 | 69,362 | 776 |
 | `comments-raw.mjml` | 57,366 | 116,206 | 1,246 | 35,854 | 72,629 | 779 |
 | `component-head-styles.mjml` | 124,703 | 258,346 | 2,440 | 77,939 | 161,466 | 1,525 |
 | `content.mjml` | 143,872 | 243,967 | 2,773 | 89,920 | 152,479 | 1,733 |
 | `fluid-height-hero.mjml` | 79,394 | 154,456 | 1,600 | 49,621 | 96,535 | 1,000 |
 | `head-attributes-class.mjml` | 113,821 | 210,189 | 2,420 | 71,138 | 131,368 | 1,512 |
 | `head-attributes-per-tag.mjml` | 87,988 | 162,832 | 1,892 | 54,992 | 101,770 | 1,182 |
-| `head-fonts-custom.mjml` | 70,506 | 135,850 | 1,627 | 44,066 | 84,906 | 1,017 |
+| `head-fonts-custom.mjml` | 81,483 | 148,102 | 1,675 | 50,927 | 92,564 | 1,047 |
 | `head-fonts-default.mjml` | 62,144 | 115,106 | 1,415 | 38,840 | 71,941 | 884 |
 | `head-html-attributes.mjml` | 144,826 | 228,724 | 2,540 | 90,516 | 142,952 | 1,587 |
 | `head-owa.mjml` | 52,551 | 98,589 | 1,186 | 32,844 | 61,618 | 741 |
 | `head.mjml` | 146,082 | 223,896 | 2,378 | 91,301 | 139,935 | 1,486 |
-| `ignore-includes/main.mjml` | 60,101 | 106,557 | 1,242 | 37,563 | 66,598 | 776 |
+| `ignore-includes/main.mjml` | 57,562 | 105,930 | 1,240 | 35,976 | 66,206 | 775 |
 | `image-complex.mjml` | 800,258 | 1,395,453 | 16,647 | 500,161 | 872,158 | 10,404 |
 | `image.mjml` | 61,725 | 112,573 | 1,330 | 38,578 | 70,358 | 831 |
 | `includes/main.mjml` | 449,231 | 669,952 | 6,360 | 280,769 | 418,720 | 3,975 |
 | `input_big.mjml` | 4,115,906 | 5,475,077 | 57,148 | 2,572,441 | 3,421,923 | 35,717 |
 | `layout.mjml` | 270,480 | 500,234 | 5,765 | 169,050 | 312,646 | 3,603 |
 | `navbar.mjml` | 91,592 | 172,783 | 1,783 | 57,245 | 107,989 | 1,114 |
-| `printer-support.mjml` | 72,467 | 135,827 | 1,678 | 45,292 | 84,892 | 1,049 |
+| `printer-support.mjml` | 89,856 | 152,194 | 1,773 | 56,160 | 95,121 | 1,108 |
 | `raw-in-column.mjml` | 58,983 | 116,711 | 1,244 | 36,864 | 72,944 | 777 |
 | `raw-in-group.mjml` | 86,856 | 161,021 | 1,960 | 54,285 | 100,638 | 1,225 |
 | `raw-in-section.mjml` | 76,111 | 143,559 | 1,733 | 47,569 | 89,724 | 1,083 |

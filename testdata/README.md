@@ -66,10 +66,19 @@ deliberately small:
 | `-c.ignoreIncludes=<value>` | `WithIgnoreIncludes` |
 | `-c.printerSupport=<value>` | `WithPrinterSupport` |
 
-The registry of `-c.fonts` reaches this package as a Go map, which has no order
-of its own; a custom registry is therefore emitted in ascending family-name
-order (see `WithFonts`). A fixture that uses several custom families must pick
-names whose alphabetical order matches the sidecar's key order.
+`-c.fonts` must be a JSON **object**. That is the only value the CLI turns into a
+registry: `null`, an empty value and `false` reach mjml-core as the string the
+CLI saw, and `[]` as an array, so the registry stops being a name-to-URL map.
+`<mj-font>` then throws (`Cannot create property 'Unused Font' on string
+'null'`), and a used family is imported once per character of the string
+(`<link href="n">`, `<link href="u">`, ...). A sidecar that asks for such a value
+cannot be mapped onto an option and fails the test; omit the flag for the default
+registry, and use `-c.fonts={}` to replace the defaults with nothing.
+
+The registry then reaches this package as a Go map, which has no order of its
+own; a custom registry is therefore emitted in ascending family-name order (see
+`WithFonts`). A fixture that uses several custom families must list them in the
+sidecar in alphabetical order so both sides agree.
 
 `--config.<name>=<value>` is accepted as well. The value semantics follow the
 reference CLI, which is not uniform: `keepComments` is off only for the literal
@@ -84,6 +93,15 @@ drops them at parse time when the option is off. Comments inside ending tags
 are never affected. Outlook conditional comments the renderer generates itself
 are emitted after parsing and are never affected either. The fixture
 `comments-keep-false.mjml` covers both halves.
+
+Because a comment is an `mj-raw` node, it is also subject to the same rules:
+a comment inside a component that does not accept `mj-raw` (`mj-carousel`,
+`mj-html-attributes`, ...) is a validation error while comments are on, and
+only `-c.keepComments=false` drops it early enough to be accepted. Comments are
+parsed as XML comments, so a comment that is not well-formed XML - one
+containing `--`, for instance - is rejected even though the reference's lenient
+HTML parser tolerates it; this is the same strictness that rejects mismatched
+tags.
 
 ### Configuring the MJML version
 

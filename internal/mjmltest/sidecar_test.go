@@ -82,17 +82,12 @@ func TestParseConfig(t *testing.T) {
 		assert.True(t, config.FontsSet)
 		assert.Equal(t, map[string]string{"A": "https://example.com/a.css"}, config.Fonts)
 
+		// An empty object replaces the defaults with nothing, which is not the
+		// same as leaving the flag out.
 		config, err = ParseConfig("f.mjml", []string{"-c.fonts={}"})
 		require.NoError(t, err)
 		assert.True(t, config.FontsSet)
 		assert.Empty(t, config.Fonts)
-
-		// null asks for the default registry, which is the same as leaving
-		// fonts unset.
-		config, err = ParseConfig("f.mjml", []string{"-c.fonts=null"})
-		require.NoError(t, err)
-		assert.True(t, config.FontsSet)
-		assert.Nil(t, config.Fonts)
 	})
 
 	t.Run("malformed", func(t *testing.T) {
@@ -104,6 +99,13 @@ func TestParseConfig(t *testing.T) {
 			{"--config.=true"},
 			{"keepComments=false"},
 			{"-c.fonts={not json}"},
+			// Anything but a JSON object reaches mjml-core as a string, where
+			// the registry is unusable (per-character links, or a throw on
+			// <mj-font>). Omit the flag for the defaults.
+			{"-c.fonts=null"},
+			{"-c.fonts="},
+			{"-c.fonts=[]"},
+			{"-c.fonts=false"},
 		} {
 			_, err := ParseConfig("f.mjml", args)
 			require.Error(t, err, "args %v must be rejected", args)

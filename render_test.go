@@ -9,6 +9,7 @@ import (
 	"slices"
 	"strings"
 	"testing"
+	"testing/fstest"
 
 	"github.com/julez-dev/mjmlgo/internal/component"
 	"github.com/julez-dev/mjmlgo/internal/mjmltest"
@@ -119,6 +120,18 @@ func renderFixture(t testing.TB, fixture string) (string, error) {
 	fsys := os.DirFS(filepath.Dir(fixture))
 
 	return rendererFor(t, fixture).RenderString(context.Background(), fsys, filepath.Base(fixture))
+}
+
+// renderConfiguredSource renders fixture's source with the configuration its
+// sidecar records, without reading anything else from disk. The benchmarks use
+// it so a fixture that exists to exercise an option is measured with it.
+func renderConfiguredSource(t testing.TB, fixture string, source []byte) (string, error) {
+	t.Helper()
+
+	name := filepath.Base(fixture)
+	fsys := fstest.MapFS{name: &fstest.MapFile{Data: source}}
+
+	return rendererFor(t, fixture).RenderString(context.Background(), fsys, name)
 }
 
 func formatMismatches(mismatches []mjmltest.Mismatch) string {
@@ -758,6 +771,18 @@ func BenchmarkRenderMJML(b *testing.B) {
 				_, err := RenderMJML(bytes.NewReader(input))
 
 				return err
+			}
+
+			// A fixture whose sidecar configures the renderer - keepComments,
+			// fonts, ignoreIncludes, printerSupport - must be measured with that
+			// configuration, or the row describes a pipeline the fixture does
+			// not stand for.
+			if len(mjmltest.Args(b, fixture)) > 0 {
+				render = func() error {
+					_, err := renderConfiguredSource(b, fixture, input)
+
+					return err
+				}
 			}
 
 			if err := render(); err != nil {
