@@ -66,6 +66,7 @@ func (h MJMLHero) Render(ctx *RenderContext, w io.Writer, n *node.Node) error {
 		"align":       "center",
 		"border":      "0",
 		"cellpadding": "0",
+		"cellspacing": "0",
 		"role":        "presentation",
 		"style":       styles["outlook-table"].InlineString(),
 		"width":       RemoveNonNumeric(containerWidth),

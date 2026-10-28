@@ -1,22 +1,6 @@
 {
   "mjmlVersion": "4.18.0",
   "fixtures": {
-    "testdata/parity/fluid-height-hero.mjml": {
-      "mismatches": [
-        {
-          "path": "/#document/html[1]/body[1]/div[1]/#conditional[1]/table[1]",
-          "detail": "attribute \"cellspacing\" missing, want \"0\""
-        }
-      ]
-    },
-    "testdata/parity/simple-hero.mjml": {
-      "mismatches": [
-        {
-          "path": "/#document/html[1]/body[1]/div[1]/#conditional[1]/table[1]",
-          "detail": "attribute \"cellspacing\" missing, want \"0\""
-        }
-      ]
-    },
     "testdata/parity/upstream/mjml--carousel-hoverSupported--00.mjml": {
       "error": "failed to render column: invalid child type mj-carousel in column, allowed types are: [mj-divider mj-spacer mj-image mj-text mj-social mj-table mj-button mj-navbar mj-accordion mj-raw]"
     },
