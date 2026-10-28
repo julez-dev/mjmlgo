@@ -1,1 +1,1 @@
-invalid child type mj-foo in column
+unknown element <mj-foo>

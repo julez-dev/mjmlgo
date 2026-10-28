@@ -1,0 +1,5 @@
+<mjml>
+  <mj-body>
+    <mj-text>Text cannot be a direct child of mj-body</mj-text>
+  </mj-body>
+</mjml>
