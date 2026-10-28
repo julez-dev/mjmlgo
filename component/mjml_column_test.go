@@ -195,3 +195,30 @@ func TestMJMLColumnBorderRadiusStyles(t *testing.T) {
 	require.Contains(t, inner, "border-collapse:separate;")
 	require.Contains(t, inner, "border:5px solid #666;")
 }
+
+func TestMJMLColumnGutterKeepsBackground(t *testing.T) {
+	t.Parallel()
+
+	ctx := &RenderContext{
+		ContainerWidth: "600px",
+		MJMLStylesheet: make(map[string][]string),
+	}
+	parent := &node.Node{Children: []*node.Node{}}
+	n := &node.Node{
+		Parent: parent,
+		Attributes: []xml.Attr{
+			{Name: xml.Name{Local: "background-color"}, Value: "#fafafa"},
+			{Name: xml.Name{Local: "padding"}, Value: "10px"},
+		},
+	}
+	parent.Children = append(parent.Children, n)
+
+	var column MJMLColumn
+	require.NoError(t, InitComponent(ctx, column, n))
+
+	b := strings.Builder{}
+	require.NoError(t, column.Render(ctx, &b, n))
+
+	require.Contains(t, b.String(), `background-color:#fafafa;`)
+	require.Contains(t, b.String(), `padding:10px;`)
+}
