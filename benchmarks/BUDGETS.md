@@ -23,6 +23,7 @@ through `Renderer.RenderString` (fs reads included).
 | `comments-between-components.mjml` | 124,325 | 257,898 | 2,838 | 77,703 | 161,186 | 1,774 |
 | `comments-containers.mjml` | 194,027 | 365,347 | 3,488 | 121,267 | 228,342 | 2,180 |
 | `comments-head.mjml` | 58,405 | 109,282 | 1,299 | 36,503 | 68,301 | 812 |
+| `comments-hero.mjml` | 120,296 | 211,958 | 2,422 | 75,185 | 132,474 | 1,514 |
 | `comments-keep-false.mjml` | 63,245 | 110,979 | 1,242 | 39,528 | 69,362 | 776 |
 | `comments-raw.mjml` | 57,366 | 116,206 | 1,246 | 35,854 | 72,629 | 779 |
 | `component-head-styles.mjml` | 124,703 | 258,346 | 2,440 | 77,939 | 161,466 | 1,525 |

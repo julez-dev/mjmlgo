@@ -293,6 +293,18 @@ func (h MJMLHero) renderContent(ctx *RenderContext, w io.Writer, n *node.Node) e
 			return err
 		}
 
+		if child.Type == RawTagName {
+			// Raw content - an author comment, for instance - is emitted bare
+			// at its document position. MJML checks isRawElement() and skips
+			// the row/cell it wraps every content child in, so the comment has
+			// the same parent node in both outputs.
+			if err := childComponent.Render(ctx, w, child); err != nil {
+				return err
+			}
+
+			continue
+		}
+
 		_, _ = io.WriteString(w, "<tr>\n")
 		_, _ = io.WriteString(w, "<td "+inlineAttributes{
 			"align":      child.GetAttributeValueDefault("align"),
