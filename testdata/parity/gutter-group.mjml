@@ -1,0 +1,12 @@
+<mjml>
+  <mj-body>
+    <!-- group columns do not stack, so they keep desktop padding -->
+    <mj-section gutter="16px">
+      <mj-column><mj-text>solo</mj-text></mj-column>
+      <mj-group>
+        <mj-column><mj-text>grouped a</mj-text></mj-column>
+        <mj-column><mj-text>grouped b</mj-text></mj-column>
+      </mj-group>
+    </mj-section>
+  </mj-body>
+</mjml>

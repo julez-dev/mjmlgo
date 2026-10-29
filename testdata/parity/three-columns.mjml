@@ -1,0 +1,16 @@
+<mjml>
+  <mj-body>
+    <!-- three equal columns are not a whole percent wide -->
+    <mj-section>
+      <mj-column><mj-text>a</mj-text></mj-column>
+      <mj-column><mj-text>b</mj-text></mj-column>
+      <mj-column><mj-text>c</mj-text></mj-column>
+    </mj-section>
+    <mj-section>
+      <mj-column><mj-text>four</mj-text></mj-column>
+      <mj-column><mj-text>four</mj-text></mj-column>
+      <mj-column><mj-text>four</mj-text></mj-column>
+      <mj-column><mj-text>four</mj-text></mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

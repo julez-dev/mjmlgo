@@ -3,7 +3,7 @@ package component
 import (
 	"io"
 
-	"github.com/julez-dev/mjmlgo/node"
+	"github.com/julez-dev/mjmlgo/v2/node"
 )
 
 type MJMLSpacer struct{}

@@ -1,0 +1,12 @@
+<mjml>
+        <mj-body>
+          <mj-section gutter="3%">
+            <mj-column width="300px">
+              <mj-text>Left</mj-text>
+            </mj-column>
+            <mj-column width="200px">
+              <mj-text>Right</mj-text>
+            </mj-column>
+          </mj-section>
+        </mj-body>
+      </mjml>

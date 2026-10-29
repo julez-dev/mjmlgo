@@ -47,7 +47,7 @@ const renderTimeout = 5 * time.Minute
 // CLI is a resolved reference MJML implementation.
 type CLI struct {
 	// argv is the command prefix, e.g. ["./node_modules/.bin/mjml"] or
-	// ["npx", "--yes", "mjml@4.18.0"].
+	// ["npx", "--yes", "mjml@5.4.1"].
 	argv []string
 
 	// Version is the MJML version reported by the resolved CLI.

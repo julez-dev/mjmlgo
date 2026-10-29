@@ -1,9 +1,14 @@
 <mjml>
+        <mj-head>
+          <mj-style>
+            .title { color: {{\nheadlineColor\n}}; }
+          </mj-style>
+        </mj-head>
         <mj-body>
           <mj-section>
             <mj-column>
               <mj-raw>
-                <div style="{{ fontTag: {{ fontWeight }};">Token</div>
+                <div style="font-weight: [[\n fontWeight \n]];">Token</div>
               </mj-raw>
             </mj-column>
           </mj-section>

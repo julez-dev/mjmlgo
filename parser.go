@@ -12,8 +12,8 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/julez-dev/mjmlgo/component"
-	"github.com/julez-dev/mjmlgo/node"
+	"github.com/julez-dev/mjmlgo/v2/component"
+	"github.com/julez-dev/mjmlgo/v2/node"
 )
 
 var (
@@ -97,6 +97,14 @@ func parse(src []byte, keepComments bool) (*node.Node, error) {
 				continue
 			}
 
+			// MJML 5 treats <!-- htmlmin:ignore --> as an instruction to its
+			// minifier rather than as content: both of its output paths strip
+			// the marker and keep whatever it guarded. It guards nothing here
+			// (there is no minifier), so the marker alone is dropped.
+			if isHTMLMinIgnoreMarker(t) {
+				continue
+			}
+
 			parent := stack[len(stack)-1]
 			parent.Children = append(parent.Children, &node.Node{
 				Type:    component.RawTagName,
@@ -115,8 +123,68 @@ func parse(src []byte, keepComments bool) (*node.Node, error) {
 	}
 
 	ensureHead(root)
+	stripHTMLMinIgnoreMarkers(root)
 
 	return root, nil
+}
+
+// stripHTMLMinIgnoreMarkers removes htmlmin:ignore comments from protected raw
+// content.
+//
+// MJML 5 strips these markers from the finished document in both of its output
+// paths - the minifier uses them to shield a region and then deletes them, the
+// beautifier deletes them as noise - so a document that carries them does not
+// emit them. Content inside an ending tag is protected as one blob of text
+// before the XML decoder ever sees a comment, so those markers arrive here as
+// text rather than as xml.Comment and are removed by the same rule.
+func stripHTMLMinIgnoreMarkers(root *node.Node) {
+	for _, child := range root.Children {
+		if child.Type == component.RawTagName && strings.Contains(child.Content, "htmlmin:ignore") {
+			child.Content = removeHTMLMinIgnoreMarkers(child.Content)
+		}
+
+		stripHTMLMinIgnoreMarkers(child)
+	}
+}
+
+// removeHTMLMinIgnoreMarkers drops every comment whose body is htmlmin:ignore and
+// leaves the rest of content byte for byte as it was.
+func removeHTMLMinIgnoreMarkers(content string) string {
+	if !strings.Contains(content, "htmlmin:ignore") {
+		return content
+	}
+
+	var b strings.Builder
+
+	b.Grow(len(content))
+
+	for {
+		start := strings.Index(content, "<!--")
+		if start < 0 {
+			break
+		}
+
+		end := strings.Index(content[start+len("<!--"):], "-->")
+		if end < 0 {
+			break
+		}
+
+		end += start + len("<!--") + len("-->")
+
+		if strings.TrimSpace(content[start+len("<!--"):end-len("-->")]) == "htmlmin:ignore" {
+			b.WriteString(content[:start])
+			content = content[end:]
+
+			continue
+		}
+
+		b.WriteString(content[:end])
+		content = content[end:]
+	}
+
+	b.WriteString(content)
+
+	return b.String()
 }
 
 // fileStartRawContent returns the concatenated content of <mj-raw
@@ -781,4 +849,10 @@ func protectCDATA(content []byte) string {
 	}
 
 	return "<![CDATA[" + strings.ReplaceAll(string(content), "]]>", "]]]]><![CDATA[>") + "]]>"
+}
+
+// isHTMLMinIgnoreMarker reports whether comment is the htmlmin:ignore marker
+// MJML strips from its output, in any of the spacings its regex tolerates.
+func isHTMLMinIgnoreMarker(comment []byte) bool {
+	return string(bytes.TrimSpace(comment)) == "htmlmin:ignore"
 }

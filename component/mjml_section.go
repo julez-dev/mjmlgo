@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/julez-dev/mjmlgo/node"
+	"github.com/julez-dev/mjmlgo/v2/node"
 )
 
 type MJMLSection struct {
@@ -38,6 +38,7 @@ var sectionAllowedAttributes = map[string]AttributeValidator{
 	"border-top":            validateType("string"),
 	"direction":             validateEnum([]string{"ltr", "rtl"}),
 	"full-width":            validateEnum([]string{"full-width", "false", ""}),
+	"gutter":                validateUnit([]string{"px", "%"}, false),
 	"padding-bottom":        validateUnit([]string{"px", "%"}, false),
 	"padding-left":          validateUnit([]string{"px", "%"}, false),
 	"padding-right":         validateUnit([]string{"px", "%"}, false),
@@ -330,9 +331,17 @@ func (s MJMLSection) renderSection(ctx *RenderContext, w io.Writer, n *node.Node
 	_, _ = io.WriteString(w, "<!--[if mso | IE]><table role=\"presentation\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\"><![endif]-->\n")
 
 	previousContainerWidth := ctx.ContainerWidth
+	previousGutter := ctx.Gutter
+	previousDirection := ctx.ContainerDirection
 	ctx.ContainerWidth = fmt.Sprintf("%dpx", box["box"])
+	// The section's gutter is the space its columns keep between themselves, and
+	// its direction decides which side of a column that space falls on.
+	ctx.Gutter = n.GetAttributeValueDefault("gutter")
+	ctx.ContainerDirection = n.GetAttributeValueDefault("direction")
 	defer func() {
 		ctx.ContainerWidth = previousContainerWidth
+		ctx.Gutter = previousGutter
+		ctx.ContainerDirection = previousDirection
 	}()
 
 	channelWidth := containerWidth
@@ -378,12 +387,12 @@ func (s MJMLSection) renderWrappedChildren(ctx *RenderContext, w io.Writer, n *n
 					return err
 				}
 
-				width, err := getWidthAsPixel(ctx, child)
+				seatStyle, err := column.tdOutlookStyle(ctx, child)
 				if err != nil {
 					return err
 				}
 
-				if err := renderOutlookSeat(w, child, width); err != nil {
+				if err := renderOutlookSeat(w, child, seatStyle); err != nil {
 					return err
 				}
 				if err := column.Render(ctx, w, child); err != nil {
@@ -396,12 +405,12 @@ func (s MJMLSection) renderWrappedChildren(ctx *RenderContext, w io.Writer, n *n
 					return err
 				}
 
-				width, err := getWidthAsPixel(ctx, child)
+				seatStyles, err := group.getStyles(ctx, child)
 				if err != nil {
 					return err
 				}
 
-				if err := renderOutlookSeat(w, child, width); err != nil {
+				if err := renderOutlookSeat(w, child, seatStyles["tdOutlook"]); err != nil {
 					return err
 				}
 				if err := group.Render(ctx, w, child); err != nil {
@@ -460,16 +469,13 @@ func (s MJMLSection) renderWrappedChildren(ctx *RenderContext, w io.Writer, n *n
 
 // renderOutlookSeat emits the conditional <td> that reserves a column's (or
 // group's) width in the section's Outlook table.
-func renderOutlookSeat(w io.Writer, child *node.Node, width string) error {
-	tdStyle := inlineStyle{
-		{Property: "vertical-align", Value: child.GetAttributeValueDefault("vertical-align")},
-		{Property: "width", Value: width},
-	}
-
+// renderOutlookSeat draws the Outlook table cell that holds child, styled the way
+// that child styles its own seat: only a column with a gutter pads it.
+func renderOutlookSeat(w io.Writer, child *node.Node, style inlineStyle) error {
 	tdAttr := inlineAttributes{
 		"align": child.GetAttributeValueDefault("align"),
 		"class": addSuffixToClasses(child.GetAttributeValueDefault("css-class"), "outlook"),
-		"style": tdStyle.InlineString(),
+		"style": style.InlineString(),
 	}
 
 	_, err := io.WriteString(w, "<!--[if mso | IE]><td "+tdAttr.InlineString()+"><![endif]-->\n")

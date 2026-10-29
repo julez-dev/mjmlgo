@@ -60,9 +60,25 @@ func TestParseConfig(t *testing.T) {
 		config, err := ParseConfig("f.mjml", []string{"-c.printerSupport=false", "-c.ignoreIncludes=0"})
 		require.NoError(t, err)
 		require.NotNil(t, config.PrinterSupport)
-		require.NotNil(t, config.IgnoreIncludes)
+		require.NotNil(t, config.AllowIncludes)
 		assert.True(t, *config.PrinterSupport)
-		assert.True(t, *config.IgnoreIncludes)
+		assert.False(t, *config.AllowIncludes, "ignoreIncludes keeps MJML 5's ignore-by-default in place")
+
+		// allowIncludes is the MJML 5 spelling, and mjml-cli only honours the
+		// literal true.
+		for _, tc := range []struct {
+			value string
+			allow bool
+		}{
+			{"true", true},
+			{"false", false},
+			{"1", false},
+		} {
+			config, err := ParseConfig("f.mjml", []string{"-c.allowIncludes=" + tc.value})
+			require.NoError(t, err, "value %s", tc.value)
+			require.NotNil(t, config.AllowIncludes)
+			assert.Equal(t, tc.allow, *config.AllowIncludes, "allowIncludes=%s", tc.value)
+		}
 	})
 
 	t.Run("long-spelling", func(t *testing.T) {

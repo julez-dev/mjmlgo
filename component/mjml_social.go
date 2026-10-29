@@ -3,7 +3,7 @@ package component
 import (
 	"io"
 
-	"github.com/julez-dev/mjmlgo/node"
+	"github.com/julez-dev/mjmlgo/v2/node"
 )
 
 type MJMLSocial struct{}
@@ -14,7 +14,8 @@ func (s MJMLSocial) Name() string {
 
 var socialAllowedAttributes = map[string]AttributeValidator{
 	"align":                      validateEnum([]string{"left", "right", "center"}),
-	"border-radius":              validateUnit([]string{"px", "%"}, false),
+	"border":                     validateType("string"),
+	"border-radius":              validateType("string"),
 	"container-background-color": validateColor(),
 	"color":                      validateColor(),
 	"font-family":                validateType("string"),
@@ -99,9 +100,7 @@ func (s MJMLSocial) renderHorizontal(ctx *RenderContext, w io.Writer, n *node.No
 			continue
 		}
 
-		for key, value := range attr {
-			child.SetAttribute(key, value)
-		}
+		inheritAttributeMap(child, attr)
 
 		childTdAttr := inlineAttributes{
 			"align":       n.GetAttributeValueDefault("align"),
@@ -166,9 +165,7 @@ func (s MJMLSocial) renderVertical(ctx *RenderContext, w io.Writer, n *node.Node
 			continue
 		}
 
-		for key, value := range attr {
-			child.SetAttribute(key, value)
-		}
+		inheritAttributeMap(child, attr)
 
 		var socialElement MJMLSocialElement
 		if err := InitComponent(ctx, socialElement, child); err != nil {
@@ -186,8 +183,22 @@ func (s MJMLSocial) renderVertical(ctx *RenderContext, w io.Writer, n *node.Node
 	return nil
 }
 
+// inheritAttributeMap gives child the attributes mj-social hands down, leaving the
+// child's own values in place: MJML spreads the inherited map first and the
+// child's attributes over it, so an element can override what it inherits.
+func inheritAttributeMap(child *node.Node, inherited map[string]string) {
+	for key, value := range inherited {
+		if _, has := child.GetAttributeValue(key); has {
+			continue
+		}
+
+		child.SetAttribute(key, value)
+	}
+}
+
 func (s MJMLSocial) getSocialElementAttributes(n *node.Node) map[string]string {
 	toMatch := [...]string{
+		"border",
 		"border-radius",
 		"color",
 		"font-family",

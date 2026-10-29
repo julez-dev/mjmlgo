@@ -6,7 +6,7 @@ import (
 	"math"
 	"strconv"
 
-	"github.com/julez-dev/mjmlgo/node"
+	"github.com/julez-dev/mjmlgo/v2/node"
 )
 
 type MJMLHero struct{}
@@ -16,27 +16,26 @@ func (h MJMLHero) Name() string {
 }
 
 var heroAllowedAttributes = map[string]AttributeValidator{
-	"mode":                       validateType("string"),
-	"height":                     validateUnit([]string{"px", "%"}, false),
-	"background-url":             validateType("string"),
-	"background-width":           validateUnit([]string{"px", "%"}, false),
-	"background-height":          validateUnit([]string{"px", "%"}, false),
-	"background-position":        validateType("string"),
-	"border-radius":              validateType("string"),
-	"container-background-color": validateColor(),
-	"inner-background-color":     validateColor(),
-	"inner-padding":              validateUnit([]string{"px", "%"}, true),
-	"inner-padding-top":          validateUnit([]string{"px", "%"}, false),
-	"inner-padding-bottom":       validateUnit([]string{"px", "%"}, false),
-	"inner-padding-left":         validateUnit([]string{"px", "%"}, false),
-	"inner-padding-right":        validateUnit([]string{"px", "%"}, false),
-	"padding":                    validateUnit([]string{"px", "%"}, true),
-	"padding-top":                validateUnit([]string{"px", "%"}, false),
-	"padding-bottom":             validateUnit([]string{"px", "%"}, false),
-	"padding-left":               validateUnit([]string{"px", "%"}, false),
-	"padding-right":              validateUnit([]string{"px", "%"}, false),
-	"background-color":           validateColor(),
-	"vertical-align":             validateEnum([]string{"top", "middle", "bottom"}),
+	"mode":                   validateType("string"),
+	"height":                 validateUnit([]string{"px", "%"}, false),
+	"background-url":         validateType("string"),
+	"background-width":       validateUnit([]string{"px", "%"}, false),
+	"background-height":      validateUnit([]string{"px", "%"}, false),
+	"background-position":    validateType("string"),
+	"border-radius":          validateType("string"),
+	"inner-background-color": validateColor(),
+	"inner-padding":          validateUnit([]string{"px", "%"}, true),
+	"inner-padding-top":      validateUnit([]string{"px", "%"}, false),
+	"inner-padding-bottom":   validateUnit([]string{"px", "%"}, false),
+	"inner-padding-left":     validateUnit([]string{"px", "%"}, false),
+	"inner-padding-right":    validateUnit([]string{"px", "%"}, false),
+	"padding":                validateUnit([]string{"px", "%"}, true),
+	"padding-top":            validateUnit([]string{"px", "%"}, false),
+	"padding-bottom":         validateUnit([]string{"px", "%"}, false),
+	"padding-left":           validateUnit([]string{"px", "%"}, false),
+	"padding-right":          validateUnit([]string{"px", "%"}, false),
+	"background-color":       validateColor(),
+	"vertical-align":         validateEnum([]string{"top", "middle", "bottom"}),
 }
 
 func (h MJMLHero) AllowedAttributes() map[string]AttributeValidator {
@@ -177,8 +176,6 @@ func (h MJMLHero) renderMode(ctx *RenderContext, w io.Writer, n *node.Node) erro
 }
 
 func (h MJMLHero) renderContent(ctx *RenderContext, w io.Writer, n *node.Node) error {
-	containerWidth := ctx.ContainerWidth
-
 	styles, err := h.getStyles(ctx, n)
 	if err != nil {
 		return err
@@ -191,7 +188,7 @@ func (h MJMLHero) renderContent(ctx *RenderContext, w io.Writer, n *node.Node) e
 		"cellpadding": "0",
 		"cellspacing": "0",
 		"style":       styles["outlook-inner-table"].InlineString(),
-		"width":       RemoveNonNumeric(containerWidth),
+		"width":       fmt.Sprintf("%d", int(parseFloatOrZero(h.childContainerWidth(ctx, n)))),
 	}.InlineString()+">\n")
 	_, _ = io.WriteString(w, "<tr>\n")
 	_, _ = io.WriteString(w, "<td "+inlineAttributes{"style": styles["outlook-inner-td"].InlineString()}.InlineString()+">\n")
@@ -221,39 +218,11 @@ func (h MJMLHero) renderContent(ctx *RenderContext, w io.Writer, n *node.Node) e
 	}.InlineString()+">\n")
 	_, _ = io.WriteString(w, "<tbody>\n")
 
-	paddingLeft, err := getShorthandAttrValue(n, "padding", "left")
-	if err != nil {
-		return err
-	}
-
-	paddingRight, err := getShorthandAttrValue(n, "padding", "right")
-	if err != nil {
-		return err
-	}
-
-	paddingSize := paddingLeft + paddingRight
-	parsedWidth, unit, err := parseWidth(RemoveNonNumeric(containerWidth))
-	if err != nil {
-		return err
-	}
-
-	var currentContainerWidth string
-
-	if unit == "%" {
-		i, err := strconv.Atoi(RemoveNonNumeric(containerWidth))
-		if err != nil {
-			return err
-		}
-		currentContainerWidth = fmt.Sprintf("%dpx", (i*int(parsedWidth))/100-paddingSize)
-	} else {
-		currentContainerWidth = fmt.Sprintf("%dpx", int(parsedWidth)-paddingSize)
-	}
-
 	defer func(value string) {
 		ctx.ContainerWidth = value
 	}(ctx.ContainerWidth)
 
-	ctx.ContainerWidth = currentContainerWidth
+	ctx.ContainerWidth = h.childContainerWidth(ctx, n)
 
 	for _, child := range n.Children {
 		if !allowsChild(ctx, HeroTagName, child.Type) {
@@ -362,7 +331,7 @@ func (h MJMLHero) getStyles(ctx *RenderContext, n *node.Node) (map[string]inline
 			{Property: "mso-line-height-rule", Value: "exactly"},
 		},
 		"outlook-inner-table": {
-			{Property: "width", Value: containerWidth},
+			{Property: "width", Value: h.childContainerWidth(ctx, n)},
 		},
 		"outlook-image": {
 			{Property: "border", Value: "0"},
@@ -390,6 +359,11 @@ func (h MJMLHero) getStyles(ctx *RenderContext, n *node.Node) (map[string]inline
 			{Property: "float", Value: n.GetAttributeValueDefault("align")},
 			{Property: "margin", Value: "0px auto"},
 			{Property: "width", Value: n.GetAttributeValueDefault("width")},
+			{Property: "padding", Value: n.GetAttributeValueDefault("inner-padding")},
+			{Property: "padding-top", Value: n.GetAttributeValueDefault("inner-padding-top")},
+			{Property: "padding-left", Value: n.GetAttributeValueDefault("inner-padding-left")},
+			{Property: "padding-right", Value: n.GetAttributeValueDefault("inner-padding-right")},
+			{Property: "padding-bottom", Value: n.GetAttributeValueDefault("inner-padding-bottom")},
 		},
 	}
 
@@ -409,4 +383,37 @@ func (h MJMLHero) getBackground(n *node.Node) string {
 	}
 
 	return makeBackgroundString(parts)
+}
+
+// childContainerWidth is the width mj-hero gives its children: its own container
+// width less its horizontal padding. MJML 5 takes the padding off whatever unit
+// the width arrived in, so a percentage container is unusual but not special.
+func (h MJMLHero) childContainerWidth(ctx *RenderContext, n *node.Node) string {
+	paddingLeft, err := getShorthandAttrValue(n, "padding", "left")
+	if err != nil {
+		return ctx.ContainerWidth
+	}
+
+	paddingRight, err := getShorthandAttrValue(n, "padding", "right")
+	if err != nil {
+		return ctx.ContainerWidth
+	}
+
+	width, err := parseFloatWidth(ctx.ContainerWidth)
+	if err != nil {
+		return ctx.ContainerWidth
+	}
+
+	return formatPixelWidth(width - float64(paddingLeft+paddingRight))
+}
+
+// parseFloatOrZero reads a pixel length MJML would have parsed with parseFloat,
+// so a caller that cannot fail can still read one.
+func parseFloatOrZero(s string) float64 {
+	v, err := parseFloatWidth(s)
+	if err != nil {
+		return 0
+	}
+
+	return v
 }

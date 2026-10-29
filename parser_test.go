@@ -9,7 +9,7 @@ import (
 	"testing"
 	"testing/fstest"
 
-	"github.com/julez-dev/mjmlgo/node"
+	"github.com/julez-dev/mjmlgo/v2/node"
 	"github.com/stretchr/testify/require"
 )
 
@@ -760,7 +760,7 @@ func TestParseComments(t *testing.T) {
 	})
 }
 
-// TestStripIncludes locks down the ignoreIncludes path: the include element and
+// TestStripIncludes locks down the WithoutIncludes path: the include element and
 // everything it carries disappear, and the files it names are never read.
 func TestStripIncludes(t *testing.T) {
 	t.Parallel()

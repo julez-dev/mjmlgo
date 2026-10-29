@@ -12,7 +12,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/julez-dev/mjmlgo/component"
+	"github.com/julez-dev/mjmlgo/v2/component"
 )
 
 var (
@@ -23,12 +23,12 @@ var (
 
 // rendererConfig collects the configuration applied by Option values.
 type rendererConfig struct {
-	idGenerator    func() string
-	dropComments   bool
-	fonts          []Font
-	ignoreIncludes bool
-	printerSupport bool
-	components     []component.Component
+	idGenerator     func() string
+	dropComments    bool
+	fonts           []Font
+	withoutIncludes bool
+	printerSupport  bool
+	components      []component.Component
 }
 
 // Option configures a Renderer.
@@ -119,12 +119,16 @@ func FontsFromMap(fonts map[string]string) []Font {
 	return registry
 }
 
-// WithIgnoreIncludes leaves mj-include elements unexpanded, like MJML's
-// ignoreIncludes option: the element is dropped from the output and the files it
-// names are never read.
-func WithIgnoreIncludes(ignore bool) Option {
+// WithoutIncludes drops mj-include elements instead of expanding them, the way
+// MJML 5 does by default: the element is removed from the output and the files it
+// names are never opened, so the caller's filesystem is not consulted at all.
+//
+// Rendering a document that has includes without a filesystem and without this
+// option is an ErrIncludeNoFS error rather than a document with holes in it; see
+// RenderFS and RenderFile for the calls that read includes.
+func WithoutIncludes() Option {
 	return func(config *rendererConfig) {
-		config.ignoreIncludes = ignore
+		config.withoutIncludes = true
 	}
 }
 
@@ -151,9 +155,9 @@ type Renderer struct {
 	dropComments bool
 	// fonts is the caller's registry in emission order, or nil for the built-in
 	// one.
-	fonts          []Font
-	ignoreIncludes bool
-	printerSupport bool
+	fonts           []Font
+	withoutIncludes bool
+	printerSupport  bool
 
 	// components holds the custom components registered with WithComponents,
 	// indexed by tag. It is built once and never modified, so concurrent renders
@@ -188,12 +192,12 @@ func NewRenderer(opts ...Option) *Renderer {
 
 			return generator()
 		},
-		dropComments:   config.dropComments,
-		fonts:          config.fonts,
-		ignoreIncludes: config.ignoreIncludes,
-		printerSupport: config.printerSupport,
-		components:     components,
-		componentsErr:  componentsErr,
+		dropComments:    config.dropComments,
+		fonts:           config.fonts,
+		withoutIncludes: config.withoutIncludes,
+		printerSupport:  config.printerSupport,
+		components:      components,
+		componentsErr:   componentsErr,
 	}
 }
 

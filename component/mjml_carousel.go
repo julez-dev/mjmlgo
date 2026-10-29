@@ -6,11 +6,11 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/julez-dev/mjmlgo/node"
+	"github.com/julez-dev/mjmlgo/v2/node"
 )
 
 // MJMLCarousel renders mj-carousel. The markup and the generated
-// `mj-carousel-<id>` stylesheet follow mjml-carousel 4.18.0
+// `mj-carousel-<id>` stylesheet follow mjml-carousel 5.4.1
 // (node_modules/mjml-carousel/lib/Carousel.js): a downlevel-revealed
 // non-Outlook block holding one hidden radio per image, the optional
 // thumbnails and the images table, plus an Outlook-only fallback that shows the
@@ -28,7 +28,7 @@ func (c MJMLCarousel) Name() string {
 
 var carouselAllowedAttributes = map[string]AttributeValidator{
 	"align":                      validateEnum([]string{"left", "center", "right"}),
-	"border-radius":              validateUnit([]string{"px", "%"}, true),
+	"border-radius":              validateType("string"),
 	"container-background-color": validateColor(),
 	"icon-width":                 validateUnit([]string{"px", "%"}, false),
 	"left-icon":                  validateType("string"),
@@ -39,7 +39,7 @@ var carouselAllowedAttributes = map[string]AttributeValidator{
 	"padding-top":                validateUnit([]string{"px", "%"}, false),
 	"right-icon":                 validateType("string"),
 	"tb-border":                  validateType("string"),
-	"tb-border-radius":           validateUnit([]string{"px", "%"}, false),
+	"tb-border-radius":           validateType("string"),
 	"tb-hover-border-color":      validateColor(),
 	"tb-selected-border-color":   validateColor(),
 	"tb-width":                   validateUnit([]string{"px", "%"}, false),
@@ -127,7 +127,7 @@ func (c carousel) inherited() carouselAttributes {
 // thumbnailsWidth resolves the thumbnail width like MJML's thumbnailsWidth().
 //
 // MJML computes Math.min([this.context.parentWidth / children.length, 110]) but
-// nothing in MJML 4.18 ever puts parentWidth into the render context, so the
+// nothing in MJML 5.4 ever puts parentWidth into the render context, so the
 // expression always collapses to "110px" (lodash min ignores the NaN term).
 // An explicit tb-width always wins.
 func (c carousel) thumbnailsWidth() string {

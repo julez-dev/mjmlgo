@@ -3,7 +3,7 @@ package component
 import (
 	"strconv"
 
-	"github.com/julez-dev/mjmlgo/node"
+	"github.com/julez-dev/mjmlgo/v2/node"
 )
 
 // MJMLCarouselImage renders mj-carousel-image, the only child of mj-carousel
@@ -22,13 +22,13 @@ func (i MJMLCarouselImage) Name() string {
 
 var carouselImageAllowedAttributes = map[string]AttributeValidator{
 	"alt":              validateType("string"),
-	"border-radius":    validateUnit([]string{"px", "%"}, true),
+	"border-radius":    validateType("string"),
 	"href":             validateType("string"),
 	"rel":              validateType("string"),
 	"src":              validateType("string"),
 	"target":           validateType("string"),
 	"tb-border":        validateType("string"),
-	"tb-border-radius": validateUnit([]string{"px", "%"}, true),
+	"tb-border-radius": validateType("string"),
 	"thumbnails-src":   validateType("string"),
 	"title":            validateType("string"),
 }

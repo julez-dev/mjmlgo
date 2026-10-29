@@ -3,7 +3,7 @@ package component
 import (
 	"testing"
 
-	"github.com/julez-dev/mjmlgo/node"
+	"github.com/julez-dev/mjmlgo/v2/node"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -141,7 +141,7 @@ func TestValidateDocumentAttributes(t *testing.T) {
 		value   string
 		wantErr bool
 	}{
-		// unitWithNegative is used exactly where MJML 4.18 uses it.
+		// unitWithNegative is used exactly where MJML 5.4 uses it.
 		{name: "text negative letter-spacing", tag: TextTagName, attr: "letter-spacing", value: "-1px"},
 		{name: "button negative letter-spacing", tag: ButtonTagName, attr: "letter-spacing", value: "-0.5em"},
 		{name: "navbar-link negative letter-spacing", tag: NavbarLinkTagName, attr: "letter-spacing", value: "-1px"},
@@ -156,8 +156,10 @@ func TestValidateDocumentAttributes(t *testing.T) {
 		// wrapper has gap, section does not.
 		{name: "wrapper gap", tag: WrapperTagName, attr: "gap", value: "20px"},
 		{name: "section gap is unknown", tag: SectionTagName, attr: "gap", value: "20px", wantErr: true},
-		// hero has no width attribute in MJML.
+		// hero has no width attribute in MJML 5 either: it takes its width from
+		// its container, and mj-hero lost container-background-color.
 		{name: "hero width is unknown", tag: HeroTagName, attr: "width", value: "10px", wantErr: true},
+		{name: "hero container background is unknown", tag: HeroTagName, attr: "container-background-color", value: "#fff", wantErr: true},
 		{name: "hero mode is a string", tag: HeroTagName, attr: "mode", value: "anything"},
 		// group direction only allows ltr/rtl.
 		{name: "group direction auto", tag: GroupTagName, attr: "direction", value: "auto", wantErr: true},

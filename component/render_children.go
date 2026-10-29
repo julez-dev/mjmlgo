@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/julez-dev/mjmlgo/node"
+	"github.com/julez-dev/mjmlgo/v2/node"
 )
 
 // contentComponents maps the tag of every built-in content component to the

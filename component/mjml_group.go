@@ -5,7 +5,7 @@ import (
 	"io"
 	"strconv"
 
-	"github.com/julez-dev/mjmlgo/node"
+	"github.com/julez-dev/mjmlgo/v2/node"
 )
 
 type MJMLGroup struct{}
@@ -58,7 +58,7 @@ func (g MJMLGroup) Render(ctx *RenderContext, w io.Writer, n *node.Node) error {
 		containerWidth = fmt.Sprintf("%dpx", parentWidth/len(sibs))
 	}
 
-	parsedWidth, unit, err := parseWidth(containerWidth)
+	parsedWidth, unit, err := parseWidthFloat(containerWidth)
 	if err != nil {
 		return err
 	}
@@ -82,7 +82,7 @@ func (g MJMLGroup) Render(ctx *RenderContext, w io.Writer, n *node.Node) error {
 			return fmt.Sprintf("%dpx", parsedContainerWidth/len(sibs)), nil
 		}
 
-		parsedWidth, unit, err := parseWidth(width)
+		parsedWidth, unit, err := parseWidthFloat(width)
 		if err != nil {
 			return "", err
 		}
@@ -99,7 +99,7 @@ func (g MJMLGroup) Render(ctx *RenderContext, w io.Writer, n *node.Node) error {
 		return fmt.Sprintf("%d%s", int(parsedWidth), unit), nil
 	}
 
-	columnClass, err := getColumnClass(ctx, n)
+	columnClass, err := g.columnClass(ctx, n)
 	if err != nil {
 		return err
 	}
@@ -116,9 +116,15 @@ func (g MJMLGroup) Render(ctx *RenderContext, w io.Writer, n *node.Node) error {
 	}
 
 	previousContainerWidth := ctx.ContainerWidth
+	previousInGroup := ctx.InGroup
+	previousDirection := ctx.ContainerDirection
 	ctx.ContainerWidth = groupWidth
+	ctx.InGroup = true
+	ctx.ContainerDirection = n.GetAttributeValueDefault("direction")
 	defer func() {
 		ctx.ContainerWidth = previousContainerWidth
+		ctx.InGroup = previousInGroup
+		ctx.ContainerDirection = previousDirection
 	}()
 
 	_, _ = io.WriteString(w, "<div "+inlineAttributes{
@@ -218,4 +224,26 @@ func (g MJMLGroup) getStyles(ctx *RenderContext, n *node.Node) (map[string]inlin
 		"div":       div,
 		"tdOutlook": tdOutlook,
 	}, nil
+}
+
+// columnClass is mj-group's own width class. Unlike a column's, it truncates the
+// width in the class name while the rule keeps the exact one, which is what the
+// reference implementation emits for a group that is not a whole number wide.
+func (g MJMLGroup) columnClass(ctx *RenderContext, n *node.Node) (string, error) {
+	unit, parsedWidth, err := getParsedWidth(n)
+	if err != nil {
+		return "", err
+	}
+
+	className := fmt.Sprintf("mj-column-px-%d", int(parsedWidth))
+	if unit == "%" {
+		className = fmt.Sprintf("mj-column-per-%d", int(parsedWidth))
+	}
+
+	ctx.AddMediaQuery(className, []string{
+		fmt.Sprintf("width: %s%s !important", formatNumber(parsedWidth), unit),
+		fmt.Sprintf("max-width: %s%s", formatNumber(parsedWidth), unit),
+	})
+
+	return className, nil
 }

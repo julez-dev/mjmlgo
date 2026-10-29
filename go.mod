@@ -1,4 +1,4 @@
-module github.com/julez-dev/mjmlgo
+module github.com/julez-dev/mjmlgo/v2
 
 go 1.27.0
 

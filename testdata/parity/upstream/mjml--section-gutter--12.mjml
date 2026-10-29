@@ -1,0 +1,15 @@
+<mjml>
+        <mj-body>
+          <mj-section gutter="3.9%" padding="4%">
+            <mj-column width="200px">
+              <mj-text>One</mj-text>
+            </mj-column>
+            <mj-column width="200px">
+              <mj-text>Two</mj-text>
+            </mj-column>
+            <mj-column width="200px">
+              <mj-text>Three</mj-text>
+            </mj-column>
+          </mj-section>
+        </mj-body>
+      </mjml>

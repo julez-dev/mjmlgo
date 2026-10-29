@@ -9,7 +9,7 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/julez-dev/mjmlgo/node"
+	"github.com/julez-dev/mjmlgo/v2/node"
 )
 
 var ErrMJMLBadlyFormatted = errors.New("MJML badly formatted")

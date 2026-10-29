@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/julez-dev/mjmlgo"
+	"github.com/julez-dev/mjmlgo/v2"
 	"github.com/stretchr/testify/require"
 )
 
@@ -121,22 +121,71 @@ func TestRunResolvesIncludes(t *testing.T) {
 	doc := writeFile(t, filepath.Join(dir, "doc.mjml"), document)
 
 	// Relative to the document itself.
-	got := runCommand(t, "", doc)
+	got := runCommand(t, "", doc, "-c", "allowIncludes=true")
 	require.Equal(t, 0, got.code)
 	require.Contains(t, got.stdout, "included")
 
 	// Relative to -c filePath, for a document that lives elsewhere.
 	elsewhere := writeFile(t, filepath.Join(t.TempDir(), "doc.mjml"), document)
 
-	got = runCommand(t, "", elsewhere, "-c", "filePath="+dir)
+	got = runCommand(t, "", elsewhere, "-c", "filePath="+dir, "-c", "allowIncludes=true")
 	require.Equal(t, 0, got.code)
 	require.Contains(t, got.stdout, "included")
 
 	// And for a document read from standard input, where the working directory
 	// has nothing to do with the partials.
-	got = runCommand(t, document, "-i", "-c", "filePath="+dir)
+	got = runCommand(t, document, "-i", "-c", "filePath="+dir, "--config.allowIncludes=true")
 	require.Equal(t, 0, got.code)
 	require.Contains(t, got.stdout, "included")
+}
+
+// TestRunIgnoresIncludesByDefault asserts the MJML 5 default: a document with
+// mj-include renders without the include and says so on stderr.
+func TestRunIgnoresIncludesByDefault(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	writeFile(t, filepath.Join(dir, "partial.mjml"), "<mj-text>included</mj-text>")
+	doc := writeFile(t, filepath.Join(dir, "doc.mjml"), document)
+
+	got := runCommand(t, "", doc)
+	require.Equal(t, 0, got.code)
+	require.NotContains(t, got.stdout, "included")
+	require.Contains(t, got.stderr, "includes are disabled by default")
+	require.Contains(t, got.stderr, doc)
+	require.Contains(t, got.stderr, "--config.allowIncludes true")
+
+	// ignoreIncludes names the same setting, and its truthiness matches
+	// mjml-core: a non-empty value switches it on.
+	got = runCommand(t, "", doc, "-c", "ignoreIncludes=true")
+	require.Equal(t, 0, got.code)
+	require.NotContains(t, got.stdout, "included")
+
+	// A document without includes says nothing.
+	plain := writeFile(t, filepath.Join(dir, "plain.mjml"), "<mjml><mj-body /></mjml>")
+
+	got = runCommand(t, "", plain)
+	require.Equal(t, 0, got.code)
+	require.NotContains(t, got.stderr, "includes are disabled")
+}
+
+// TestRunAcceptsOptionsItDoesNotNeed asserts the MJML 5 options that only exist
+// to shape minified output are accepted rather than rejected.
+func TestRunAcceptsOptionsItDoesNotNeed(t *testing.T) {
+	t.Parallel()
+
+	doc := hero
+
+	for _, args := range [][]string{
+		{"-c", "sanitizeStyles=true"},
+		{"-c", `templateSyntax=[{"prefix":"{{","suffix":"}}"}]`},
+		{"-c", "allowMixedSyntax=true"},
+		{"-c", "includePath=" + t.TempDir()},
+	} {
+		got := runCommand(t, "", append([]string{doc}, args...)...)
+		require.Equal(t, 0, got.code, "args %v: %s", args, got.stderr)
+		require.Contains(t, got.stdout, "<!doctype html>")
+	}
 }
 
 func TestRunValidates(t *testing.T) {

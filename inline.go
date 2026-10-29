@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/ericchiang/css"
-	"github.com/julez-dev/mjmlgo/component"
+	"github.com/julez-dev/mjmlgo/v2/component"
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
 )

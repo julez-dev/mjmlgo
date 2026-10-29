@@ -124,7 +124,7 @@ func TestUsedFonts(t *testing.T) {
 
 	// The reference regexp anchors on quote characters rather than on attribute
 	// values, so text that sits between a closing and an opening quote is a
-	// candidate segment too. MJML 4.18.0 imports Lato for this document, so this
+	// candidate segment too. MJML 5.4.1 imports Lato for this document, so this
 	// is faithful, not a bug to fix here.
 	t.Run("text between two quote characters can match", func(t *testing.T) {
 		t.Parallel()

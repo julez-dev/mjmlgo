@@ -1,0 +1,11 @@
+<mjml>
+  <mj-body>
+    <!-- two sections whose columns need the same rule share one media query rule -->
+    <mj-section><mj-column width="50%"><mj-text>a</mj-text></mj-column></mj-section>
+    <mj-section><mj-column width="50%"><mj-text>b</mj-text></mj-column></mj-section>
+    <mj-section>
+      <mj-column><mj-text>c</mj-text></mj-column>
+      <mj-column><mj-text>d</mj-text></mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

@@ -4,7 +4,7 @@ import (
 	"encoding/xml"
 	"testing"
 
-	"github.com/julez-dev/mjmlgo/node"
+	"github.com/julez-dev/mjmlgo/v2/node"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -187,18 +187,20 @@ func TestInitCarouselImage(t *testing.T) {
 		assert.Equal(t, "First", image.GetAttributeValueDefault("alt"))
 	})
 
-	t.Run("rejects invalid attributes", func(t *testing.T) {
+	t.Run("rejects unknown attributes", func(t *testing.T) {
 		t.Parallel()
 
-		image := newCarouselImageNode(xml.Attr{Name: xml.Name{Local: "border-radius"}, Value: "huge"})
+		// MJML 5 types every mj-carousel-image attribute as a free string, so an
+		// attribute it does not know is all that can be rejected here.
+		image := newCarouselImageNode(xml.Attr{Name: xml.Name{Local: "box-shadow"}, Value: "0 0 0"})
 
 		err := initCarouselImage(image)
 		require.Error(t, err)
-		assert.Contains(t, err.Error(), `attribute "border-radius" in <mj-carousel-image>`)
+		assert.Contains(t, err.Error(), `attribute "box-shadow" is not allowed on <mj-carousel-image>`)
 
 		var structured *Error
 		require.ErrorAs(t, err, &structured)
-		assert.Equal(t, KindInvalidValue, structured.Kind)
+		assert.Equal(t, KindUnknownAttribute, structured.Kind)
 		assert.Equal(t, []string{CarouselImageTagName}, structured.Path)
 	})
 }

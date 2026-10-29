@@ -1,0 +1,6 @@
+<mjml>
+  <!-- mj-body's id and css-class land on <body> itself -->
+  <mj-body id="campaign-42" css-class="mail-wrap" background-color="#fafafa">
+    <mj-section><mj-column><mj-text>body attributes</mj-text></mj-column></mj-section>
+  </mj-body>
+</mjml>

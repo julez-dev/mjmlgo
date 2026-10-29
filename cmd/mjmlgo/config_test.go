@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/julez-dev/mjmlgo"
+	"github.com/julez-dev/mjmlgo/v2"
 	"github.com/stretchr/testify/require"
 )
 

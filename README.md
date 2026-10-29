@@ -1,7 +1,7 @@
 # mjmlgo
 
 A pure-Go renderer for [MJML](https://mjml.io), the email markup language. It
-targets **MJML 4** (currently 4.18.0): an `.mjml` document becomes the HTML an
+targets **MJML 5** (currently 5.4.1): an `.mjml` document becomes the HTML an
 email client can display, the same document the reference JavaScript
 implementation produces — without Node.js, a browser, or CGO at runtime.
 
@@ -16,7 +16,7 @@ There is also a command line compiler, [covered below](#command-line).
 
 ## What it is
 
-- **Parity, not approximation.** Every fixture in `testdata/parity` (87 documents,
+- **Parity, not approximation.** Every fixture in `testdata/parity` (105 documents,
   including ones derived from the upstream MJML test suite) is rendered by this
   package and by the pinned `mjml` CLI, then compared element by element:
   attributes, inline styles, rule order, and comments (byte for byte). No
@@ -34,14 +34,17 @@ There is also a command line compiler, [covered below](#command-line).
 
 Pinning one release is deliberate: `package.json` fixes the reference version and
 the tests assert it, so the suite never compares against a different one by
-accident. Pre-1.0: the public surface may still change.
+accident.
 
 ## Install
 
 ```sh
-go get github.com/julez-dev/mjmlgo
-go install github.com/julez-dev/mjmlgo/cmd/mjmlgo@latest
+go get github.com/julez-dev/mjmlgo/v2
+go install github.com/julez-dev/mjmlgo/v2/cmd/mjmlgo@latest
 ```
+
+The module path carries the major version, so v2 and v1 can be used by the same
+program. v1 stays available at its own tag for anyone targeting MJML 4.
 
 Requires Go 1.27 or newer.
 
@@ -53,7 +56,7 @@ Render a document from memory:
 import (
 	"bytes"
 
-	"github.com/julez-dev/mjmlgo"
+	"github.com/julez-dev/mjmlgo/v2"
 )
 
 func render(src []byte) ([]byte, error) {
@@ -68,15 +71,15 @@ func render(src []byte) ([]byte, error) {
 ```
 
 Configure a reusable renderer with the reference implementation's knobs
-(`WithComments`, `WithFonts`, `WithIgnoreIncludes`, `WithPrinterSupport`), or
+(`WithComments`, `WithFonts`, `WithoutIncludes`, `WithPrinterSupport`), or
 with `WithIDGenerator` for deterministic output and `WithComponents` for custom
 components:
 
 ```go
 renderer := mjmlgo.NewRenderer(
 	mjmlgo.WithComments(false),
-	mjmlgo.WithFonts(map[string]string{
-		"Inter": "https://example.test/inter.css",
+	mjmlgo.WithFonts([]mjmlgo.Font{
+		{Family: "Inter", Href: "https://example.test/inter.css"},
 	}),
 )
 
@@ -96,7 +99,12 @@ err := renderer.RenderFS(ctx, &out, embedFS, "welcome.mjml")
 
 A document that uses `mj-include` needs one of those two: `Renderer.Render`
 returns `ErrIncludeNoFS` rather than silently reading the process's working
-directory.
+directory. `WithoutIncludes()` is the way to ask for MJML 5's own default
+instead — the element is dropped and the file it names is never opened:
+
+```go
+renderer := mjmlgo.NewRenderer(mjmlgo.WithoutIncludes())
+```
 
 ### Errors
 
@@ -143,7 +151,7 @@ mjmlgo -v 'mail/**/*.mjml'              # validate only, no output
 | `-s, --stdout` | Write HTML to stdout (the default) |
 | `-o, --output <path>` | Output file, or an existing directory |
 | `--noStdoutFileComment` | Omit the `<!-- FILE: … -->` header on stdout |
-| `-c, --config <key=value>` | `fonts`, `keepComments`, `filePath`; also `--config.<key>=<value>` |
+| `-c, --config <key=value>` | `fonts`, `keepComments`, `filePath`, `allowIncludes`, `ignoreIncludes`, `includePath`; also `--config.<key>=<value>` |
 | `--json` | One JSON record per input, for tooling |
 | `-h, --help`, `-V, --version` | |
 
@@ -154,7 +162,7 @@ Failures are reported per file and the remaining inputs are still written.
 
 ## Supported MJML
 
-The full 4.18.0 component set:
+The full 5.4.1 component set:
 
 - **Layout** — `mj-body`, `mj-section`, `mj-wrapper`, `mj-group`, `mj-column`,
   `mj-hero`
@@ -166,9 +174,11 @@ The full 4.18.0 component set:
   `mj-html-attributes` (`mj-selector`), `mj-breakpoint`, `mj-font`,
   `mj-preview`, `mj-style` (including `inline="inline"` for juice-style CSS
   inlining), `mj-title`
-- **Composition** — `mj-include` for `type="mjml"`, `"html"` and `"css"`,
-  author comments, Outlook conditional comments, media queries, web fonts,
-  printer styles
+- **Composition** — `mj-include` for `type="mjml"`, `"html"` and `"css"`
+  (opt-in, see below), author comments, Outlook conditional comments, media
+  queries, web fonts, printer styles
+- **Layout details** — `gutter` on `mj-section`, which sizes the space between a
+  section's columns and carries it into the responsive rules
 
 Everything is emitted compact. There is no pretty-printer: formatting belongs to
 whatever displays or transports the HTML.
@@ -180,9 +190,11 @@ whatever displays or transports the HTML.
 | Output | beautified by default | compact only; no `beautify`/`minify` |
 | Invalid documents | warnings on stderr, HTML still produced | error, no output |
 | `-v/--validate` | lists every warning | reports the first failure per file |
-| `mj-include` root | may climb with `../` | confined to the `fs.FS` root |
+| `mj-include` | off unless `allowIncludes`; a denied path is a comment in the HTML plus a warning | same default; a path outside the filesystem root is an error |
+| `mj-include` root | may climb with `../` up to `includePath` | confined to the `fs.FS` root |
+| `--config.sanitizeStyles` | protects template syntax through CSS minification | accepted and ignored: there is no minifier to protect it from |
 | Custom components | JavaScript packages, `.mjmlconfig` | Go types registered per renderer |
-| Watch mode, MJML 3 migration | supported | not implemented |
+| Watch mode, MJML 3 migration | watch mode and `--migrate` | neither |
 | Malformed XML (a comment containing `--`, say) | tolerated by the lenient parser | rejected |
 
 The `mjml` CLI's `--config.beautify`, `--config.minify` and unknown config keys
@@ -212,16 +224,16 @@ documents both corpora, the per-fixture reference flags, and how to add fixtures
 ## Performance
 
 Rendering [`testdata/parity/simple-hero.mjml`](testdata/parity/simple-hero.mjml)
-(603 bytes in, 4.3 KB out) through the library costs 36 µs, 66 KB of allocation
-and 491 allocations on a 32-core Linux machine with Go 1.27.
+(603 bytes in, 4.3 KB out) through the library costs 42 µs, 62 KB of allocation
+and 507 allocations on a 32-core Linux machine with Go 1.27.
 
 End to end, one CLI process rendering the largest public fixture
 (`button-complex.mjml`, 5.3 KB), median of ten invocations:
 
 | | wall clock | max RSS |
 | --- | --- | --- |
-| `mjmlgo button-complex.mjml -o out.html` | 1.9 ms | 15 MB |
-| `mjml button-complex.mjml -o out.html` | 152 ms | 170 MB |
+| `mjmlgo button-complex.mjml -o out.html` | 2.3 ms | 11 MB |
+| `mjml button-complex.mjml -o out.html` | 181 ms | 181 MB |
 
 Reproduce the library numbers with
 `go test ./ -run XXX -bench BenchmarkRenderMJML -benchmem`, which runs the full

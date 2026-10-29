@@ -1,6 +1,6 @@
 // Package mjmlgo renders MJML documents to HTML.
 //
-// The implementation targets MJML 4.18.0 exactly: for the supported feature
+// The implementation targets MJML 5.4.1 exactly: for the supported feature
 // set it produces the same document as the reference JavaScript
 // implementation. Output is compact (never pretty-printed) and validation is
 // fail-fast: unknown tags, invalid attributes or nesting, and missing required
@@ -32,7 +32,11 @@
 // A document that uses mj-include needs a filesystem: Renderer.RenderFS reads
 // the top-level document through an fs.FS and resolves includes against it, so
 // callers decide where documents come from and the renderer performs no
-// implicit filesystem or network access. A Renderer is safe for concurrent use.
+// implicit filesystem or network access. Rendering such a document without one
+// is an ErrIncludeNoFS error rather than a document with holes in it;
+// WithoutIncludes asks for the reference implementation's own default, where the
+// element is dropped and the file it names is never opened. A Renderer is safe
+// for concurrent use.
 //
 // WithComponents adds custom components to a renderer. A host implements
 // component.Component - tag, allowed attributes with validators, defaults and

@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/julez-dev/mjmlgo"
+	"github.com/julez-dev/mjmlgo/v2"
 )
 
 // reporter writes one record per input. Text output follows the reference CLI:

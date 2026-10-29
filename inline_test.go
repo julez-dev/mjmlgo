@@ -12,7 +12,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/julez-dev/mjmlgo/component"
+	"github.com/julez-dev/mjmlgo/v2/component"
 	"github.com/stretchr/testify/require"
 )
 

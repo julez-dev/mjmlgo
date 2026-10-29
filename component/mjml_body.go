@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/julez-dev/mjmlgo/node"
+	"github.com/julez-dev/mjmlgo/v2/node"
 )
 
 type MJMLBody struct{}
@@ -15,6 +15,7 @@ func (b MJMLBody) Name() string {
 
 var bodyAllowedAttributes = map[string]AttributeValidator{
 	"background-color": validateColor(),
+	"id":               validateType("string"),
 	"width":            validateUnit([]string{"px"}, false),
 }
 
@@ -41,13 +42,24 @@ func (b MJMLBody) Render(ctx *RenderContext, w io.Writer, n *node.Node) error {
 		ctx.ContainerWidth = maxWidth
 	}
 
-	bodyDivName, _ := n.GetAttributeValue("css-class")
+	bodyAttr := inlineAttributes{
+		"id":    n.GetAttributeValueDefault("id"),
+		"class": n.GetAttributeValueDefault("css-class"),
+		"style": bodyInlineStyles.InlineString(),
+	}
 
-	_, _ = io.WriteString(w, fmt.Sprintf("<body style=\"%s\">\n", bodyInlineStyles.InlineString()))
+	_, _ = io.WriteString(w, "<body "+bodyAttr.InlineString()+">\n")
 	if ctx.PreviewText != "" {
 		if err := templates.ExecuteTemplate(w, "preview-text.tmpl", ctx.PreviewText); err != nil {
 			return err
 		}
+	}
+
+	// The inner div keeps the background color but, since MJML 5, not the
+	// author's class: mj-body's css-class lands on <body>.
+	divStyle := inlineStyle{
+		{Property: "word-spacing", Value: "normal"},
+		{Property: "background-color", Value: n.GetAttributeValueDefault("background-color")},
 	}
 
 	_, _ = io.WriteString(w, fmt.Sprintf("<div %s>\n", inlineAttributes{
@@ -56,8 +68,7 @@ func (b MJMLBody) Render(ctx *RenderContext, w io.Writer, n *node.Node) error {
 		"role":                 "article",
 		"lang":                 ctx.Language,
 		"dir":                  ctx.Direction,
-		"class":                bodyDivName,
-		"style":                inlineStyle{{Property: "background-color", Value: n.GetAttributeValueDefault("background-color")}}.InlineString()}.InlineString()),
+		"style":                divStyle.InlineString()}.InlineString()),
 	)
 
 	for _, child := range n.Children {

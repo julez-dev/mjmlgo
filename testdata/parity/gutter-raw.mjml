@@ -1,0 +1,10 @@
+<mjml>
+  <mj-body>
+    <!-- raw elements count as siblings for a gutter column's position -->
+    <mj-section gutter="20px">
+      <mj-raw><!-- leading raw --></mj-raw>
+      <mj-column><mj-text>one</mj-text></mj-column>
+      <mj-column><mj-text>two</mj-text></mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

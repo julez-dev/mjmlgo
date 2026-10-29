@@ -9,7 +9,7 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/julez-dev/mjmlgo/node"
+	"github.com/julez-dev/mjmlgo/v2/node"
 )
 
 type inlineStyle []Style
@@ -226,8 +226,20 @@ func addSuffixToClasses(classes string, suffix string) string {
 var valueAndUnitRegex = regexp.MustCompile(`^([\d.,]*)(\D*)$`)
 
 // parseWidth parses a string representation of a width (e.g., "100px", "50.5%")
-// into a numeric value and its unit.
+// into a numeric value and its unit, truncating the value.
 func parseWidth(width string) (float64, string, error) {
+	return parseWidthOptions(width, false)
+}
+
+// parseWidthFloat keeps a fractional percentage, the way MJML's widthParser does
+// when a caller passes parseFloatToInt: false. Pixel widths still truncate:
+// widthParser always reads those with parseInt, whatever the caller asked for, so
+// "200.7px" is 200.
+func parseWidthFloat(width string) (float64, string, error) {
+	return parseWidthOptions(width, true)
+}
+
+func parseWidthOptions(width string, keepPercentageFloat bool) (float64, string, error) {
 	// extract the numeric string and unit using the regex
 	matches := valueAndUnitRegex.FindStringSubmatch(width)
 
@@ -247,11 +259,13 @@ func parseWidth(width string) (float64, string, error) {
 		}
 	}
 
-	parsedValue = math.Trunc(parsedValue)
-
 	// default the unit to "px" if it was not present.
 	if unit == "" {
 		unit = "px"
+	}
+
+	if unit != "%" || !keepPercentageFloat {
+		parsedValue = math.Trunc(parsedValue)
 	}
 
 	return parsedValue, unit, nil
@@ -568,30 +582,6 @@ func nonRawSiblings(n *node.Node) []*node.Node {
 	return sibs
 }
 
-func getColumnClass(ctx *RenderContext, n *node.Node) (string, error) {
-	var class string
-
-	unit, parsedWidth, err := getParsedWidth(n)
-	if err != nil {
-		return "", err
-	}
-
-	formatted := strings.ReplaceAll(strconv.FormatFloat(parsedWidth, 'f', -1, 64), ".", "-")
-
-	if unit == "%" {
-		class = fmt.Sprintf("mj-column-per-%s", formatted)
-	} else {
-		class = fmt.Sprintf("mj-column-px-%s", formatted)
-	}
-
-	ctx.addMJMLStyle(class, []string{
-		fmt.Sprintf("width: %s%s !important", formatted, unit),
-		fmt.Sprintf("max-width: %s%s", formatted, unit),
-	})
-
-	return class, nil
-}
-
 func getParsedWidth(n *node.Node) (string, float64, error) {
 	numberSiblings := len(nonRawSiblings(n))
 
@@ -599,10 +589,12 @@ func getParsedWidth(n *node.Node) (string, float64, error) {
 	if w, ok := n.GetAttributeValue("width"); ok {
 		width = w
 	} else {
-		width = fmt.Sprintf("%d%%", 100/numberSiblings)
+		// MJML divides as a JavaScript number, so three equal columns are
+		// 33.333333333333336% wide and get a class name to match.
+		width = formatNumber(100/float64(numberSiblings)) + "%"
 	}
 
-	parsedWidth, unit, err := parseWidth(width)
+	parsedWidth, unit, err := parseWidthFloat(width)
 	if err != nil {
 		return "", 0, err
 	}
@@ -618,57 +610,51 @@ func getWidthAsPixel(ctx *RenderContext, n *node.Node) (string, error) {
 		return "", err
 	}
 
-	floatAsStr := func(floatValue float64) string {
-		return strings.TrimSuffix(fmt.Sprintf("%.2f", floatValue), ".00")
-	}
-
 	if unit == "%" {
 		cWidthFloat, err := strconv.ParseFloat(containerWidth, 64)
 		if err != nil {
 			return "", err
 		}
 
-		p := (cWidthFloat * width) / 100.0
-
-		return fmt.Sprintf("%spx", floatAsStr(p)), nil
+		return formatPixelWidth(normalizePxValue((cWidthFloat * width) / 100.0)), nil
 	}
 
-	return fmt.Sprintf("%spx", floatAsStr(width)), nil
+	return formatPixelWidth(normalizePxValue(width)), nil
 }
 
-func getMobileWidth(ctx *RenderContext, n *node.Node) (string, error) {
-	containerWidth := RemoveNonNumeric(ctx.ContainerWidth)
-	numberSiblings := len(nonRawSiblings(n))
-	width, hasWidth := n.GetAttributeValue("width")
-	mobileWidth := n.GetAttributeValueDefault("mobileWidth")
+// normalizePxValue rounds a pixel value the way MJML does: Math.round, because a
+// fractional CSS pixel in an email is noise.
+func normalizePxValue(v float64) float64 {
+	return math.Round(v)
+}
 
-	if mobileWidth != "mobileWidth" {
-		return "100%", nil
+// normalizeUnitValue trims a unit value to six decimals, matching MJML's
+// Number(parseFloat(value).toFixed(6)), so a width percentage does not carry
+// floating point dust into the markup.
+func normalizeUnitValue(v float64) float64 {
+	return math.Round(v*1e6) / 1e6
+}
+
+// parseIntPrefix reads the leading integer of a CSS length the way JavaScript's
+// parseInt(containerWidth, 10) does: "533.99px" is 533, not 533.99.
+func parseIntPrefix(s string) (float64, error) {
+	s = strings.TrimSpace(s)
+
+	end := 0
+	if end < len(s) && (s[end] == '+' || s[end] == '-') {
+		end++
 	}
 
-	if !hasWidth {
-		r := 100 / numberSiblings
-		return fmt.Sprintf("%d%%", r), nil
+	start := end
+	for end < len(s) && s[end] >= '0' && s[end] <= '9' {
+		end++
 	}
 
-	parsedWidth, unit, err := parseWidth(width)
-	if err != nil {
-		return "", err
+	if end == start {
+		return 0, fmt.Errorf("invalid width: %q", s)
 	}
 
-	if unit == "%" {
-		return width, nil
-	} else {
-		// Convert pixel width to percentage based on container width
-		// containerWidth as float
-		pf, err := strconv.ParseFloat(containerWidth, 64)
-		if err != nil {
-			return "", fmt.Errorf("invalid container width: %w", err)
-		}
-
-		percentage := (parsedWidth / pf) * 100
-		return fmt.Sprintf("%.2f%%", percentage), nil
-	}
+	return strconv.ParseFloat(s[:end], 64)
 }
 
 // makeBackgroundString filters out empty strings from a slice

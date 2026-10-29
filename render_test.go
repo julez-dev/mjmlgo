@@ -11,8 +11,8 @@ import (
 	"testing"
 	"testing/fstest"
 
-	"github.com/julez-dev/mjmlgo/component"
-	"github.com/julez-dev/mjmlgo/internal/mjmltest"
+	"github.com/julez-dev/mjmlgo/v2/component"
+	"github.com/julez-dev/mjmlgo/v2/internal/mjmltest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -95,8 +95,10 @@ func rendererFor(t testing.TB, fixture string) *Renderer {
 		opts = append(opts, WithFonts(sidecarFonts(config.Fonts)))
 	}
 
-	if config.IgnoreIncludes != nil {
-		opts = append(opts, WithIgnoreIncludes(*config.IgnoreIncludes))
+	// MJML 5 drops mj-include unless the reference was told to allow it, so a
+	// fixture that does not say otherwise is rendered the same way.
+	if config.AllowIncludes == nil || !*config.AllowIncludes {
+		opts = append(opts, WithoutIncludes())
 	}
 
 	if config.PrinterSupport != nil {
@@ -128,11 +130,19 @@ func sidecarFonts(fonts []mjmltest.Font) []Font {
 func renderFixture(t testing.TB, fixture string) (string, error) {
 	t.Helper()
 
+	return renderFixtureWith(t, fixture, rendererFor(t, fixture))
+}
+
+// renderFixtureWith renders fixture with a renderer the caller chose, over the
+// same filesystem renderFixture uses.
+func renderFixtureWith(t testing.TB, fixture string, r *Renderer) (string, error) {
+	t.Helper()
+
 	fsys := os.DirFS(filepath.Dir(fixture))
 
 	var out strings.Builder
 
-	err := rendererFor(t, fixture).RenderFS(context.Background(), &out, fsys, filepath.Base(fixture))
+	err := r.RenderFS(context.Background(), &out, fsys, filepath.Base(fixture))
 
 	return out.String(), err
 }
@@ -368,7 +378,9 @@ func TestMJMLInvalid(t *testing.T) {
 		t.Run(filepath.ToSlash(fixture), func(t *testing.T) {
 			t.Parallel()
 
-			html, err := renderFixture(t, fixture)
+			// These fixtures are about what happens while reading includes, so
+			// they need the reads the parity fixtures leave off by default.
+			html, err := renderFixtureWith(t, fixture, NewRenderer())
 
 			expectedPath := fixture + ".error.txt"
 			expected, readErr := os.ReadFile(expectedPath)
@@ -614,7 +626,7 @@ func BenchmarkRenderMJML(b *testing.B) {
 			}
 
 			// A fixture whose sidecar configures the renderer - keepComments,
-			// fonts, ignoreIncludes, printerSupport - must be measured with that
+			// fonts, allowIncludes, printerSupport - must be measured with that
 			// configuration, or the row describes a pipeline the fixture does
 			// not stand for.
 			if len(mjmltest.Args(b, fixture)) > 0 {

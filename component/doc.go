@@ -1,5 +1,5 @@
 // Package component renders the MJML component tree: every body and head
-// component of MJML 4.18, the per-render state the renderer accumulates from the
+// component of MJML 5.4, the per-render state the renderer accumulates from the
 // document head, the validation applied to a parsed document before it is
 // rendered, and the contract a host implements to add a component of its own.
 //
@@ -90,7 +90,9 @@
 // merged, AddMediaQuery for class rules inside the document's breakpoint media
 // query, and AddFluidOnMobileClass for MJML's fluid-on-mobile rule on a class of
 // its own. All four keep registration order, so a document's head is
-// deterministic across renders.
+// deterministic across renders. Classes that want the same rule are emitted as
+// one selector list - `.a, .b { ... }` - which is how MJML 5 writes them;
+// MediaQueryGroups exposes that grouping.
 //
 // example/customcomponent is the in-repo example of the whole contract: Badge is
 // a leaf, Notice a container with head styles.

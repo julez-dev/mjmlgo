@@ -14,7 +14,7 @@
 //
 // Install it with
 //
-//	go install github.com/julez-dev/mjmlgo/cmd/mjmlgo@latest
+//	go install github.com/julez-dev/mjmlgo/v2/cmd/mjmlgo@latest
 package main
 
 import (
@@ -27,7 +27,7 @@ import (
 	"runtime/debug"
 	"strings"
 
-	"github.com/julez-dev/mjmlgo"
+	"github.com/julez-dev/mjmlgo/v2"
 )
 
 // Exit codes, matching the reference CLI's contract.
@@ -84,7 +84,13 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	}
 
 	ctx := context.Background()
-	renderer := mjmlgo.NewRenderer(cfg.options...)
+
+	options := cfg.options
+	if opt := cfg.includeOption(); opt != nil {
+		options = append(append([]mjmlgo.Option{}, cfg.options...), opt)
+	}
+
+	renderer := mjmlgo.NewRenderer(options...)
 
 	if validate {
 		// Validation writes no HTML, so a JSON report can own stdout; the text
@@ -137,6 +143,10 @@ func compileInputs(
 
 		if !toStdout {
 			target = targets[i]
+		}
+
+		if !cfg.allowIncludes {
+			warnIgnoredIncludes(stderr, in)
 		}
 
 		var html bytes.Buffer
@@ -383,4 +393,34 @@ Other:
 
 Exit codes: 0 success, 1 command-line or validation error, 2 render failure.
 `)
+}
+
+// warnIgnoredIncludes repeats the warning the reference CLI prints when a
+// document asks for an include that is not being expanded, so a document with
+// holes in it is never silent.
+func warnIgnoredIncludes(w io.Writer, in input) {
+	src := in.src
+
+	if in.file != "" {
+		content, err := os.ReadFile(in.file)
+		if err != nil {
+			return
+		}
+
+		src = content
+	}
+
+	if !bytes.Contains(src, []byte("<mj-include")) {
+		return
+	}
+
+	name := in.file
+	if name == "" {
+		name = stdinName
+	}
+
+	_, _ = fmt.Fprintf(w, "[MJML] mj-include tags were found but includes are disabled by default.\n"+
+		"  Files: %s\n"+
+		"  To enable includes, add --config.allowIncludes true to your command.\n"+
+		"  See https://documentation.mjml.io/#mj-include for security notes.\n", name)
 }

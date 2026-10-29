@@ -13,7 +13,7 @@ import (
 	"testing"
 	"testing/fstest"
 
-	"github.com/julez-dev/mjmlgo"
+	"github.com/julez-dev/mjmlgo/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -331,9 +331,9 @@ func TestWithFontsKeepsOrder(t *testing.T) {
 	assert.Empty(t, mjmlgo.FontsFromMap(map[string]string{}), "an empty map replaces them with nothing")
 }
 
-// TestWithIgnoreIncludes asserts that includes are left unexpanded: the element
+// TestWithoutIncludes asserts that includes are left unexpanded: the element
 // disappears, the included file is never read, and the document still renders.
-func TestWithIgnoreIncludes(t *testing.T) {
+func TestWithoutIncludes(t *testing.T) {
 	t.Parallel()
 
 	const document = `<mjml><mj-body><mj-include path="partials/body.mjml" />` +
@@ -343,9 +343,9 @@ func TestWithIgnoreIncludes(t *testing.T) {
 	fsys := fstest.MapFS{"doc.mjml": &fstest.MapFile{Data: []byte(document)}}
 
 	err := mjmlgo.NewRenderer().RenderFS(context.Background(), io.Discard, fsys, "doc.mjml")
-	require.Error(t, err, "without ignoreIncludes the missing include is an error")
+	require.Error(t, err, "without the option the missing include is an error")
 
-	html, err := renderFrom(mjmlgo.NewRenderer(mjmlgo.WithIgnoreIncludes(true)),
+	html, err := renderFrom(mjmlgo.NewRenderer(mjmlgo.WithoutIncludes()),
 		context.Background(), fsys, "doc.mjml")
 	require.NoError(t, err)
 

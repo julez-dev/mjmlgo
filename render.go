@@ -7,8 +7,8 @@ import (
 	"io/fs"
 	"strings"
 
-	"github.com/julez-dev/mjmlgo/component"
-	"github.com/julez-dev/mjmlgo/node"
+	"github.com/julez-dev/mjmlgo/v2/component"
+	"github.com/julez-dev/mjmlgo/v2/node"
 )
 
 // ErrUnknownStartingTag reports a document whose root element is not <mjml>.
@@ -113,7 +113,7 @@ func (r *Renderer) renderMarkup(callCtx context.Context, fsys fs.FS, name string
 		return emittedMarkup{}, err
 	}
 
-	if r.ignoreIncludes {
+	if r.withoutIncludes {
 		stripIncludes(doc)
 	} else if err := resolveIncludes(callCtx, fsys, name, doc, !r.dropComments); err != nil {
 		return emittedMarkup{}, err

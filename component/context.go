@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"slices"
 	"strconv"
+	"strings"
 	"sync/atomic"
 
 	"github.com/ericchiang/css"
@@ -83,6 +84,17 @@ type RenderContext struct {
 	// CSS embeds the carousel id and the number of images). MJML keeps these in
 	// an array without deduplication and emits them before ComponentHeadStyles.
 	InstanceComponentHeadStyles []ComponentHeadStyle
+	// Gutter is the mj-section gutter that applies to the columns below it:
+	// the space a section's columns keep between themselves. Empty when the
+	// section has none, which is MJML's own test for "no gutter".
+	Gutter string
+	// ContainerDirection is the direction of the section or group rendering the
+	// columns. Column gutter padding mirrors for rtl, so it needs the
+	// container's direction rather than the document's.
+	ContainerDirection string
+	// InGroup reports that the column being rendered sits inside an mj-group,
+	// which does not stack on mobile and therefore keeps desktop padding.
+	InGroup bool
 	// IDGenerator produces the opaque ids MJML assigns to components that need
 	// them (navbar hamburger labels, carousels). It is set once per render by
 	// the renderer, so a nil generator falls back to DefaultIDGenerator.
@@ -261,6 +273,44 @@ func (c RenderContext) orderedMJMLStyles() []string {
 	slices.Sort(classes)
 
 	return classes
+}
+
+// MediaQueryGroup is one rule inside the document's breakpoint media query,
+// together with every generated class that wants it. MJML 5 groups classes that
+// share a rule into one selector list - `.a, .b { ... }` - instead of repeating
+// the rule once per class, so a document with three columns of one width emits
+// one rule rather than three identical ones.
+type MediaQueryGroup struct {
+	// Classes are the generated class names, in first-registration order.
+	Classes []string
+	// Rules are the declarations, without the surrounding braces.
+	Rules []string
+}
+
+// MediaQueryGroups returns the generated class rules grouped by identical
+// declarations. Groups keep the position of the first class that wanted the
+// rule, which is the order MJML 5 emits them in.
+func (c RenderContext) MediaQueryGroups() []MediaQueryGroup {
+	var (
+		groups []MediaQueryGroup
+		index  = make(map[string]int, len(c.MJMLStylesheet))
+	)
+
+	for _, className := range c.orderedMJMLStyles() {
+		rules := c.MJMLStylesheet[className]
+		key := strings.Join(rules, "\n")
+
+		if at, seen := index[key]; seen {
+			groups[at].Classes = append(groups[at].Classes, className)
+
+			continue
+		}
+
+		index[key] = len(groups)
+		groups = append(groups, MediaQueryGroup{Classes: []string{className}, Rules: rules})
+	}
+
+	return groups
 }
 
 func (c RenderContext) makeLowerBreakpoint() string {

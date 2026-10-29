@@ -35,19 +35,19 @@
 </style>
 <!--<![endif]-->
 {{end}}
-{{ if .MJMLStyles }}
+{{ if .MediaQueryGroups }}
     <style type="text/css">
       @media only screen and (min-width:{{.Breakpoint}}) {
-            {{range $className := .MJMLStyleOrder}}{{$rules := index $.MJMLStyles $className}}.{{$className}} {
-                  {{range $rules}}{{.}};
+            {{range $group := .MediaQueryGroups}}{{range $i, $class := $group.Classes}}{{if $i}}, {{end}}.{{$class}}{{end}} {
+                  {{range $group.Rules}}{{.}};
                   {{end}}
             }
             {{end}}
       }
     </style>
     <style media="screen and (min-width:{{.Breakpoint}})">
-        {{range $className := .MJMLStyleOrder}}{{$rules := index $.MJMLStyles $className}}.moz-text-html .{{$className}} {
-                {{range $rules}}{{.}};
+        {{range $group := .MediaQueryGroups}}{{range $i, $class := $group.Classes}}{{if $i}}, {{end}}.moz-text-html .{{$class}}{{end}} {
+                {{range $group.Rules}}{{.}};
                 {{end}}
         }
         {{end}}
@@ -55,8 +55,8 @@
     {{ if .PrinterSupport }}
     <style type="text/css">
       @media only print {
-            {{range $className := .MJMLStyleOrder}}{{$rules := index $.MJMLStyles $className}}.{{$className}} {
-                  {{range $rules}}{{.}};
+            {{range $group := .MediaQueryGroups}}{{range $i, $class := $group.Classes}}{{if $i}}, {{end}}.{{$class}}{{end}} {
+                  {{range $group.Rules}}{{.}};
                   {{end}}
             }
             {{end}}
@@ -65,8 +65,8 @@
     {{end}}
     {{ if .ForceOWADesktop }}
     <style type="text/css">
-      {{range $className := .MJMLStyleOrder}}{{$rules := index $.MJMLStyles $className}}[owa] .{{$className}} {
-            {{range $rules}}{{.}};
+      {{range $group := .MediaQueryGroups}}[owa] {{range $i, $class := $group.Classes}}{{if $i}}, {{end}}.{{$class}}{{end}} {
+            {{range $group.Rules}}{{.}};
             {{end}}
       }
       {{end}}

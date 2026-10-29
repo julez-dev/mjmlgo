@@ -5,7 +5,7 @@ import (
 	"io"
 	"strconv"
 
-	"github.com/julez-dev/mjmlgo/node"
+	"github.com/julez-dev/mjmlgo/v2/node"
 )
 
 type MJMLImage struct{}
@@ -29,7 +29,7 @@ var imageAllowedAttributes = map[string]AttributeValidator{
 	"border-left":                validateType("string"),
 	"border-right":               validateType("string"),
 	"border-top":                 validateType("string"),
-	"border-radius":              validateUnit([]string{"px", "%"}, true),
+	"border-radius":              validateType("string"),
 	"container-background-color": validateColor(),
 	"fluid-on-mobile":            validateType("boolean"),
 	"padding":                    validateUnit([]string{"px", "%"}, true),

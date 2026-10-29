@@ -5,10 +5,10 @@ import (
 	"io"
 	"strconv"
 
-	"github.com/julez-dev/mjmlgo/node"
+	"github.com/julez-dev/mjmlgo/v2/node"
 )
 
-// MJMLNavbar renders mj-navbar. The markup follows mjml-navbar 4.18.0
+// MJMLNavbar renders mj-navbar. The markup follows mjml-navbar 5.4.1
 // (node_modules/mjml-navbar/lib/Navbar.js) including its hamburger checkbox,
 // the Outlook-only link table and the component head style with the mobile
 // menu rules.
