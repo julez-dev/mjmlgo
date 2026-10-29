@@ -156,8 +156,9 @@ func TestValidateDocumentAttributes(t *testing.T) {
 		// wrapper has gap, section does not.
 		{name: "wrapper gap", tag: WrapperTagName, attr: "gap", value: "20px"},
 		{name: "section gap is unknown", tag: SectionTagName, attr: "gap", value: "20px", wantErr: true},
-		// hero gained width in MJML 5, but still has no container background.
-		{name: "hero width", tag: HeroTagName, attr: "width", value: "10px"},
+		// hero has no width attribute in MJML 5 either: it takes its width from
+		// its container, and mj-hero lost container-background-color.
+		{name: "hero width is unknown", tag: HeroTagName, attr: "width", value: "10px", wantErr: true},
 		{name: "hero container background is unknown", tag: HeroTagName, attr: "container-background-color", value: "#fff", wantErr: true},
 		{name: "hero mode is a string", tag: HeroTagName, attr: "mode", value: "anything"},
 		// group direction only allows ltr/rtl.

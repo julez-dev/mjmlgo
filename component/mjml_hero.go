@@ -23,7 +23,6 @@ var heroAllowedAttributes = map[string]AttributeValidator{
 	"background-height":      validateUnit([]string{"px", "%"}, false),
 	"background-position":    validateType("string"),
 	"border-radius":          validateType("string"),
-	"width":                  validateUnit([]string{"px", "%"}, false),
 	"inner-background-color": validateColor(),
 	"inner-padding":          validateUnit([]string{"px", "%"}, true),
 	"inner-padding-top":      validateUnit([]string{"px", "%"}, false),

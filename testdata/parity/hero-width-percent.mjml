@@ -1,0 +1,10 @@
+<mjml>
+  <mj-body>
+    <!-- a hero sizes its inner content from its own width, which mj-hero takes
+         from its container; inner-padding narrows that again -->
+    <mj-hero mode="fluid-height" background-width="600px" background-height="300px"
+             inner-padding="10px">
+      <mj-text>full-width hero</mj-text>
+    </mj-hero>
+  </mj-body>
+</mjml>

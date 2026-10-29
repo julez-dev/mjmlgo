@@ -1,0 +1,12 @@
+<mjml>
+  <mj-body>
+    <!-- a group truncates its class name but keeps the exact width in the rule -->
+    <mj-section>
+      <mj-group>
+        <mj-column><mj-text>a</mj-text></mj-column>
+        <mj-column><mj-text>b</mj-text></mj-column>
+        <mj-column><mj-text>c</mj-text></mj-column>
+      </mj-group>
+    </mj-section>
+  </mj-body>
+</mjml>
