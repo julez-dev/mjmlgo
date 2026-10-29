@@ -36,8 +36,10 @@ func renderErr(t *testing.T, document string, components ...component.Component)
 
 	fsys := fstest.MapFS{"doc.mjml": &fstest.MapFile{Data: []byte(document)}}
 
-	return mjmlgo.NewRenderer(mjmlgo.WithComponents(components...)).
-		RenderString(context.Background(), fsys, "doc.mjml")
+	rendered, err := mjmlgo.NewRenderer(mjmlgo.WithComponents(components...)).
+		RenderFS(context.Background(), fsys, "doc.mjml")
+
+	return string(rendered), err
 }
 
 // structuredError requires err to be a *component.Error and returns it.
@@ -343,7 +345,7 @@ func TestWithComponentsRejectsInvalidRegistration(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			_, err := tt.renderer.RenderString(context.Background(), fsys, "doc.mjml")
+			_, err := tt.renderer.RenderFS(context.Background(), fsys, "doc.mjml")
 			require.Error(t, err)
 
 			structured := structuredError(t, err)

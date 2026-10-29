@@ -20,7 +20,7 @@ var (
 	ErrParsingFailed = errors.New("parsing MJML structure failed")
 
 	// ErrIncludeNoFS is returned when a document contains mj-include but was
-	// rendered through an entry point without a filesystem (RenderMJML).
+	// rendered through an entry point without a filesystem (Renderer.Render).
 	ErrIncludeNoFS = errors.New("mjml: mj-include requires an fs.FS")
 	// ErrIncludePath is returned for include paths that are absolute, escape the
 	// filesystem root or are otherwise not valid fs.FS names.
@@ -198,7 +198,7 @@ func resolveIncludes(ctx context.Context, fsys fs.FS, name string, root *node.No
 	}
 
 	if fsys == nil {
-		return component.NewError(KindParseFailure, parsePath(nil), "", "", fmt.Errorf("%w: render through Renderer.Render with a caller-provided filesystem", ErrIncludeNoFS))
+		return component.NewError(KindParseFailure, parsePath(nil), "", "", fmt.Errorf("%w: render through Renderer.RenderFS with a caller-provided filesystem", ErrIncludeNoFS))
 	}
 
 	resolver := &includeResolver{ctx: ctx, fsys: fsys, keepComments: keepComments, stack: []string{path.Clean(name)}}

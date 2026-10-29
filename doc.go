@@ -15,15 +15,18 @@
 // and errors.As unwraps through wrapping, so both inspection styles keep
 // working. The kinds are a closed set; see the ErrorKind constants.
 //
-// Use NewRenderer to configure a renderer and Render, RenderString,
-// RenderBytes or RenderFile to render a document:
+// Use Render for a document that needs no configuration, or NewRenderer to
+// configure a renderer and Renderer.Render to render from memory:
 //
-//	renderer := mjmlgo.NewRenderer()
-//	html, err := renderer.RenderString(ctx, os.DirFS("templates"), "welcome.mjml")
+//	html, err := mjmlgo.Render(src)
 //
-// Rendering reads the input through the provided fs.FS, so callers decide
-// where documents come from and the renderer performs no implicit filesystem
-// or network access. A Renderer is safe for concurrent use.
+//	renderer := mjmlgo.NewRenderer(mjmlgo.WithComments(false))
+//	html, err := renderer.Render(ctx, src)
+//
+// A document that uses mj-include needs a filesystem: Renderer.RenderFS reads
+// the top-level document through an fs.FS and resolves includes against it, so
+// callers decide where documents come from and the renderer performs no
+// implicit filesystem or network access. A Renderer is safe for concurrent use.
 //
 // WithComponents adds custom components to a renderer. A host implements
 // component.Component - tag, allowed attributes with validators, defaults and
@@ -43,6 +46,6 @@
 // same values. Their exported shape is frozen; their package documentation
 // lists the exact set, and changing any of it is a breaking change.
 //
-// RenderMJML is kept for existing callers and is deprecated in favour of the
-// Renderer API; it has no filesystem, so documents with mj-include are rejected.
+// Renderer.RenderFile is the shorthand for a document on disk: the file's own
+// directory becomes the filesystem root, so relative includes stay scoped to it.
 package mjmlgo

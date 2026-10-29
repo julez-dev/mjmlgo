@@ -10,7 +10,7 @@
 //		customcomponent.Badge{},
 //		customcomponent.Notice{},
 //	))
-//	html, err := renderer.RenderString(ctx, fsys, "newsletter.mjml")
+//	html, err := renderer.RenderFS(ctx, fsys, "newsletter.mjml")
 //
 //	<mjml>
 //	  <mj-body>

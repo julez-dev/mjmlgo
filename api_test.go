@@ -1,10 +1,8 @@
 package mjmlgo_test
 
 import (
-	"bytes"
 	"context"
 	"fmt"
-	"io"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -19,7 +17,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// parityDir holds the fixtures that RenderMJML and the Renderer must agree on.
+// parityDir holds the fixtures the entry points must agree on.
 const parityDir = "testdata/parity"
 
 // fixtureFS serves fixture file contents from an in-memory filesystem.
@@ -34,10 +32,10 @@ func fixtureFS(t *testing.T, name string) fs.FS {
 	}
 }
 
-// TestRendererMatchesRenderMJML asserts that every entry point shares one
-// pipeline: the Renderer output is byte-for-byte RenderMJML's output for the
-// same document, whether the document comes from an fs.FS or from disk.
-func TestRendererMatchesRenderMJML(t *testing.T) {
+// TestEntryPointsShareOnePipeline asserts that every entry point - the package
+// function, the memory renderer and the filesystem renderer - produces the same
+// bytes for the same document.
+func TestEntryPointsShareOnePipeline(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
@@ -51,22 +49,18 @@ func TestRendererMatchesRenderMJML(t *testing.T) {
 			input, err := os.ReadFile(fixture)
 			require.NoError(t, err)
 
-			want, err := mjmlgo.RenderMJML(bytes.NewReader(input))
+			want, err := mjmlgo.Render(input)
 			require.NoError(t, err)
 
-			fsys := fixtureFS(t, name)
-
-			got, err := renderer.RenderString(ctx, fsys, name)
+			got, err := renderer.Render(ctx, input)
 			require.NoError(t, err)
 			assert.Equal(t, want, got)
 
-			var output bytes.Buffer
-			require.NoError(t, renderer.Render(ctx, fsys, name, &output))
-			assert.Equal(t, want, output.String())
+			fsys := fixtureFS(t, name)
 
-			raw, err := renderer.RenderBytes(ctx, fsys, name)
+			fromFS, err := renderer.RenderFS(ctx, fsys, name)
 			require.NoError(t, err)
-			assert.Equal(t, want, string(raw))
+			assert.Equal(t, want, fromFS)
 
 			fromDisk, err := renderer.RenderFile(ctx, fixture)
 			require.NoError(t, err)
@@ -78,11 +72,7 @@ func TestRendererMatchesRenderMJML(t *testing.T) {
 func TestRendererNilFS(t *testing.T) {
 	t.Parallel()
 
-	err := mjmlgo.NewRenderer().Render(context.Background(), nil, "test.mjml", io.Discard)
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "nil fs.FS")
-
-	_, err = mjmlgo.NewRenderer().RenderString(context.Background(), nil, "test.mjml")
+	_, err := mjmlgo.NewRenderer().RenderFS(context.Background(), nil, "test.mjml")
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "nil fs.FS")
 }
@@ -93,12 +83,12 @@ func TestRendererCancelledContext(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
 
-	fsys := fixtureFS(t, "simple.mjml")
+	renderer := mjmlgo.NewRenderer()
 
-	err := mjmlgo.NewRenderer().Render(ctx, fsys, "simple.mjml", io.Discard)
+	_, err := renderer.RenderFS(ctx, fixtureFS(t, "simple.mjml"), "simple.mjml")
 	require.ErrorIs(t, err, context.Canceled)
 
-	_, err = mjmlgo.NewRenderer().RenderString(ctx, fsys, "simple.mjml")
+	_, err = renderer.Render(ctx, []byte(`<mjml><mj-body /></mjml>`))
 	require.ErrorIs(t, err, context.Canceled)
 }
 
@@ -115,15 +105,15 @@ func TestRendererIDGenerator(t *testing.T) {
 
 	renderer := mjmlgo.NewRenderer(mjmlgo.WithIDGenerator(func() string { return fixedID }))
 
-	first, err := renderer.RenderString(ctx, fsys, "carousel.mjml")
+	first, err := renderFrom(renderer, ctx, fsys, "carousel.mjml")
 	require.NoError(t, err)
-	second, err := renderer.RenderString(ctx, fsys, "carousel.mjml")
+	second, err := renderFrom(renderer, ctx, fsys, "carousel.mjml")
 	require.NoError(t, err)
 
 	assert.Equal(t, first, second, "a constant generator must make rendering deterministic")
 	assert.Contains(t, first, fixedID)
 
-	random, err := mjmlgo.NewRenderer().RenderString(ctx, fsys, "carousel.mjml")
+	random, err := renderFrom(mjmlgo.NewRenderer(), ctx, fsys, "carousel.mjml")
 	require.NoError(t, err)
 
 	generatedID := regexp.MustCompile(`[0-9a-f]{16}`)
@@ -161,7 +151,7 @@ func TestRendererConcurrentUse(t *testing.T) {
 
 	for range 8 {
 		wg.Go(func() {
-			if _, err := renderer.RenderString(context.Background(), fsys, "navbar.mjml"); err != nil {
+			if _, err := renderer.RenderFS(context.Background(), fsys, "navbar.mjml"); err != nil {
 				errMu.Lock()
 				errs = append(errs, err)
 				errMu.Unlock()
@@ -173,17 +163,28 @@ func TestRendererConcurrentUse(t *testing.T) {
 	assert.Empty(t, errs)
 }
 
+// renderFrom renders name out of fsys and converts the result for assertions
+// written against HTML strings.
+func renderFrom(renderer *mjmlgo.Renderer, ctx context.Context, fsys fs.FS, name string) (string, error) {
+	rendered, err := renderer.RenderFS(ctx, fsys, name)
+
+	return string(rendered), err
+}
+
 // renderSource renders an in-memory document with renderer and returns the
 // resulting HTML.
 func renderSource(t *testing.T, renderer *mjmlgo.Renderer, source string) string {
 	t.Helper()
 
-	fsys := fstest.MapFS{"doc.mjml": &fstest.MapFile{Data: []byte(source)}}
-
-	html, err := renderer.RenderString(context.Background(), fsys, "doc.mjml")
+	html, err := renderFrom(renderer, context.Background(), fixtureFSNamed("doc.mjml", source), "doc.mjml")
 	require.NoError(t, err)
 
 	return html
+}
+
+// fixtureFSNamed serves source as the only file of an in-memory filesystem.
+func fixtureFSNamed(name, source string) fs.FS {
+	return fstest.MapFS{name: &fstest.MapFile{Data: []byte(source)}}
 }
 
 // mediaQueryDocument produces the column media queries printerSupport repeats in
@@ -256,11 +257,11 @@ func TestWithIgnoreIncludes(t *testing.T) {
 
 	fsys := fstest.MapFS{"doc.mjml": &fstest.MapFile{Data: []byte(document)}}
 
-	_, err := mjmlgo.NewRenderer().RenderString(context.Background(), fsys, "doc.mjml")
+	_, err := mjmlgo.NewRenderer().RenderFS(context.Background(), fsys, "doc.mjml")
 	require.Error(t, err, "without ignoreIncludes the missing include is an error")
 
-	html, err := mjmlgo.NewRenderer(mjmlgo.WithIgnoreIncludes(true)).
-		RenderString(context.Background(), fsys, "doc.mjml")
+	html, err := renderFrom(mjmlgo.NewRenderer(mjmlgo.WithIgnoreIncludes(true)),
+		context.Background(), fsys, "doc.mjml")
 	require.NoError(t, err)
 
 	assert.Contains(t, html, "local")

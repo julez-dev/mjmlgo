@@ -1,7 +1,6 @@
 package mjmlgo
 
 import (
-	"bytes"
 	"context"
 	"io/fs"
 	"os"
@@ -118,7 +117,9 @@ func renderFixture(t testing.TB, fixture string) (string, error) {
 
 	fsys := os.DirFS(filepath.Dir(fixture))
 
-	return rendererFor(t, fixture).RenderString(context.Background(), fsys, filepath.Base(fixture))
+	rendered, err := rendererFor(t, fixture).RenderFS(context.Background(), fsys, filepath.Base(fixture))
+
+	return string(rendered), err
 }
 
 // renderConfiguredSource renders fixture's source with the configuration its
@@ -130,7 +131,19 @@ func renderConfiguredSource(t testing.TB, fixture string, source []byte) (string
 	name := filepath.Base(fixture)
 	fsys := fstest.MapFS{name: &fstest.MapFile{Data: source}}
 
-	return rendererFor(t, fixture).RenderString(context.Background(), fsys, name)
+	rendered, err := rendererFor(t, fixture).RenderFS(context.Background(), fsys, name)
+
+	return string(rendered), err
+}
+
+// renderPlain renders src through the package-level entry point, the way a
+// caller with no filesystem and no options would.
+func renderPlain(t testing.TB, src string) (string, error) {
+	t.Helper()
+
+	rendered, err := Render([]byte(src))
+
+	return string(rendered), err
 }
 
 func formatMismatches(mismatches []mjmltest.Mismatch) string {
@@ -378,7 +391,7 @@ func TestRenderWithoutInlineStylesKeepsEmittedMarkup(t *testing.T) {
 		input, err := os.ReadFile(filepath.Join(parityDir, fixture))
 		require.NoError(t, err)
 
-		rendered, err := RenderMJML(bytes.NewReader(input))
+		rendered, err := renderPlain(t, string(input))
 		require.NoError(t, err)
 
 		// The document the components emitted starts with the template's own
@@ -432,7 +445,7 @@ func TestRenderMergesOutlookConditionals(t *testing.T) {
 	input, err := os.ReadFile(filepath.Join(parityDir, "layout.mjml"))
 	require.NoError(t, err)
 
-	html, err := RenderMJML(bytes.NewReader(input))
+	html, err := renderPlain(t, string(input))
 	require.NoError(t, err)
 
 	assert.NotContains(t, html, "<![endif]--><!--[if mso | IE]>")
@@ -500,19 +513,19 @@ func mjmlFixtures(t testing.TB, dir string) []string {
 	return fixtures
 }
 
-// TestRenderMJMLRejectsIncludes asserts that the deprecated entry point, which
-// has no filesystem of its own, fails loudly instead of dropping included content
-// on the floor.
-func TestRenderMJMLRejectsIncludes(t *testing.T) {
+// TestRenderRejectsIncludes asserts that a document with mj-include fails loudly
+// instead of dropping the included content when it is rendered without a
+// filesystem.
+func TestRenderRejectsIncludes(t *testing.T) {
 	t.Parallel()
 
 	const input = `<mjml><mj-body><mj-include path="partials/header.mjml" /></mj-body></mjml>`
 
-	_, err := RenderMJML(strings.NewReader(input))
+	_, err := renderPlain(t, input)
 	require.ErrorIs(t, err, ErrIncludeNoFS)
 
-	// A document without includes renders through the same entry point as before.
-	_, err = RenderMJML(strings.NewReader(`<mjml><mj-body><mj-raw>raw</mj-raw></mj-body></mjml>`))
+	// A document without includes renders through the same entry point.
+	_, err = renderPlain(t, `<mjml><mj-body><mj-raw>raw</mj-raw></mj-body></mjml>`)
 	require.NoError(t, err)
 }
 
@@ -524,7 +537,7 @@ func TestRenderFileStartRaw(t *testing.T) {
 		<mj-body><mj-section><mj-column><mj-text>Body</mj-text></mj-column></mj-section></mj-body>
 	</mjml>`
 
-	html, err := RenderMJML(strings.NewReader(input))
+	html, err := renderPlain(t, input)
 	require.NoError(t, err)
 	require.True(t, strings.HasPrefix(strings.ToLower(html), "<!-- file-start marker -->\n<!doctype html>"), "file-start raw must precede the doctype, got:\n%s", html)
 }
@@ -544,7 +557,7 @@ func TestRenderRawInColumnKeepsPosition(t *testing.T) {
 		</mj-body>
 	</mjml>`
 
-	out, err := RenderMJML(strings.NewReader(input))
+	out, err := renderPlain(t, input)
 	require.NoError(t, err)
 
 	tbody := strings.Index(out, "<tbody>")
@@ -578,7 +591,7 @@ func BenchmarkRenderMJML(b *testing.B) {
 			}
 
 			render := func() error {
-				_, err := RenderMJML(bytes.NewReader(input))
+				_, err := Render(input)
 
 				return err
 			}
@@ -667,7 +680,7 @@ func FuzzRenderMJML(f *testing.F) {
 	f.Fuzz(func(t *testing.T, source string) {
 		checkFuzzInput(t, source)
 
-		html, err := RenderMJML(strings.NewReader(source))
+		html, err := renderPlain(t, source)
 		if err != nil {
 			return
 		}
@@ -692,7 +705,7 @@ func TestRenderStripsRawBlockMarkers(t *testing.T) {
 		input, err := os.ReadFile(filepath.Join(parityDir, fixture))
 		require.NoError(t, err)
 
-		rendered, err := RenderMJML(bytes.NewReader(input))
+		rendered, err := renderPlain(t, string(input))
 		require.NoError(t, err)
 
 		assert.NotContains(t, rendered, "mjmlgo-raw", "%s leaked an internal marker", fixture)

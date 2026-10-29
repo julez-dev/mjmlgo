@@ -15,19 +15,15 @@ import (
 // ErrUnknownStartingTag reports a document whose root element is not <mjml>.
 var ErrUnknownStartingTag = errors.New("mjml: unknown starting tag")
 
-// defaultRenderer backs RenderMJML. It has no mutable per-render state, so a
-// single shared instance is safe for concurrent use.
+// defaultRenderer backs Render. It has no mutable per-render state, so a single
+// shared instance is safe for concurrent use.
 var defaultRenderer = NewRenderer()
 
-// RenderMJML renders the MJML document read from input and returns the
-// resulting HTML.
-//
-// Deprecated: use NewRenderer and Renderer.Render, Renderer.RenderString,
-// Renderer.RenderBytes or Renderer.RenderFile instead. RenderMJML is a thin
-// wrapper around the default Renderer; it has no filesystem, so documents that
-// use mj-include are rejected with an error.
-func RenderMJML(input io.Reader) (string, error) {
-	return defaultRenderer.renderDocument(context.Background(), nil, "", input)
+// Render renders the MJML document in src with default options and returns the
+// resulting HTML. It is the zero-configuration entry point; use NewRenderer for
+// any option and Renderer.RenderFS for documents that use mj-include.
+func Render(src []byte) ([]byte, error) {
+	return defaultRenderer.Render(context.Background(), src)
 }
 
 // renderDocument is the single rendering pipeline shared by every entry point.
