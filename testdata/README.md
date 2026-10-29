@@ -45,14 +45,15 @@ drops the rest. Well-formed CSS is passed through byte for byte, so
 `parity/style-malformed-comment.mjml` and every well-formed fixture match the
 reference.
 
-Recovery is **best effort and deliberately divergent**: the reference inliner
-(postcss) sometimes swallows a *well-formed* rule that follows invalid syntax,
-as in `.broken color: red; .ok { color: #ff0000 }`, where it drops `.ok` too.
-This implementation keeps `.ok`, because dropping valid rules silently is worse
-than keeping them. No fixture asserts the reference's recovery for mixed
-invalid/valid input; `component/csssanitize_test.go` pins ours. What is not
-negotiable is that a document renders, or fails with a `*component.Error`, and
-never hangs.
+Recovery is **best effort and deliberately divergent**. Observation against the
+pinned CLI, not a fixture: for `.inline-class font-weight: bold; } .ok { color: red }`
+postcss reads everything up to `{` as one selector, so the junk and `.ok` merge
+into an uncompilable selector that juice then discards - the valid rule is lost
+with the invalid one. This implementation drops only the malformed statement and
+keeps `.ok`, because losing valid styling silently is worse than keeping it. No
+fixture asserts the reference's recovery for mixed invalid/valid input;
+`component/csssanitize_test.go` pins ours. What is not negotiable is that a
+document renders, or fails with a `*component.Error`, and never hangs.
 
 ### Per-fixture reference flags (`<fixture>.cli-args`)
 

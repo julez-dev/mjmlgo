@@ -1,0 +1,2 @@
+go test fuzz v1
+string("<mjml><mj-head><mj-style inline=\"inline\">@ x;</mj-style></mj-head><mj-body><mj-section><mj-column><mj-text>hi</mj-text></mj-column></mj-section></mj-body></mjml>")

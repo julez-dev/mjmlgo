@@ -22,8 +22,9 @@ var ruleBlockAtRules = map[string]bool{
 //   - an unterminated block is closed at the end of the input;
 //   - an unterminated comment or string drops everything from its start on.
 //
-// Well-formed CSS is returned byte for byte unchanged, so a document that parses
-// today parses to exactly the same stylesheet.
+// Well-formed CSS is returned byte for byte: a rule-level segment that carries no
+// syntax of its own (whitespace, comments, the legacy CDO/CDC markers) is always
+// copied through, so a document that parses today parses to the same stylesheet.
 func sanitizeInlineCSS(input string) string {
 	var out strings.Builder
 	out.Grow(len(input))
@@ -63,7 +64,7 @@ func sanitizeInlineCSS(input string) string {
 
 		switch terminator {
 		case '{':
-			if isEmptyPrelude(segment) {
+			if isIgnorableRuleBytes(segment) {
 				// `{ ... }` with no selector: skip the block whole.
 				i = skipBlock(input, at)
 
@@ -85,7 +86,7 @@ func sanitizeInlineCSS(input string) string {
 		case '}':
 			// Whitespace and comments before the brace are layout, not junk; a
 			// rule-level statement that never reached a block is junk.
-			if isEmptyPrelude(segment) {
+			if isIgnorableRuleBytes(segment) {
 				out.WriteString(segment)
 			}
 
@@ -99,14 +100,18 @@ func sanitizeInlineCSS(input string) string {
 			i = at + 1
 		default:
 			// End of input on a rule-level statement: an at-rule such as
-			// "@import url(...)" is kept, anything else had no block and is junk.
-			if isAtStatement(segment) {
+			// "@import url(...)" and ignorable bytes are kept, anything else had
+			// no block and is junk.
+			if isAtStatement(segment) || isIgnorableRuleBytes(segment) {
 				out.WriteString(segment)
 			}
 
 			i = len(input)
 		}
 	}
+
+	// An unterminated rule list is closed at the end, like a declaration block.
+	closeOpenBlocks(&out, len(openBlocks))
 
 	return out.String()
 }
@@ -123,6 +128,10 @@ func closeOpenBlocks(out *strings.Builder, n int) {
 // segment ends at. usable is false when an unterminated comment or string stops
 // the scan; at is then the index where that construct starts.
 func scanRuleLevel(s string, start int) (terminator byte, at int, usable bool) {
+	// openParens keeps a ';' inside url(...) or any other function from ending the
+	// statement: "@import url(a;b);" must survive whole.
+	openParens := 0
+
 	for i := start; i < len(s); {
 		c := s[i]
 
@@ -141,7 +150,17 @@ func scanRuleLevel(s string, start int) (terminator byte, at int, usable bool) {
 			}
 
 			i = next
-		case c == '{' || c == ';' || c == '}':
+		case c == '(':
+			openParens++
+
+			i++
+		case c == ')':
+			if openParens > 0 {
+				openParens--
+			}
+
+			i++
+		case openParens == 0 && (c == '{' || c == ';' || c == '}'):
 			return c, i, true
 		default:
 			i++
@@ -286,30 +305,87 @@ func stripComments(s string) string {
 	return out.String()
 }
 
-// isEmptyPrelude reports whether a block prelude is empty once whitespace and
-// comments are ignored.
-func isEmptyPrelude(segment string) bool {
-	return strings.TrimSpace(stripComments(segment)) == ""
+// isIgnorableRuleBytes reports whether a rule-level segment carries no syntax of
+// its own: whitespace, comments and the legacy CDO/CDC markers at most.
+func isIgnorableRuleBytes(segment string) bool {
+	rest := stripComments(segment)
+	rest = strings.ReplaceAll(rest, "<!--", "")
+	rest = strings.ReplaceAll(rest, "-->", "")
+
+	return strings.TrimSpace(rest) == ""
 }
 
 // isAtStatement reports whether a rule-level statement is an at-rule, which may
-// legitimately end with a semicolon ("@import", "@charset").
+// legitimately end with a semicolon ("@import", "@charset"). The check mirrors
+// the stylesheet scanner, where only '@' followed by an identifier is an
+// at-keyword: a bare or space-separated '@' ("@ x;") is ordinary bytes, and
+// keeping it here would hand the parser the rule-level ';' it loops on.
 func isAtStatement(segment string) bool {
-	return strings.HasPrefix(strings.TrimSpace(stripComments(segment)), "@")
+	return isAtKeywordPrefix(strings.TrimSpace(stripComments(segment)))
 }
 
-// atRuleName returns the at-keyword that starts a prelude, lowercased.
+// isAtKeywordPrefix reports whether s starts with a CSS at-keyword.
+func isAtKeywordPrefix(s string) bool {
+	if len(s) < 2 || s[0] != '@' {
+		return false
+	}
+
+	switch c := s[1]; {
+	case isIdentStartByte(c), c == '\\':
+		return true
+	case c == '-':
+		return len(s) > 2 && (isIdentStartByte(s[2]) || s[2] == '-' || s[2] == '\\')
+	default:
+		return false
+	}
+}
+
+// isIdentStartByte reports whether c can start a CSS identifier.
+func isIdentStartByte(c byte) bool {
+	switch {
+	case c == '_':
+		return true
+	case c >= 'a' && c <= 'z', c >= 'A' && c <= 'Z':
+		return true
+	case c >= 0x80:
+		return true
+	default:
+		return false
+	}
+}
+
+// atRuleName returns the at-keyword that starts a prelude, lowercased. The name
+// ends at the first byte that cannot appear in one, so `@media(max-width:600px)`
+// names `@media` rather than the whole condition: a missed name there would
+// classify a rule-list block as declarations and let a rule-level `;` survive
+// into the parser that loops on it.
 func atRuleName(segment string) string {
 	prelude := strings.TrimSpace(stripComments(segment))
 	if !strings.HasPrefix(prelude, "@") {
 		return ""
 	}
 
-	if end := strings.IndexAny(prelude, " \t\r\n{;"); end >= 0 {
-		prelude = prelude[:end]
+	for i := 0; i < len(prelude); i++ {
+		if !isCSSNameByte(prelude[i]) {
+			return strings.ToLower(prelude[:i])
+		}
 	}
 
 	return strings.ToLower(prelude)
+}
+
+// isCSSNameByte reports whether c can appear in an identifier or an at-keyword.
+func isCSSNameByte(c byte) bool {
+	switch {
+	case c == '@' || c == '-':
+		return true
+	case c >= '0' && c <= '9':
+		return true
+	case c >= 'a' && c <= 'z', c >= 'A' && c <= 'Z':
+		return true
+	default:
+		return false
+	}
 }
 
 // embedsRules reports whether the block opened by this prelude holds rules

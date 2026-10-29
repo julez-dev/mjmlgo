@@ -54,6 +54,16 @@ func TestSanitizeInlineCSS(t *testing.T) {
 			want:  "@media (max-width:600px) { .b { width: 10px } }",
 		},
 		{
+			name:  "at-rule name ends before the condition",
+			input: "@media(max-width:600px){ .a font-weight: bold; .b { width: 10px } }",
+			want:  "@media(max-width:600px){ .b { width: 10px } }",
+		},
+		{
+			name:  "at-rule condition with a space is untouched",
+			input: "@media screen and (max-width:600px){ .b { width: 10px } }",
+			want:  "@media screen and (max-width:600px){ .b { width: 10px } }",
+		},
+		{
 			name:  "statement at-rules keep their semicolon",
 			input: "@import url(https://example.com/a.css); .a { color: red }",
 			want:  "@import url(https://example.com/a.css); .a { color: red }",
@@ -72,6 +82,46 @@ func TestSanitizeInlineCSS(t *testing.T) {
 			name:  "comments inside a prelude survive a following block",
 			input: ".a /* note */ { color: red }",
 			want:  ".a /* note */ { color: red }",
+		},
+		{
+			name:  "bare at-sign is junk, not an at-rule",
+			input: "@ x; .a { color: red }",
+			want:  " .a { color: red }",
+		},
+		{
+			name:  "at-sign alone is junk",
+			input: "@;",
+			want:  "",
+		},
+		{
+			name:  "bare at-sign junk inside a rule list block is dropped",
+			input: "@media y { @ x; .a { color: red } }",
+			want:  "@media y { .a { color: red } }",
+		},
+		{
+			name:  "vendor at-rules are at-rules",
+			input: `@-webkit-keyframes x { from { opacity: 0 } }`,
+			want:  `@-webkit-keyframes x { from { opacity: 0 } }`,
+		},
+		{
+			name:  "unterminated rule list block is closed",
+			input: "@media x { .a { color: red } ",
+			want:  "@media x { .a { color: red } }",
+		},
+		{
+			name:  "terminated trailing comment is kept",
+			input: ".a { color: red } /* done */",
+			want:  ".a { color: red } /* done */",
+		},
+		{
+			name:  "semicolon inside a url does not end the statement",
+			input: "@import url(a;b); .a { color: red }",
+			want:  "@import url(a;b); .a { color: red }",
+		},
+		{
+			name:  "legacy CDO and CDC are ignorable, not junk",
+			input: ".a { color: red } -->",
+			want:  ".a { color: red } -->",
 		},
 		{
 			name:  "empty input stays empty",
@@ -118,4 +168,48 @@ func TestParseCSSRecoversFromMalformedCSS(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, sheet.Rules, 1)
 	require.Equal(t, []Style{{Property: "text-decoration", Value: "underline"}}, sheet.Rules[0].Declarations)
+}
+
+// TestParseCSSMediaWithoutSpaceRecovers asserts the at-rule classification does
+// not depend on a space after the at-keyword. Without it the rule-level-junk
+// pass never runs inside the block and the stylesheet parser loops, so this case
+// must return: go test's own timeout is the guard.
+func TestParseCSSMediaWithoutSpaceRecovers(t *testing.T) {
+	t.Parallel()
+
+	var head MJMLHead
+
+	sheet, err := head.parseCSS("@media(max-width:600px){ .a font-weight: bold; .b { width: 10px } }")
+	require.NoError(t, err)
+	require.Empty(t, sheet.Rules)
+	require.Len(t, sheet.MediaRules, 1)
+	require.Len(t, sheet.MediaRules[0].Rules, 1)
+	require.Equal(t, ".b", sheet.MediaRules[0].Rules[0].Selectors)
+}
+
+// TestParseCSSDoesNotHangOnRuleLevelJunk asserts every shape that used to spin
+// the stylesheet parser now returns. go test's own timeout is the guard: a
+// regression shows up as a panic, not as a wrong value.
+func TestParseCSSDoesNotHangOnRuleLevelJunk(t *testing.T) {
+	t.Parallel()
+
+	var head MJMLHead
+
+	for _, source := range []string{
+		".inline-class  font-weight: bold; }",
+		"@ x;",
+		"@;",
+		"@1x;",
+		"@media(max-width:600px){ .a font-weight: bold; .b { width: 10px } }",
+		"@media y { @ x; .a { color: red } }",
+		"@media x { .a { color: red } ",
+		"} .a { color: red }",
+		".a { color: red } .b font-weight: bold; }",
+		".a { color: red",
+		".a { color: red; /* unterminated",
+	} {
+		if _, err := head.parseCSS(source); err != nil {
+			t.Fatalf("parseCSS(%q) returned %v, want a recovered stylesheet", source, err)
+		}
+	}
 }
