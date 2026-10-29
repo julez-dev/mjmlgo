@@ -24,9 +24,10 @@ func splitTopLevel(text string, isSeparator func(byte) bool) []string {
 	for i := 0; i < len(text); i++ {
 		switch c := text[i]; {
 		case quote != 0:
-			if c == '\\' {
+			switch c {
+			case '\\':
 				i++
-			} else if c == quote {
+			case quote:
 				quote = 0
 			}
 		case c == '"' || c == '\'':
@@ -221,9 +222,10 @@ func skipBracketed(s string, i int) int {
 	for ; i < len(s); i++ {
 		switch c := s[i]; {
 		case quote != 0:
-			if c == '\\' {
+			switch c {
+			case '\\':
 				i++
-			} else if c == quote {
+			case quote:
 				quote = 0
 			}
 		case c == '"' || c == '\'':

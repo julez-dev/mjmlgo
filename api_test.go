@@ -160,17 +160,13 @@ func TestRendererConcurrentUse(t *testing.T) {
 	)
 
 	for range 8 {
-		wg.Add(1)
-
-		go func() {
-			defer wg.Done()
-
+		wg.Go(func() {
 			if _, err := renderer.RenderString(context.Background(), fsys, "navbar.mjml"); err != nil {
 				errMu.Lock()
 				errs = append(errs, err)
 				errMu.Unlock()
 			}
-		}()
+		})
 	}
 
 	wg.Wait()

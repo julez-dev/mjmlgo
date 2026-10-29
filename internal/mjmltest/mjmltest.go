@@ -13,6 +13,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"maps"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -315,21 +316,15 @@ func (c *CLI) RenderAll(t testing.TB, files []string) map[string]string {
 	sort.Strings(unique)
 
 	if len(unique) > 0 {
-		for file, html := range c.renderBatch(t, unique, nil) {
-			out[file] = html
-		}
+		maps.Copy(out, c.renderBatch(t, unique, nil))
 	}
 
 	for _, file := range duplicates {
-		for f, html := range c.renderBatch(t, []string{file}, nil) {
-			out[f] = html
-		}
+		maps.Copy(out, c.renderBatch(t, []string{file}, nil))
 	}
 
 	for file, args := range configured {
-		for f, html := range c.renderBatch(t, []string{file}, args) {
-			out[f] = html
-		}
+		maps.Copy(out, c.renderBatch(t, []string{file}, args))
 	}
 
 	return out

@@ -665,9 +665,7 @@ func (s MJMLSection) renderWithBackground(ctx *RenderContext, w io.Writer, n *no
 		"type":     vmlType,
 	}
 
-	for k, v := range vSizeAttr {
-		fillAttr[k] = v
-	}
+	maps.Copy(fillAttr, vSizeAttr)
 
 	_, _ = io.WriteString(w, "<!--[if mso | IE]>\n")
 	_, _ = io.WriteString(w, "<v:rect "+rectAttr.InlineString()+">\n")

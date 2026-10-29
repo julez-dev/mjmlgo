@@ -60,8 +60,7 @@ func msoConditionalTag(content string, isNegation bool) string {
 // It is implemented as a single scan instead of a regular expression over the
 // whole document, which keeps it allocation-free apart from the result buffer.
 func MergeOutlookConditionals(content string) string {
-	first := strings.Index(content, endConditionalTag)
-	if first < 0 {
+	if !strings.Contains(content, endConditionalTag) {
 		return content
 	}
 

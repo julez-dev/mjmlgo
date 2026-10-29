@@ -468,7 +468,7 @@ func validateMjClassReference(ctx *RenderContext, n *node.Node) error {
 		return nil
 	}
 
-	for _, name := range strings.Split(value, " ") {
+	for name := range strings.SplitSeq(value, " ") {
 		if name == "" {
 			continue
 		}

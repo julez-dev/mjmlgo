@@ -226,7 +226,12 @@ limits are gone.
   concatenation separately, which removed 13 and 10 allocations per render for
   the two carousel fixtures with byte-identical output. staticcheck's three
   findings were a discarded write error in `mjml_image.go` (now returned) and two
-  dead declarations left by earlier work.
+  dead declarations left by earlier work. The remaining gopls hints - Go 1.27
+  promoted embedded fields in literals, `maps.Copy`, `strings.SplitSeq`,
+  `WaitGroup.Go`, `strings.Contains`, tagged switches, `fmt.Fprintf` - are applied
+  too, and CI runs that check at hint severity, since `gopls check` hides hints by
+  default. `input_big.mjml` is 3.04 MB -> 3.00 MB per render from the iterator and
+  copy changes.
 
 - **inliner hang fixed (issue #10)**: the stylesheet parser (douceur) loops forever
   on a rule-level `;` that never reaches a block, so a malformed `<mj-style

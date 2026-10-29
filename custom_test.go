@@ -302,8 +302,8 @@ func TestWithComponentsRejectsInvalidRegistration(t *testing.T) {
 			name: "container declaring a head element",
 			renderer: mjmlgo.NewRenderer(mjmlgo.WithComponents(
 				childNamedComponent{
-					namedComponent: namedComponent{tag: "mj-panel"},
-					children:       []string{component.TitleTagName},
+					tag:      "mj-panel",
+					children: []string{component.TitleTagName},
 				},
 			)),
 			path:  []string{"mj-panel"},
@@ -313,8 +313,8 @@ func TestWithComponentsRejectsInvalidRegistration(t *testing.T) {
 			name: "container declaring an unknown element",
 			renderer: mjmlgo.NewRenderer(mjmlgo.WithComponents(
 				childNamedComponent{
-					namedComponent: namedComponent{tag: "mj-panel"},
-					children:       []string{"mj-nope"},
+					tag:      "mj-panel",
+					children: []string{"mj-nope"},
 				},
 			)),
 			path:  []string{"mj-panel"},
@@ -324,8 +324,8 @@ func TestWithComponentsRejectsInvalidRegistration(t *testing.T) {
 			name: "container declaring a layout element",
 			renderer: mjmlgo.NewRenderer(mjmlgo.WithComponents(
 				childNamedComponent{
-					namedComponent: namedComponent{tag: "mj-panel"},
-					children:       []string{component.SectionTagName},
+					tag:      "mj-panel",
+					children: []string{component.SectionTagName},
 				},
 			)),
 			path:  []string{"mj-panel"},

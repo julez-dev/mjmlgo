@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io"
 	"io/fs"
+	"maps"
 	"strings"
 
 	"github.com/julez-dev/mjmlgo/component"
@@ -165,9 +166,7 @@ func (r *Renderer) fontRegistry() map[string]string {
 	}
 
 	registry := make(map[string]string, len(r.fonts))
-	for name, href := range r.fonts {
-		registry[name] = href
-	}
+	maps.Copy(registry, r.fonts)
 
 	return registry
 }

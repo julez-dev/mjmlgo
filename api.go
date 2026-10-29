@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
+	"maps"
 	"os"
 	"path/filepath"
 	"strings"
@@ -72,9 +73,7 @@ func WithComments(keep bool) Option {
 // order of its own.
 func WithFonts(fonts map[string]string) Option {
 	registry := make(map[string]string, len(fonts))
-	for name, href := range fonts {
-		registry[name] = href
-	}
+	maps.Copy(registry, fonts)
 
 	return func(config *rendererConfig) {
 		// A nil map means the defaults; an explicit empty map replaces them

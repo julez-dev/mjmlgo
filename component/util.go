@@ -105,7 +105,7 @@ func (ia inlineAttributes) InlineString() string {
 			}
 		}
 
-		b.WriteString(fmt.Sprintf("%s=\"%s\" ", key, value))
+		fmt.Fprintf(&b, "%s=\"%s\" ", key, value)
 	}
 	return strings.TrimSpace(b.String())
 }

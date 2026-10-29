@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"maps"
 	"slices"
 	"strings"
 
@@ -172,7 +173,7 @@ func (m MJML) setAttributeDefaults(ctx *RenderContext, n *node.Node, parentMjCla
 func classAttributes(ctx *RenderContext, mjClasses string) AttributeMap {
 	combined := make(AttributeMap)
 
-	for _, name := range strings.Split(mjClasses, " ") {
+	for name := range strings.SplitSeq(mjClasses, " ") {
 		if name == "" {
 			continue
 		}
@@ -200,7 +201,7 @@ func classAttributes(ctx *RenderContext, mjClasses string) AttributeMap {
 func classDefaultsForTag(ctx *RenderContext, mjClasses, tagName string) AttributeMap {
 	combined := make(AttributeMap)
 
-	for _, name := range strings.Split(mjClasses, " ") {
+	for name := range strings.SplitSeq(mjClasses, " ") {
 		if name == "" {
 			continue
 		}
@@ -217,9 +218,7 @@ func classDefaultsForTag(ctx *RenderContext, mjClasses, tagName string) Attribut
 }
 
 func mergeAttributes(dst, src AttributeMap) {
-	for name, value := range src {
-		dst[name] = value
-	}
+	maps.Copy(dst, src)
 }
 
 func attributesToMap(attributes []xml.Attr) AttributeMap {

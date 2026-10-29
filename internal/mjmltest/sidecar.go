@@ -59,7 +59,7 @@ func Args(t testing.TB, fixture string) []string {
 
 	var args []string
 
-	for _, line := range strings.Split(string(raw), "\n") {
+	for line := range strings.SplitSeq(string(raw), "\n") {
 		line = strings.TrimSpace(line)
 		if line == "" || strings.HasPrefix(line, "#") {
 			continue

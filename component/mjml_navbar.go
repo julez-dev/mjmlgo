@@ -235,7 +235,7 @@ func (l MJMLNavbarLink) Render(ctx *RenderContext, w io.Writer, node *node.Node)
 	return nil
 }
 
-func (l MJMLNavbarLink) renderContent(ctx *RenderContext, w io.Writer, node *node.Node) {
+func (l MJMLNavbarLink) renderContent(_ *RenderContext, w io.Writer, node *node.Node) {
 	href, hasHref := node.GetAttributeValue("href")
 	if node.Parent != nil && node.Parent.Type == NavbarTagName {
 		if baseURL := node.Parent.GetAttributeValueDefault("base-url"); baseURL != "" {

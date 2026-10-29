@@ -295,7 +295,7 @@ func normalizeClass(val string) string {
 func normalizeStyle(val string) string {
 	declarations := make(map[string]string)
 
-	for _, declaration := range strings.Split(val, ";") {
+	for declaration := range strings.SplitSeq(val, ";") {
 		declaration = strings.TrimSpace(declaration)
 		if declaration == "" {
 			continue

@@ -49,8 +49,8 @@ func TestAllowsChildWithCustomComponents(t *testing.T) {
 
 	leaf := testComponent{tag: "mj-badge"}
 	parent := testChildComponent{
-		testComponent: testComponent{tag: "mj-panel"},
-		children:      []string{TextTagName},
+		tag:      "mj-panel",
+		children: []string{TextTagName},
 	}
 	ctx := contextWith(leaf, parent)
 
@@ -88,8 +88,8 @@ func TestAllowedChildListOfCustomComponents(t *testing.T) {
 
 	leaf := testComponent{tag: "mj-badge"}
 	parent := testChildComponent{
-		testComponent: testComponent{tag: "mj-panel"},
-		children:      []string{TextTagName, ImageTagName},
+		tag:      "mj-panel",
+		children: []string{TextTagName, ImageTagName},
 	}
 
 	assert.Equal(t, "none", allowedChildList(contextWith(leaf), leaf.Name()))
