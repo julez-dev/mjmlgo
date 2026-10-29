@@ -626,7 +626,7 @@ func BenchmarkRenderMJML(b *testing.B) {
 			}
 
 			// A fixture whose sidecar configures the renderer - keepComments,
-			// fonts, ignoreIncludes, printerSupport - must be measured with that
+			// fonts, allowIncludes, printerSupport - must be measured with that
 			// configuration, or the row describes a pipeline the fixture does
 			// not stand for.
 			if len(mjmltest.Args(b, fixture)) > 0 {

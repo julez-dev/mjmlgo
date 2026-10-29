@@ -141,7 +141,7 @@ func TestValidateDocumentAttributes(t *testing.T) {
 		value   string
 		wantErr bool
 	}{
-		// unitWithNegative is used exactly where MJML 4.18 uses it.
+		// unitWithNegative is used exactly where MJML 5.4 uses it.
 		{name: "text negative letter-spacing", tag: TextTagName, attr: "letter-spacing", value: "-1px"},
 		{name: "button negative letter-spacing", tag: ButtonTagName, attr: "letter-spacing", value: "-0.5em"},
 		{name: "navbar-link negative letter-spacing", tag: NavbarLinkTagName, attr: "letter-spacing", value: "-1px"},

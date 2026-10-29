@@ -10,7 +10,7 @@ import (
 )
 
 // MJMLCarousel renders mj-carousel. The markup and the generated
-// `mj-carousel-<id>` stylesheet follow mjml-carousel 4.18.0
+// `mj-carousel-<id>` stylesheet follow mjml-carousel 5.4.1
 // (node_modules/mjml-carousel/lib/Carousel.js): a downlevel-revealed
 // non-Outlook block holding one hidden radio per image, the optional
 // thumbnails and the images table, plus an Outlook-only fallback that shows the
@@ -127,7 +127,7 @@ func (c carousel) inherited() carouselAttributes {
 // thumbnailsWidth resolves the thumbnail width like MJML's thumbnailsWidth().
 //
 // MJML computes Math.min([this.context.parentWidth / children.length, 110]) but
-// nothing in MJML 4.18 ever puts parentWidth into the render context, so the
+// nothing in MJML 5.4 ever puts parentWidth into the render context, so the
 // expression always collapses to "110px" (lodash min ignores the NaN term).
 // An explicit tb-width always wins.
 func (c carousel) thumbnailsWidth() string {

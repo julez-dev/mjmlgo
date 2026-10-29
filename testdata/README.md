@@ -58,7 +58,7 @@ document renders, or fails with a `*component.Error`, and never hangs.
 ### Per-fixture reference flags (`<fixture>.cli-args`)
 
 Some features only show up under a non-default reference configuration
-(`keepComments`, `fonts`, `ignoreIncludes`, `printerSupport`). A fixture is
+(`keepComments`, `fonts`, `allowIncludes`, `printerSupport`). A fixture is
 rendered with reference flags by writing them to a sibling sidecar:
 `testdata/parity/printer-support.mjml.cli-args` configures
 `testdata/parity/printer-support.mjml`.
@@ -84,8 +84,15 @@ deliberately small:
 | --- | --- |
 | `-c.keepComments=<value>` | `WithComments` |
 | `-c.fonts=<json object>` | `WithFonts` |
-| `-c.ignoreIncludes=<value>` | `WithIgnoreIncludes` |
+| `-c.allowIncludes=<value>` | `WithoutIncludes`, when absent or false |
+| `-c.ignoreIncludes=<value>` | `WithoutIncludes`, when truthy |
 | `-c.printerSupport=<value>` | `WithPrinterSupport` |
+
+MJML 5 ignores `mj-include` unless it is told otherwise, so the harness renders a
+fixture **without** its includes unless the sidecar records
+`-c.allowIncludes=true`, which is what `parity/includes/` does. A fixture that
+needs its includes expanded has to say so; one that does not gets the reference
+default without asking.
 
 `-c.fonts` must be a JSON **object**. That is the only value the CLI turns into a
 registry: `null`, an empty value and `false` reach mjml-core as the string the
@@ -106,9 +113,10 @@ map has no order of its own.
 
 `--config.<name>=<value>` is accepted as well. The value semantics follow the
 reference CLI, which is not uniform: `keepComments` is off only for the literal
-`false`, while `ignoreIncludes` and `printerSupport` are handed to mjml-core as
-strings and every non-empty string is truthy - so `-c.printerSupport=false`
-*enables* the option in the reference run, and sidecars use `true`.
+`false`, `allowIncludes` is on only for the literal `true`, while `ignoreIncludes`
+and `printerSupport` are handed to mjml-core as strings and every non-empty string
+is truthy - so `-c.printerSupport=false` *enables* the option in the reference
+run, and sidecars use `true`.
 
 `keepComments` is the one option that changes the AST: the reference parser
 represents each author comment as an `mj-raw` node at its document position and
