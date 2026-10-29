@@ -596,9 +596,12 @@ func TestCustomContainerRejectsUndeclaredChild(t *testing.T) {
 }
 
 // rawTableComponent is a container that places its children directly in a table
-// body, the position where html.Parse foster-parents raw markup out of the table
-// unless the block is protected.
-type rawTableComponent struct{}
+// body. marked selects the helper that states that position in the markup
+// (RenderChildrenInTableBody) over the one that does not (RenderChildren), so a
+// test can render the same document through both.
+type rawTableComponent struct {
+	marked bool
+}
 
 func (rawTableComponent) Name() string { return "mj-raw-table" }
 
@@ -610,11 +613,18 @@ func (rawTableComponent) DefaultAttributes(*component.RenderContext) map[string]
 
 func (rawTableComponent) AllowedChildren() []string { return []string{component.RawTagName} }
 
-func (rawTableComponent) Render(ctx *component.RenderContext, w io.Writer, n *node.Node) error {
+func (c rawTableComponent) Render(ctx *component.RenderContext, w io.Writer, n *node.Node) error {
 	_, _ = io.WriteString(w, `<table class="raw-table"><tbody>`)
-	if err := component.RenderChildrenInTableBody(ctx, w, n); err != nil {
+
+	renderChildren := component.RenderChildren
+	if c.marked {
+		renderChildren = component.RenderChildrenInTableBody
+	}
+
+	if err := renderChildren(ctx, w, n); err != nil {
 		return err
 	}
+
 	_, err := io.WriteString(w, `</tbody></table>`)
 
 	return err
@@ -622,8 +632,10 @@ func (rawTableComponent) Render(ctx *component.RenderContext, w io.Writer, n *no
 
 // TestCustomContainerKeepsRawChildrenInPlace asserts a container that puts its
 // children in a table body keeps mj-raw content where the container placed it,
-// even when the inliner round-trips the document: RenderChildren marks the raw
-// block, so html.Parse cannot foster-parent it out of the table.
+// with an inline stylesheet in play, and that stating the position with the
+// raw-block markers or without them produces the same document: the markers are
+// transport, not a styling mechanism (the inline stage styles a raw block where it
+// stands).
 func TestCustomContainerKeepsRawChildrenInPlace(t *testing.T) {
 	t.Parallel()
 
@@ -632,19 +644,28 @@ func TestCustomContainerKeepsRawChildrenInPlace(t *testing.T) {
 		`<mj-raw-table><mj-raw><tr><td class="raw">raw</td></tr></mj-raw></mj-raw-table>` +
 		`</mj-column></mj-section></mj-body></mjml>`
 
-	rendered := renderWithComponents(t, document, rawTableComponent{})
+	marked := renderWithComponents(t, document, rawTableComponent{marked: true})
+	unmarked := renderWithComponents(t, document, rawTableComponent{})
 
-	// The inline stylesheet forces the HTML round-trip; the marker keeps the raw
-	// row inside the container's table, the inliner styles the block as a
-	// fragment there, and the marker itself is stripped.
-	assert.Contains(t, rendered,
+	assert.Equal(t, marked, unmarked, "the raw-child helper must not change the document")
+
+	// The raw row stays inside the container's table, and the inliner styles it
+	// where it stands.
+	assert.Contains(t, marked,
 		`<table class="raw-table"><tbody><tr><td class="raw" style="color:red;">raw</td></tr></tbody></table>`)
-	assert.NotContains(t, rendered, component.RawBlockStartMarker)
+
+	// The marker itself is stripped from the output.
+	assert.NotContains(t, marked, component.RawBlockStartMarker)
+	assert.NotContains(t, marked, component.RawBlockEndMarker)
 }
 
-// divContainerComponent is a container that wraps its children in a plain <div>:
-// no table body, so raw content there must not be marked as table-body content.
-type divContainerComponent struct{}
+// divContainerComponent is a container that wraps its children in a plain <div>.
+// marked selects the table-body helper over the plain one, so a test can render
+// the same document through both: the position is not a table body either way, and
+// the choice must not change the document.
+type divContainerComponent struct {
+	marked bool
+}
 
 func (divContainerComponent) Name() string { return "mj-div-box" }
 
@@ -658,20 +679,27 @@ func (divContainerComponent) DefaultAttributes(*component.RenderContext) map[str
 
 func (divContainerComponent) AllowedChildren() []string { return []string{component.RawTagName} }
 
-func (divContainerComponent) Render(ctx *component.RenderContext, w io.Writer, n *node.Node) error {
+func (c divContainerComponent) Render(ctx *component.RenderContext, w io.Writer, n *node.Node) error {
 	_, _ = io.WriteString(w, `<div class="wrap">`)
-	if err := component.RenderChildren(ctx, w, n); err != nil {
+
+	renderChildren := component.RenderChildren
+	if c.marked {
+		renderChildren = component.RenderChildrenInTableBody
+	}
+
+	if err := renderChildren(ctx, w, n); err != nil {
 		return err
 	}
+
 	_, err := io.WriteString(w, `</div>`)
 
 	return err
 }
 
 // TestCustomContainerRawOutsideTableIsNotMarked asserts a container that does not
-// use a table body renders raw content unmarked, so the inliner parses it in the
-// surrounding document instead of inventing table structure: a bare <td> must not
-// come back wrapped in a fabricated <tr> under the container's <div>.
+// use a table body renders raw content without fabricating table structure around
+// it, and that the helper it chooses does not change the result: a bare <td> must
+// not come back wrapped in an invented <tr> either way.
 func TestCustomContainerRawOutsideTableIsNotMarked(t *testing.T) {
 	t.Parallel()
 
@@ -681,6 +709,9 @@ func TestCustomContainerRawOutsideTableIsNotMarked(t *testing.T) {
 		`</mj-column></mj-section></mj-body></mjml>`
 
 	rendered := renderWithComponents(t, document, divContainerComponent{})
+	marked := renderWithComponents(t, document, divContainerComponent{marked: true})
+
+	assert.Equal(t, rendered, marked, "the raw-child helper must not change the document")
 
 	start := strings.Index(rendered, `<div class="wrap">`)
 	require.GreaterOrEqual(t, start, 0, "the container wrapper is rendered")

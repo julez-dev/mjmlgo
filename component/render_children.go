@@ -58,25 +58,24 @@ func IsContentTag(tag string) bool {
 // An mj-raw child is rendered verbatim, the way the built-in containers render raw
 // content outside a table body (mj-body, mj-head, mj-section, mj-wrapper,
 // mj-group, mj-accordion-element, mj-social and mj-navbar). A container whose
-// children sit directly inside a <tbody> must call RenderChildrenInTableBody
-// instead: there the raw block has to be marked, or the inliner foster-parents it
-// out of the table.
+// children sit directly inside a <tbody> calls RenderChildrenInTableBody instead,
+// which states that position in the markup with the raw-block markers.
 func RenderChildren(ctx *RenderContext, w io.Writer, n *node.Node) error {
 	return renderChildList(ctx, w, n, renderRawChild)
 }
 
 // RenderChildrenInTableBody is RenderChildren for a container whose children sit
 // directly inside a <tbody> - the position the built-in column and hero put their
-// children in. Raw content there is wrapped in the raw-block markers, which the
-// renderer strips from the finished document: without them html.Parse
-// foster-parents the block out of the table and re-serializes it. The inliner
-// parses a marked block as a fragment at its position, so the limits the built-in
-// containers have for raw content apply here too (a selector that needs an
-// ancestor outside the block cannot match inside it).
+// children in. It wraps an mj-raw child in the raw-block markers, which state that
+// position in the markup and are stripped by the renderer before the caller sees
+// the document.
 //
-// Use this only when the container really places its children in a table body.
-// Marking a block that sits anywhere else makes the fragment parse invent table
-// structure around it.
+// The markers are internal transport, not a styling mechanism: the inline stage
+// matches selectors against the emitted markup itself and styles a raw block where
+// it stands, so it needs no protection from any parser and both helpers produce
+// the same document. Choosing the wrong helper is therefore a documentation
+// mistake, not a styling difference - but use this one when your children really
+// do sit in a table body, because that is the contract the markers state.
 func RenderChildrenInTableBody(ctx *RenderContext, w io.Writer, n *node.Node) error {
 	return renderChildList(ctx, w, n, renderRawChildInTableBody)
 }

@@ -106,9 +106,9 @@ func TestRenderChildrenRendersNestedContainers(t *testing.T) {
 }
 
 // TestRenderChildrenRendersRawChildren asserts mj-raw children are emitted
-// verbatim, like the built-in containers render raw content outside a table body:
-// no raw-block markers, so the inliner can style the content and, just as
-// important, does not parse it in table-body mode at a position with no table.
+// verbatim, like the built-in containers render raw content outside a table body,
+// and that this variant writes no raw-block markers: the container's children do
+// not sit in a table body, so there is no position to state.
 func TestRenderChildrenRendersRawChildren(t *testing.T) {
 	t.Parallel()
 
@@ -126,8 +126,10 @@ func TestRenderChildrenRendersRawChildren(t *testing.T) {
 }
 
 // TestRenderChildrenInTableBodyMarksRawChildren asserts the table-body variant
-// wraps mj-raw children in the raw-block markers, which is what keeps the
-// inliner from foster-parenting them out of a <tbody>.
+// states the children's position by wrapping an mj-raw child in the raw-block
+// markers. They are internal transport that the renderer strips; the inline stage
+// styles the block in place with or without them (custom_test.go pins that the two
+// helpers produce the same document).
 func TestRenderChildrenInTableBodyMarksRawChildren(t *testing.T) {
 	t.Parallel()
 

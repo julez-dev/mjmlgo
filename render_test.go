@@ -15,7 +15,6 @@ import (
 	"github.com/julez-dev/mjmlgo/internal/mjmltest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/net/html"
 )
 
 // parityDir holds the fixtures that must render identically to MJML.
@@ -368,11 +367,11 @@ func TestMJMLInvalid(t *testing.T) {
 	}
 }
 
-// TestRenderWithoutInlineStylesKeepsMarkup asserts the fast path: a document
-// with neither <mj-style inline> nor <mj-html-attributes> is not round-tripped
-// through the HTML parser, but still normalizes to the same tree as the version
-// the round trip would produce.
-func TestRenderWithoutInlineStylesKeepsMarkup(t *testing.T) {
+// TestRenderWithoutInlineStylesKeepsEmittedMarkup asserts a document with neither
+// <mj-style inline> nor <mj-html-attributes> is not run through the inline stage at
+// all: its markup is emitted as-is, in the emitted formatting, so nothing is
+// re-serialized for a document that has nothing to inline.
+func TestRenderWithoutInlineStylesKeepsEmittedMarkup(t *testing.T) {
 	t.Parallel()
 
 	for _, fixture := range []string{"simple.mjml", "layout.mjml", "social.mjml"} {
@@ -382,22 +381,13 @@ func TestRenderWithoutInlineStylesKeepsMarkup(t *testing.T) {
 		rendered, err := RenderMJML(bytes.NewReader(input))
 		require.NoError(t, err)
 
-		// The inliner skips documents it does not have to touch, so the round
-		// trip is written out here: this test is what keeps the skipped
-		// parse/render from hiding a formatting difference.
-		parsed, err := html.Parse(strings.NewReader(rendered))
-		require.NoError(t, err)
-
-		var roundTripped strings.Builder
-		require.NoError(t, html.Render(&roundTripped, parsed))
-
-		want, err := mjmltest.ParseHTML(roundTripped.String())
-		require.NoError(t, err)
-
-		got, err := mjmltest.ParseHTML(rendered)
-		require.NoError(t, err)
-
-		assert.Empty(t, mjmltest.Compare(want, got), "%s: fast path changed the normalized document", fixture)
+		// The document the components emitted starts with the template's own
+		// doctype and writes its void elements as the components did; a
+		// re-serialization would uppercase the doctype and close them with "/>".
+		assert.True(t, strings.HasPrefix(rendered, "<!doctype html>\n<html "),
+			"%s: the emitted doctype was rewritten:\n%s", fixture, rendered[:min(len(rendered), 120)])
+		assert.Contains(t, rendered, `<meta http-equiv="X-UA-Compatible" content="IE=edge">`,
+			"%s: a void element was re-serialized", fixture)
 	}
 }
 
