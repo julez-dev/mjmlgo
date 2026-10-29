@@ -1,9 +1,9 @@
 # mjmlgo
 
 A pure-Go renderer for [MJML](https://mjml.io), the email markup language. It
-turns an `.mjml` document into the HTML an email client can display, producing
-the same document as the reference JavaScript implementation — without Node.js, a
-browser, or CGO at runtime.
+targets **MJML 4** (currently 4.18.0): an `.mjml` document becomes the HTML an
+email client can display, the same document the reference JavaScript
+implementation produces — without Node.js, a browser, or CGO at runtime.
 
 ```go
 var out bytes.Buffer
@@ -32,7 +32,9 @@ There is also a command line compiler, [covered below](#command-line).
 - **Concurrency-safe renderers.** `Renderer` holds configuration only; all
   per-render state lives in the call.
 
-Targets MJML **4.18.0**. Pre-1.0: the public surface may still change.
+Pinning one release is deliberate: `package.json` fixes the reference version and
+the tests assert it, so the suite never compares against a different one by
+accident. Pre-1.0: the public surface may still change.
 
 ## Install
 
