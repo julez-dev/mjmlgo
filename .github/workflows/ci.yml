@@ -8,18 +8,23 @@ on:
 permissions:
   contents: read
 
+env:
+  # Pinned so a lint failure is reproducible and not caused by a tool upgrade.
+  STATICCHECK_VERSION: "2026.2.2"
+  GOPLS_VERSION: "v0.24.0"
+
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
           cache: true
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 20
           cache: npm
@@ -40,6 +45,23 @@ jobs:
       - name: go vet
         run: go vet ./...
 
+      - name: staticcheck
+        run: |
+          go install "honnef.co/go/tools/cmd/staticcheck@${STATICCHECK_VERSION}"
+          "$(go env GOPATH)/bin/staticcheck" ./...
+
+      # gopls carries analyzers staticcheck does not have, notably `writestring`,
+      # which flags `b.WriteString(a + b)` for writers that distribute over the
+      # concatenation. It exits 0 even when it reports, so the output is the gate.
+      - name: gopls check
+        run: |
+          go install "golang.org/x/tools/gopls@${GOPLS_VERSION}"
+          diagnostics=$("$(go env GOPATH)/bin/gopls" check $(git ls-files '*.go'))
+          if [ -n "$diagnostics" ]; then
+            echo "$diagnostics"
+            exit 1
+          fi
+
       - name: Tests (unit, parity against MJML, invalid input)
         run: go test ./... -count=1 -coverpkg=./... -coverprofile=coverage.out -covermode=atomic
 
@@ -47,7 +69,7 @@ jobs:
         run: go tool cover -func=coverage.out | tail -1
 
       - name: Upload coverage profile
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: coverage
           path: coverage.out
@@ -63,7 +85,7 @@ jobs:
         run: go test ./ -run XXX -bench . -benchmem -count=1 | tee benchmarks.txt
 
       - name: Upload benchmark results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: benchmarks
           path: benchmarks.txt

@@ -1,6 +1,6 @@
 module github.com/julez-dev/mjmlgo
 
-go 1.24.0
+go 1.27.0
 
 require (
 	github.com/aymerick/douceur v0.2.0

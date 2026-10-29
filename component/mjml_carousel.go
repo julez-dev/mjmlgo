@@ -161,7 +161,9 @@ func (c carousel) renderRadios() string {
 			attributes["checked"] = "checked"
 		}
 
-		b.WriteString("<input " + attributes.InlineString() + " />")
+		b.WriteString("<input ")
+		b.WriteString(attributes.InlineString())
+		b.WriteString(" />")
 	}
 
 	return b.String()
@@ -172,13 +174,17 @@ func (c carousel) renderRadios() string {
 func (c carousel) renderContent(ctx *RenderContext) string {
 	var b strings.Builder
 
-	b.WriteString(`<div class="mj-carousel-content mj-carousel-` + c.id + `-content" style="` + inlineStyle{
+	b.WriteString(`<div class="mj-carousel-content mj-carousel-`)
+	b.WriteString(c.id)
+	b.WriteString(`-content" style="`)
+	b.WriteString(inlineStyle{
 		{Property: "display", Value: "table"},
 		{Property: "width", Value: "100%"},
 		{Property: "table-layout", Value: "fixed"},
 		{Property: "text-align", Value: "center"},
 		{Property: "font-size", Value: "0px"},
-	}.InlineString() + `">`)
+	}.InlineString())
+	b.WriteString(`">`)
 
 	b.WriteString(c.renderThumbnails())
 	b.WriteString(c.renderCarousel(ctx))
@@ -211,14 +217,18 @@ func (c carousel) renderThumbnails() string {
 func (c carousel) renderCarousel(ctx *RenderContext) string {
 	var b strings.Builder
 
-	b.WriteString(`<table style="` + inlineStyle{
+	b.WriteString(`<table style="`)
+	b.WriteString(inlineStyle{
 		{Property: "caption-side", Value: "top"},
 		{Property: "display", Value: "table-caption"},
 		{Property: "table-layout", Value: "fixed"},
 		{Property: "width", Value: "100%"},
-	}.InlineString() + `" border="0" cellpadding="0" cellspacing="0" width="100%" role="presentation" class="mj-carousel-main"><tbody><tr>`)
+	}.InlineString())
+	b.WriteString(`" border="0" cellpadding="0" cellspacing="0" width="100%" role="presentation" class="mj-carousel-main"><tbody><tr>`)
 	b.WriteString(c.renderControls("previous", c.node.GetAttributeValueDefault("left-icon")))
-	b.WriteString(`<td style="` + inlineStyle{{Property: "padding", Value: "0px"}}.InlineString() + `">`)
+	b.WriteString(`<td style="`)
+	b.WriteString(inlineStyle{{Property: "padding", Value: "0px"}}.InlineString())
+	b.WriteString(`">`)
 	b.WriteString(`<div class="mj-carousel-images">`)
 
 	inherited := c.inherited()
@@ -250,18 +260,36 @@ func (c carousel) renderControls(direction, icon string) string {
 
 	var b strings.Builder
 
-	b.WriteString(`<td class="mj-carousel-` + c.id + `-icons-cell" style="` + style.InlineString() + `">`)
-	b.WriteString(`<div class="mj-carousel-` + direction + `-icons" style="` + inlineStyle{
+	b.WriteString(`<td class="mj-carousel-`)
+	b.WriteString(c.id)
+	b.WriteString(`-icons-cell" style="`)
+	b.WriteString(style.InlineString())
+	b.WriteString(`">`)
+	b.WriteString(`<div class="mj-carousel-`)
+	b.WriteString(direction)
+	b.WriteString(`-icons" style="`)
+	b.WriteString(inlineStyle{
 		{Property: "display", Value: "none"},
 		{Property: "mso-hide", Value: "all"},
-	}.InlineString() + `">`)
+	}.InlineString())
+	b.WriteString(`">`)
 
 	for i := range c.images {
 		number := strconv.Itoa(i + 1)
 
-		b.WriteString(`<label for="mj-carousel-` + c.id + `-radio-` + number +
-			`" class="mj-carousel-` + direction + ` mj-carousel-` + direction + `-` + number + `">`)
-		b.WriteString(`<img ` + inlineAttributes{
+		b.WriteString(`<label for="mj-carousel-`)
+		b.WriteString(c.id)
+		b.WriteString(`-radio-`)
+		b.WriteString(number)
+		b.WriteString(`" class="mj-carousel-`)
+		b.WriteString(direction)
+		b.WriteString(` mj-carousel-`)
+		b.WriteString(direction)
+		b.WriteString(`-`)
+		b.WriteString(number)
+		b.WriteString(`">`)
+		b.WriteString(`<img `)
+		b.WriteString(inlineAttributes{
 			"src": icon,
 			"alt": direction,
 			"style": inlineStyle{
@@ -270,7 +298,8 @@ func (c carousel) renderControls(direction, icon string) string {
 				{Property: "height", Value: "auto"},
 			}.InlineString(),
 			"width": strconv.Itoa(carouselIntValue(iconWidth)),
-		}.InlineString() + ` />`)
+		}.InlineString())
+		b.WriteString(` />`)
 		b.WriteString(`</label>`)
 	}
 
@@ -345,10 +374,11 @@ func (c carousel) headStyle() string {
 		"      -moz-user-select: none;\n" +
 		"      user-select: none;\n" +
 		"    }\n\n")
-	b.WriteString("    .mj-carousel-" + c.id + "-icons-cell {\n" +
-		"      display: table-cell !important;\n" +
-		"      width: " + iconWidth + " !important;\n" +
-		"    }\n\n")
+	b.WriteString("    .mj-carousel-")
+	b.WriteString(c.id)
+	b.WriteString("-icons-cell {\n      display: table-cell !important;\n      width: ")
+	b.WriteString(iconWidth)
+	b.WriteString(" !important;\n    }\n\n")
 	b.WriteString("    .mj-carousel-radio,\n" +
 		"    .mj-carousel-next,\n" +
 		"    .mj-carousel-previous {\n" +
@@ -380,9 +410,9 @@ func (c carousel) headStyle() string {
 		"    }\n\n")
 
 	b.WriteString(carouselRule(carouselSelectors(count, hoveredImage), "display: none !important;"))
-	b.WriteString("    .mj-carousel-thumbnail:hover {\n" +
-		"      border-color: " + hoverBorderColor + " !important;\n" +
-		"    }\n\n")
+	b.WriteString("    .mj-carousel-thumbnail:hover {\n      border-color: ")
+	b.WriteString(hoverBorderColor)
+	b.WriteString(" !important;\n    }\n\n")
 	b.WriteString(carouselRule(carouselSelectors(count, hoveredThumbnail), "display: block !important;"))
 
 	// Fallback: clients without radio input support (noinput) keep showing the
@@ -395,13 +425,15 @@ func (c carousel) headStyle() string {
 
 	// MJML emits this media query verbatim, including the invalid "screen yahoo"
 	// condition, which every client ignores.
-	b.WriteString("    @media screen yahoo {\n" +
-		"      .mj-carousel-" + c.id + "-icons-cell,\n" +
-		"      .mj-carousel-previous-icons,\n" +
-		"      .mj-carousel-next-icons {\n        display: none !important;\n      }\n\n" +
-		"      .mj-carousel-" + c.id + "-radio-1:checked " + strings.Repeat("+ *", count-1) +
-		"+ .mj-carousel-content .mj-carousel-" + c.id + "-thumbnail-1 {\n" +
-		"        border-color: transparent;\n      }\n    }\n    ")
+	b.WriteString("    @media screen yahoo {\n      .mj-carousel-")
+	b.WriteString(c.id)
+	b.WriteString("-icons-cell,\n      .mj-carousel-previous-icons,\n      .mj-carousel-next-icons {\n        display: none !important;\n      }\n\n      .mj-carousel-")
+	b.WriteString(c.id)
+	b.WriteString("-radio-1:checked ")
+	b.WriteString(strings.Repeat("+ *", count-1))
+	b.WriteString("+ .mj-carousel-content .mj-carousel-")
+	b.WriteString(c.id)
+	b.WriteString("-thumbnail-1 {\n        border-color: transparent;\n      }\n    }\n    ")
 
 	return b.String()
 }

@@ -300,19 +300,6 @@ func newElementNode(tokenizer *html.Tokenizer) *html.Node {
 	}
 }
 
-// popToElement closes every open element up to and including the nearest one
-// named name and returns the remaining stack. An end tag without a matching open
-// element is ignored.
-func popToElement(stack []*html.Node, name string) []*html.Node {
-	for i := len(stack) - 1; i > 0; i-- {
-		if stack[i].Data == name {
-			return stack[:i]
-		}
-	}
-
-	return stack
-}
-
 // write serializes the document: the emitted markup with the start tag of every
 // element in changed replaced by a re-serialization of its current attributes.
 func (d *emittedDocument) write(w io.Writer, changed map[*html.Node]struct{}) error {

@@ -53,8 +53,12 @@ func TestCompare(t *testing.T) {
 		got.WriteString("<html><body>")
 
 		for i := range MaxMismatches + 10 {
-			want.WriteString(`<div id="` + strconv.Itoa(i) + `" class="want"></div>`)
-			got.WriteString(`<div id="` + strconv.Itoa(i) + `" class="got"></div>`)
+			want.WriteString(`<div id="`)
+			want.WriteString(strconv.Itoa(i))
+			want.WriteString(`" class="want"></div>`)
+			got.WriteString(`<div id="`)
+			got.WriteString(strconv.Itoa(i))
+			got.WriteString(`" class="got"></div>`)
 		}
 
 		want.WriteString("</body></html>")

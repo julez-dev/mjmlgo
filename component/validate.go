@@ -18,9 +18,6 @@ var (
 	rgbaRegex = regexp.MustCompile(`(?i)rgba\(\d{1,3},\s?\d{1,3},\s?\d{1,3},\s?\d(\.\d{1,3})?\)`)
 	rgbRegex  = regexp.MustCompile(`(?i)rgb\(\d{1,3},\s?\d{1,3},\s?\d{1,3}\)`)
 	hexRegex  = regexp.MustCompile(`^#([0-9a-fA-F]{3}){1,2}$`)
-
-	// Regex for expanding shorthand hex values
-	shorthandHexRegex = regexp.MustCompile(`^#([0-9a-fA-F])([0-9a-fA-F])([0-9a-fA-F])$`)
 )
 
 var cssColorNames = map[string]struct{}{

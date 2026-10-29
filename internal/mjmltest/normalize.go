@@ -375,24 +375,47 @@ func writeCanonical(b *strings.Builder, n *Node, depth int) {
 
 	switch n.Kind {
 	case KindDocument:
-		b.WriteString(indent + "#document\n")
+		b.WriteString(indent)
+		b.WriteString("#document\n")
 	case KindDoctype:
-		b.WriteString(indent + "<!doctype " + n.Text + ">\n")
+		b.WriteString(indent)
+		b.WriteString("<!doctype ")
+		b.WriteString(n.Text)
+		b.WriteString(">\n")
 	case KindText:
-		b.WriteString(indent + "#text " + n.Text + "\n")
+		b.WriteString(indent)
+		b.WriteString("#text ")
+		b.WriteString(n.Text)
+		b.WriteString("\n")
 	case KindConditional:
-		b.WriteString(indent + "#conditional [if " + n.Name + "]\n")
+		b.WriteString(indent)
+		b.WriteString("#conditional [if ")
+		b.WriteString(n.Name)
+		b.WriteString("]\n")
 	case KindComment:
-		b.WriteString(indent + "#comment <" + n.Text + ">\n")
+		b.WriteString(indent)
+		b.WriteString("#comment <")
+		b.WriteString(n.Text)
+		b.WriteString(">\n")
 	case KindElement:
-		b.WriteString(indent + "<" + n.Name)
+		b.WriteString(indent)
+		b.WriteString("<")
+		b.WriteString(n.Name)
 
 		for _, attr := range n.Attrs {
-			b.WriteString(" " + attr.Key + `="` + attr.Val + `"`)
+			b.WriteString(" ")
+			b.WriteString(attr.Key)
+			b.WriteString(`="`)
+			b.WriteString(attr.Val)
+			b.WriteString(`"`)
 		}
 
 		if n.Sheet != "" {
-			b.WriteString(">\n" + indent + "  #sheet " + n.Sheet + "\n")
+			b.WriteString(">\n")
+			b.WriteString(indent)
+			b.WriteString("  #sheet ")
+			b.WriteString(n.Sheet)
+			b.WriteString("\n")
 			return
 		}
 
@@ -449,7 +472,8 @@ func writeCanonicalRules(b *strings.Builder, rules []*css.Rule) {
 			b.WriteString(strings.ToLower(normalizeText(rule.Name)))
 
 			if prelude := normalizeCSSValue(rule.Prelude); prelude != "" {
-				b.WriteString(" " + prelude)
+				b.WriteString(" ")
+				b.WriteString(prelude)
 			}
 
 			switch {

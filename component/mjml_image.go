@@ -140,12 +140,14 @@ func (i MJMLImage) renderImage(ctx *RenderContext, w io.Writer, n *node.Node, im
 		}
 
 		img = fmt.Sprintf("<a %s>%s</a>\n", aAttr.InlineString(), img)
-		_, _ = io.WriteString(w, img)
-		return nil
+		_, err = io.WriteString(w, img)
+
+		return err
 	}
 
 	_, err = io.WriteString(w, img)
-	return nil
+
+	return err
 }
 
 func (i MJMLImage) getStyles(ctx *RenderContext, n *node.Node) (map[string]inlineStyle, error) {

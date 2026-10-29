@@ -219,6 +219,15 @@ limits are gone.
   `component.RenderContext`; ADR-0001..0003 record the reference-CLI oracle,
   hard validation and compact output. `internal/` holds only the parity harness,
   and no public package imports it.
+- **toolchain and lint gates**: `go.mod` targets Go 1.27, and CI runs pinned
+  `staticcheck` and `gopls check` in addition to gofmt/vet. `gopls` carries
+  analyzers staticcheck does not, notably `writestring`; the 22 reports it made
+  (carousel, the parity normalizer) are fixed by writing the parts of a
+  concatenation separately, which removed 13 and 10 allocations per render for
+  the two carousel fixtures with byte-identical output. staticcheck's three
+  findings were a discarded write error in `mjml_image.go` (now returned) and two
+  dead declarations left by earlier work.
+
 - **inliner hang fixed (issue #10)**: the stylesheet parser (douceur) loops forever
   on a rule-level `;` that never reaches a block, so a malformed `<mj-style
   inline>` body hung the renderer where the reference renders. `sanitizeInlineCSS`
