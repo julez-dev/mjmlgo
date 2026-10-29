@@ -3,6 +3,7 @@ package mjmlgo_test
 import (
 	"context"
 	"fmt"
+	"io"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -49,22 +50,22 @@ func TestEntryPointsShareOnePipeline(t *testing.T) {
 			input, err := os.ReadFile(fixture)
 			require.NoError(t, err)
 
-			want, err := mjmlgo.Render(input)
+			want, err := renderPlain(input)
 			require.NoError(t, err)
 
-			got, err := renderer.Render(ctx, input)
+			got, err := renderMemory(renderer, ctx, input)
 			require.NoError(t, err)
 			assert.Equal(t, want, got)
 
 			fsys := fixtureFS(t, name)
 
-			fromFS, err := renderer.RenderFS(ctx, fsys, name)
+			fromFS, err := renderFrom(renderer, ctx, fsys, name)
 			require.NoError(t, err)
 			assert.Equal(t, want, fromFS)
 
-			fromDisk, err := renderer.RenderFile(ctx, fixture)
-			require.NoError(t, err)
-			assert.Equal(t, want, fromDisk)
+			var fromDisk strings.Builder
+			require.NoError(t, renderer.RenderFile(ctx, &fromDisk, fixture))
+			assert.Equal(t, want, fromDisk.String())
 		})
 	}
 }
@@ -72,9 +73,21 @@ func TestEntryPointsShareOnePipeline(t *testing.T) {
 func TestRendererNilFS(t *testing.T) {
 	t.Parallel()
 
-	_, err := mjmlgo.NewRenderer().RenderFS(context.Background(), nil, "test.mjml")
+	err := mjmlgo.NewRenderer().RenderFS(context.Background(), io.Discard, nil, "test.mjml")
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "nil fs.FS")
+}
+
+func TestRendererNilWriter(t *testing.T) {
+	t.Parallel()
+
+	err := mjmlgo.NewRenderer().Render(context.Background(), nil, []byte(`<mjml><mj-body /></mjml>`))
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "nil io.Writer")
+
+	err = mjmlgo.Render(nil, []byte(`<mjml><mj-body /></mjml>`))
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "nil io.Writer")
 }
 
 func TestRendererCancelledContext(t *testing.T) {
@@ -85,10 +98,10 @@ func TestRendererCancelledContext(t *testing.T) {
 
 	renderer := mjmlgo.NewRenderer()
 
-	_, err := renderer.RenderFS(ctx, fixtureFS(t, "simple.mjml"), "simple.mjml")
+	err := renderer.RenderFS(ctx, io.Discard, fixtureFS(t, "simple.mjml"), "simple.mjml")
 	require.ErrorIs(t, err, context.Canceled)
 
-	_, err = renderer.Render(ctx, []byte(`<mjml><mj-body /></mjml>`))
+	err = renderer.Render(ctx, io.Discard, []byte(`<mjml><mj-body /></mjml>`))
 	require.ErrorIs(t, err, context.Canceled)
 }
 
@@ -151,7 +164,7 @@ func TestRendererConcurrentUse(t *testing.T) {
 
 	for range 8 {
 		wg.Go(func() {
-			if _, err := renderer.RenderFS(context.Background(), fsys, "navbar.mjml"); err != nil {
+			if err := renderer.RenderFS(context.Background(), io.Discard, fsys, "navbar.mjml"); err != nil {
 				errMu.Lock()
 				errs = append(errs, err)
 				errMu.Unlock()
@@ -163,12 +176,32 @@ func TestRendererConcurrentUse(t *testing.T) {
 	assert.Empty(t, errs)
 }
 
-// renderFrom renders name out of fsys and converts the result for assertions
+// renderFrom renders name out of fsys and collects the result for assertions
 // written against HTML strings.
 func renderFrom(renderer *mjmlgo.Renderer, ctx context.Context, fsys fs.FS, name string) (string, error) {
-	rendered, err := renderer.RenderFS(ctx, fsys, name)
+	var out strings.Builder
 
-	return string(rendered), err
+	err := renderer.RenderFS(ctx, &out, fsys, name)
+
+	return out.String(), err
+}
+
+// renderMemory renders an in-memory document with renderer.
+func renderMemory(renderer *mjmlgo.Renderer, ctx context.Context, src []byte) (string, error) {
+	var out strings.Builder
+
+	err := renderer.Render(ctx, &out, src)
+
+	return out.String(), err
+}
+
+// renderPlain renders src through the package-level entry point.
+func renderPlain(src []byte) (string, error) {
+	var out strings.Builder
+
+	err := mjmlgo.Render(&out, src)
+
+	return out.String(), err
 }
 
 // renderSource renders an in-memory document with renderer and returns the
@@ -257,7 +290,7 @@ func TestWithIgnoreIncludes(t *testing.T) {
 
 	fsys := fstest.MapFS{"doc.mjml": &fstest.MapFile{Data: []byte(document)}}
 
-	_, err := mjmlgo.NewRenderer().RenderFS(context.Background(), fsys, "doc.mjml")
+	err := mjmlgo.NewRenderer().RenderFS(context.Background(), io.Discard, fsys, "doc.mjml")
 	require.Error(t, err, "without ignoreIncludes the missing include is an error")
 
 	html, err := renderFrom(mjmlgo.NewRenderer(mjmlgo.WithIgnoreIncludes(true)),

@@ -19,11 +19,12 @@ var ErrUnknownStartingTag = errors.New("mjml: unknown starting tag")
 // shared instance is safe for concurrent use.
 var defaultRenderer = NewRenderer()
 
-// Render renders the MJML document in src with default options and returns the
-// resulting HTML. It is the zero-configuration entry point; use NewRenderer for
-// any option and Renderer.RenderFS for documents that use mj-include.
-func Render(src []byte) ([]byte, error) {
-	return defaultRenderer.Render(context.Background(), src)
+// Render renders the MJML document in src with default options and writes the
+// resulting HTML to w. It is the zero-configuration entry point; use
+// NewRenderer for any option and Renderer.RenderFS for documents that use
+// mj-include.
+func Render(w io.Writer, src []byte) error {
+	return defaultRenderer.Render(context.Background(), w, src)
 }
 
 // renderDocument is the single rendering pipeline shared by every entry point.

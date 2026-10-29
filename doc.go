@@ -15,13 +15,15 @@
 // and errors.As unwraps through wrapping, so both inspection styles keep
 // working. The kinds are a closed set; see the ErrorKind constants.
 //
-// Use Render for a document that needs no configuration, or NewRenderer to
-// configure a renderer and Renderer.Render to render from memory:
+// Render writes the HTML for an in-memory document to a writer, and
+// NewRenderer configures a renderer first, for example to drop author
+// comments:
 //
-//	html, err := mjmlgo.Render(src)
+//	var out strings.Builder
+//	err := mjmlgo.Render(&out, src)
 //
 //	renderer := mjmlgo.NewRenderer(mjmlgo.WithComments(false))
-//	html, err := renderer.Render(ctx, src)
+//	err = renderer.Render(ctx, &out, src)
 //
 // A document that uses mj-include needs a filesystem: Renderer.RenderFS reads
 // the top-level document through an fs.FS and resolves includes against it, so

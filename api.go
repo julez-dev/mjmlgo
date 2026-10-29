@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"io/fs"
 	"maps"
 	"os"
@@ -15,8 +16,9 @@ import (
 )
 
 var (
-	errNilFS  = errors.New("mjml: nil fs.FS")
-	errNilCtx = errors.New("mjml: nil context")
+	errNilFS     = errors.New("mjml: nil fs.FS")
+	errNilCtx    = errors.New("mjml: nil context")
+	errNilWriter = errors.New("mjml: nil io.Writer")
 )
 
 // rendererConfig collects the configuration applied by Option values.
@@ -161,65 +163,66 @@ func NewRenderer(opts ...Option) *Renderer {
 	}
 }
 
-// Render renders the MJML document in src and returns the resulting HTML.
+// Render renders the MJML document in src and writes the resulting HTML to w.
 // Cancellation is honoured before any work starts and between stages.
 //
 // src is the whole document, so the renderer never touches the filesystem on
 // its own and documents with mj-include are rejected with ErrIncludeNoFS: use
 // RenderFS to resolve includes against a filesystem.
-func (r *Renderer) Render(ctx context.Context, src []byte) ([]byte, error) {
-	rendered, err := r.renderSource(ctx, nil, "", src)
-	if err != nil {
-		return nil, err
-	}
-
-	return []byte(rendered), nil
+func (r *Renderer) Render(ctx context.Context, w io.Writer, src []byte) error {
+	return r.renderSource(ctx, w, nil, "", src)
 }
 
-// RenderFS reads the MJML document name from fsys, renders it and returns the
-// resulting HTML. Cancellation is honoured before any work starts.
+// RenderFS reads the MJML document name from fsys, renders it and writes the
+// resulting HTML to w. Cancellation is honoured before any work starts.
 //
 // The document is read through fsys, so rendering never touches the filesystem
 // on its own. mj-include is resolved through the same fsys: include paths are
 // relative to the directory of the file that contains them, and include cycles,
 // paths escaping the filesystem root and unknown include types are hard errors.
-func (r *Renderer) RenderFS(ctx context.Context, fsys fs.FS, name string) ([]byte, error) {
+func (r *Renderer) RenderFS(ctx context.Context, w io.Writer, fsys fs.FS, name string) error {
 	if fsys == nil {
-		return nil, errNilFS
+		return errNilFS
 	}
 
 	input, err := fs.ReadFile(fsys, name)
 	if err != nil {
-		return nil, fmt.Errorf("mjml: read %s: %w", name, err)
+		return fmt.Errorf("mjml: read %s: %w", name, err)
 	}
 
-	rendered, err := r.renderSource(ctx, fsys, name, input)
-	if err != nil {
-		return nil, err
-	}
-
-	return []byte(rendered), nil
+	return r.renderSource(ctx, w, fsys, name, input)
 }
 
-// RenderFile renders the MJML document at path and returns the resulting HTML.
-// The document's directory is the root passed to the renderer, so relative
+// RenderFile renders the MJML document at path and writes the resulting HTML to
+// w. The document's directory is the root passed to the renderer, so relative
 // references stay scoped to it.
-func (r *Renderer) RenderFile(ctx context.Context, path string) ([]byte, error) {
-	return r.RenderFS(ctx, os.DirFS(filepath.Dir(path)), filepath.Base(path))
+func (r *Renderer) RenderFile(ctx context.Context, w io.Writer, path string) error {
+	return r.RenderFS(ctx, w, os.DirFS(filepath.Dir(path)), filepath.Base(path))
 }
 
-// renderSource applies the context checks every entry point shares and runs
-// the pipeline.
-func (r *Renderer) renderSource(ctx context.Context, fsys fs.FS, name string, src []byte) (string, error) {
+// renderSource applies the checks every entry point shares, runs the pipeline
+// and writes its result out in one go.
+func (r *Renderer) renderSource(ctx context.Context, w io.Writer, fsys fs.FS, name string, src []byte) error {
 	if ctx == nil {
-		return "", errNilCtx
+		return errNilCtx
 	}
 
 	if err := ctx.Err(); err != nil {
-		return "", err
+		return err
 	}
 
-	return r.renderDocument(ctx, fsys, name, bytes.NewReader(src))
+	if w == nil {
+		return errNilWriter
+	}
+
+	rendered, err := r.renderDocument(ctx, fsys, name, bytes.NewReader(src))
+	if err != nil {
+		return err
+	}
+
+	_, err = io.WriteString(w, rendered)
+
+	return err
 }
 
 // idFunc returns the generator to install on a render context. A nil renderer

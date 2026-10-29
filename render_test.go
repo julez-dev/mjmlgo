@@ -2,6 +2,7 @@ package mjmlgo
 
 import (
 	"context"
+	"io"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -117,9 +118,11 @@ func renderFixture(t testing.TB, fixture string) (string, error) {
 
 	fsys := os.DirFS(filepath.Dir(fixture))
 
-	rendered, err := rendererFor(t, fixture).RenderFS(context.Background(), fsys, filepath.Base(fixture))
+	var out strings.Builder
 
-	return string(rendered), err
+	err := rendererFor(t, fixture).RenderFS(context.Background(), &out, fsys, filepath.Base(fixture))
+
+	return out.String(), err
 }
 
 // renderConfiguredSource renders fixture's source with the configuration its
@@ -131,9 +134,11 @@ func renderConfiguredSource(t testing.TB, fixture string, source []byte) (string
 	name := filepath.Base(fixture)
 	fsys := fstest.MapFS{name: &fstest.MapFile{Data: source}}
 
-	rendered, err := rendererFor(t, fixture).RenderFS(context.Background(), fsys, name)
+	var out strings.Builder
 
-	return string(rendered), err
+	err := rendererFor(t, fixture).RenderFS(context.Background(), &out, fsys, name)
+
+	return out.String(), err
 }
 
 // renderPlain renders src through the package-level entry point, the way a
@@ -141,9 +146,11 @@ func renderConfiguredSource(t testing.TB, fixture string, source []byte) (string
 func renderPlain(t testing.TB, src string) (string, error) {
 	t.Helper()
 
-	rendered, err := Render([]byte(src))
+	var out strings.Builder
 
-	return string(rendered), err
+	err := Render(&out, []byte(src))
+
+	return out.String(), err
 }
 
 func formatMismatches(mismatches []mjmltest.Mismatch) string {
@@ -591,9 +598,7 @@ func BenchmarkRenderMJML(b *testing.B) {
 			}
 
 			render := func() error {
-				_, err := Render(input)
-
-				return err
+				return Render(io.Discard, input)
 			}
 
 			// A fixture whose sidecar configures the renderer - keepComments,
