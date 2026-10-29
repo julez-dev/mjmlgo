@@ -6,8 +6,8 @@
 // The package is exported because the root mjmlgo package and custom components
 // share it. Part of what it exports is frozen API: the render context fields
 // keep their meaning and their type, methods may be added and fields may not
-// change meaning. See docs/adr/0004-exported-internals-freeze.md for the exact
-// frozen set and for why exporting beat a facade.
+// change meaning. The exact frozen set is listed under "What is API" below;
+// changing any of it is a breaking change.
 //
 // # What is API
 //

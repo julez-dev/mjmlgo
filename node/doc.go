@@ -3,9 +3,8 @@
 // a raw-content element such as mj-text or mj-raw - its unparsed content.
 //
 // The package is exported so custom components can receive a node from the
-// renderer. Its exported shape is frozen: see
-// docs/adr/0004-exported-internals-freeze.md. Exported fields keep their
-// meaning and their type; methods may be added.
+// renderer. Its exported shape is frozen: exported fields keep their meaning
+// and their type; methods may be added.
 //
 // # What is API
 //
