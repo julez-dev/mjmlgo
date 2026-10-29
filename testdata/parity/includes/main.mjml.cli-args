@@ -1,0 +1,2 @@
+# MJML 5 ignores mj-include unless the CLI is told to allow it
+-c.allowIncludes=true

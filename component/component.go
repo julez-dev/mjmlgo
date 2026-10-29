@@ -6,7 +6,7 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/julez-dev/mjmlgo/node"
+	"github.com/julez-dev/mjmlgo/v2/node"
 )
 
 // Component is one MJML element that knows how to render itself. The renderer

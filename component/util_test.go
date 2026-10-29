@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/julez-dev/mjmlgo/node"
+	"github.com/julez-dev/mjmlgo/v2/node"
 	"github.com/stretchr/testify/require"
 )
 
@@ -575,7 +575,7 @@ func TestGetMobileWidth(t *testing.T) {
 
 		v, err := getMobileWidth(ctx, n)
 		require.NoError(t, err)
-		require.Equal(t, "28.89%", v)
+		require.Equal(t, "28.888889%", v, "MJML 5 keeps six decimals instead of two")
 	})
 }
 

@@ -6,7 +6,7 @@ import (
 
 	"github.com/aymerick/douceur/css"
 	"github.com/aymerick/douceur/parser"
-	"github.com/julez-dev/mjmlgo/node"
+	"github.com/julez-dev/mjmlgo/v2/node"
 )
 
 type MJMLHead struct{}
@@ -52,6 +52,7 @@ func (h MJMLHead) Render(ctx *RenderContext, w io.Writer, n *node.Node) error {
 		"Breakpoint":                  ctx.Breakpoint,
 		"MJMLStyles":                  ctx.MJMLStylesheet,
 		"MJMLStyleOrder":              ctx.orderedMJMLStyles(),
+		"MediaQueryGroups":            ctx.MediaQueryGroups(),
 		"ComponentHeadStyles":         ctx.renderedComponentHeadStyles(),
 		"InstanceComponentHeadStyles": ctx.renderedInstanceComponentHeadStyles(),
 		"UserStyles":                  userStyles,

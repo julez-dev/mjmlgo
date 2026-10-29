@@ -14,7 +14,7 @@
 //
 // Install it with
 //
-//	go install github.com/julez-dev/mjmlgo/cmd/mjmlgo@latest
+//	go install github.com/julez-dev/mjmlgo/v2/cmd/mjmlgo@latest
 package main
 
 import (
@@ -27,7 +27,7 @@ import (
 	"runtime/debug"
 	"strings"
 
-	"github.com/julez-dev/mjmlgo"
+	"github.com/julez-dev/mjmlgo/v2"
 )
 
 // Exit codes, matching the reference CLI's contract.

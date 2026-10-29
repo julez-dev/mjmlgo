@@ -22,8 +22,11 @@ const SidecarSuffix = ".cli-args"
 type RenderConfig struct {
 	// KeepComments is MJML's keepComments option (default true).
 	KeepComments *bool
-	// IgnoreIncludes is MJML's ignoreIncludes option (default false).
-	IgnoreIncludes *bool
+	// AllowIncludes is whether the reference was allowed to expand mj-include
+	// elements. MJML 5 ignores them unless the caller passes
+	// --config.allowIncludes, so a fixture that needs its includes expanded
+	// records that flag and a fixture that does not keeps the default.
+	AllowIncludes *bool
 	// PrinterSupport is MJML's printerSupport option (default false).
 	PrinterSupport *bool
 	// Fonts replaces the web-font registry, in the order the sidecar's JSON
@@ -108,6 +111,8 @@ func Config(t testing.TB, fixture string) RenderConfig {
 //   - ignoreIncludes and printerSupport: the CLI hands the raw string to
 //     mjml-core, where a non-empty string is truthy - so "false" enables them.
 //     Sidecars therefore use "true" to switch them on.
+//   - allowIncludes: mjml-cli compares against the literal true and "true", so
+//     every other value leaves MJML 5's ignore-includes default in place.
 //   - fonts: JSON, parsed by the CLI. Only an object is a usable registry; every
 //     other value reaches mjml-core as the string the CLI saw. See parseFonts.
 func ParseConfig(fixture string, args []string) (RenderConfig, error) {
@@ -127,9 +132,16 @@ func ParseConfig(fixture string, args []string) (RenderConfig, error) {
 		case "keepComments":
 			keep := value != "false"
 			config.KeepComments = &keep
+		case "allowIncludes":
+			// mjml-cli enables includes only for the literal true or "true";
+			// every other value leaves MJML 5's ignore-by-default in place.
+			allow := value == "true"
+			config.AllowIncludes = &allow
 		case "ignoreIncludes":
-			ignore := truthy(value)
-			config.IgnoreIncludes = &ignore
+			// The option MJML 5 made the default; still accepted because the
+			// reference CLI still forwards it.
+			allow := !truthy(value)
+			config.AllowIncludes = &allow
 		case "printerSupport":
 			printer := truthy(value)
 			config.PrinterSupport = &printer

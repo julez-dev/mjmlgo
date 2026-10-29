@@ -10,10 +10,10 @@ import (
 	"testing"
 	"testing/fstest"
 
-	"github.com/julez-dev/mjmlgo"
-	"github.com/julez-dev/mjmlgo/component"
-	"github.com/julez-dev/mjmlgo/example/customcomponent"
-	"github.com/julez-dev/mjmlgo/node"
+	"github.com/julez-dev/mjmlgo/v2"
+	"github.com/julez-dev/mjmlgo/v2/component"
+	"github.com/julez-dev/mjmlgo/v2/example/customcomponent"
+	"github.com/julez-dev/mjmlgo/v2/node"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -62,7 +62,7 @@ func structuredError(t *testing.T, err error) *component.Error {
 func bodyContent(t *testing.T, rendered string) string {
 	t.Helper()
 
-	const bodyDiv = `<div aria-roledescription="email" dir="auto" lang="und" role="article">` + "\n"
+	const bodyDiv = `<div aria-roledescription="email" dir="auto" lang="und" role="article" style="word-spacing:normal;">` + "\n"
 
 	start := strings.Index(rendered, bodyDiv)
 	require.GreaterOrEqual(t, start, 0, "rendered document has no body div")

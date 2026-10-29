@@ -3,7 +3,7 @@ package component
 import (
 	"io"
 
-	"github.com/julez-dev/mjmlgo/node"
+	"github.com/julez-dev/mjmlgo/v2/node"
 )
 
 type MJMLSocial struct{}
@@ -14,7 +14,8 @@ func (s MJMLSocial) Name() string {
 
 var socialAllowedAttributes = map[string]AttributeValidator{
 	"align":                      validateEnum([]string{"left", "right", "center"}),
-	"border-radius":              validateUnit([]string{"px", "%"}, false),
+	"border":                     validateType("string"),
+	"border-radius":              validateType("string"),
 	"container-background-color": validateColor(),
 	"color":                      validateColor(),
 	"font-family":                validateType("string"),
@@ -188,6 +189,7 @@ func (s MJMLSocial) renderVertical(ctx *RenderContext, w io.Writer, n *node.Node
 
 func (s MJMLSocial) getSocialElementAttributes(n *node.Node) map[string]string {
 	toMatch := [...]string{
+		"border",
 		"border-radius",
 		"color",
 		"font-family",

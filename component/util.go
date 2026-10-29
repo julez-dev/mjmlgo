@@ -9,7 +9,7 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/julez-dev/mjmlgo/node"
+	"github.com/julez-dev/mjmlgo/v2/node"
 )
 
 type inlineStyle []Style
@@ -618,22 +618,16 @@ func getWidthAsPixel(ctx *RenderContext, n *node.Node) (string, error) {
 		return "", err
 	}
 
-	floatAsStr := func(floatValue float64) string {
-		return strings.TrimSuffix(fmt.Sprintf("%.2f", floatValue), ".00")
-	}
-
 	if unit == "%" {
 		cWidthFloat, err := strconv.ParseFloat(containerWidth, 64)
 		if err != nil {
 			return "", err
 		}
 
-		p := (cWidthFloat * width) / 100.0
-
-		return fmt.Sprintf("%spx", floatAsStr(p)), nil
+		return formatPixelWidth(normalizePxValue((cWidthFloat * width) / 100.0)), nil
 	}
 
-	return fmt.Sprintf("%spx", floatAsStr(width)), nil
+	return formatPixelWidth(normalizePxValue(width)), nil
 }
 
 func getMobileWidth(ctx *RenderContext, n *node.Node) (string, error) {
@@ -658,17 +652,28 @@ func getMobileWidth(ctx *RenderContext, n *node.Node) (string, error) {
 
 	if unit == "%" {
 		return width, nil
-	} else {
-		// Convert pixel width to percentage based on container width
-		// containerWidth as float
-		pf, err := strconv.ParseFloat(containerWidth, 64)
-		if err != nil {
-			return "", fmt.Errorf("invalid container width: %w", err)
-		}
-
-		percentage := (parsedWidth / pf) * 100
-		return fmt.Sprintf("%.2f%%", percentage), nil
 	}
+
+	// Convert pixel width to percentage based on container width.
+	pf, err := strconv.ParseFloat(containerWidth, 64)
+	if err != nil {
+		return "", fmt.Errorf("invalid container width: %w", err)
+	}
+
+	return formatNumber(normalizeUnitValue((parsedWidth/pf)*100)) + "%", nil
+}
+
+// normalizePxValue rounds a pixel value the way MJML's column does:
+// Math.round, because a fractional CSS pixel in an email is noise.
+func normalizePxValue(v float64) float64 {
+	return math.Round(v)
+}
+
+// normalizeUnitValue trims a unit value to six decimals, matching MJML's
+// Number(parseFloat(value).toFixed(6)), so a column width percentage does not
+// carry floating point dust into the markup.
+func normalizeUnitValue(v float64) float64 {
+	return math.Round(v*1e6) / 1e6
 }
 
 // makeBackgroundString filters out empty strings from a slice

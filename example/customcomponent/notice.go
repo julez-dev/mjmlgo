@@ -5,8 +5,8 @@ import (
 	"io"
 	"strings"
 
-	"github.com/julez-dev/mjmlgo/component"
-	"github.com/julez-dev/mjmlgo/node"
+	"github.com/julez-dev/mjmlgo/v2/component"
+	"github.com/julez-dev/mjmlgo/v2/node"
 )
 
 // NoticeTagName is the tag Notice registers.

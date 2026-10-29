@@ -1,6 +1,6 @@
 package mjmlgo
 
-import "github.com/julez-dev/mjmlgo/component"
+import "github.com/julez-dev/mjmlgo/v2/component"
 
 // Error is the structured failure every validation and parse site returns. It is
 // the same type as component.Error, aliased here so callers of this package can

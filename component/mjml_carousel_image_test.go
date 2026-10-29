@@ -4,7 +4,7 @@ import (
 	"encoding/xml"
 	"testing"
 
-	"github.com/julez-dev/mjmlgo/node"
+	"github.com/julez-dev/mjmlgo/v2/node"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

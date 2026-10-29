@@ -5,7 +5,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/julez-dev/mjmlgo/node"
+	"github.com/julez-dev/mjmlgo/v2/node"
 )
 
 const socialNetworkBaseURL = "https://www.mailjet.com/images/theme/v1/icons/ico-social/"
@@ -131,7 +131,8 @@ var socialElementAllowedAttributes = map[string]AttributeValidator{
 	"icon-position":    validateEnum([]string{"left", "right"}),
 	"background-color": validateColor(),
 	"color":            validateColor(),
-	"border-radius":    validateUnit([]string{"px"}, false),
+	"border":           validateType("string"),
+	"border-radius":    validateType("string"),
 	"font-family":      validateType("string"),
 	"font-size":        validateUnit([]string{"px"}, false),
 	"font-style":       validateType("string"),
@@ -169,6 +170,7 @@ func (s MJMLSocialElement) DefaultAttributes(_ *RenderContext) map[string]string
 		"align":           "left",
 		"icon-position":   "left",
 		"color":           "#000",
+		"border":          "0",
 		"border-radius":   "3px",
 		"font-family":     "Ubuntu, Helvetica, Arial, sans-serif",
 		"font-size":       "13px",
@@ -362,6 +364,7 @@ func (s MJMLSocialElement) getStyles(n *node.Node) map[string]inlineStyle {
 	}
 
 	imgStyle := inlineStyle{
+		{Property: "border", Value: n.GetAttributeValueDefault("border")},
 		{Property: "border-radius", Value: n.GetAttributeValueDefault("border-radius")},
 		{Property: "display", Value: "block"},
 	}

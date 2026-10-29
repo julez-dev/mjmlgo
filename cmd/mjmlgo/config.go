@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/julez-dev/mjmlgo"
+	"github.com/julez-dev/mjmlgo/v2"
 )
 
 // renderConfig is what the --config assignments add to a render.

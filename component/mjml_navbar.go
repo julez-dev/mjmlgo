@@ -5,7 +5,7 @@ import (
 	"io"
 	"strconv"
 
-	"github.com/julez-dev/mjmlgo/node"
+	"github.com/julez-dev/mjmlgo/v2/node"
 )
 
 // MJMLNavbar renders mj-navbar. The markup follows mjml-navbar 4.18.0

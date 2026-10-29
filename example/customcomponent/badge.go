@@ -8,8 +8,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/julez-dev/mjmlgo/component"
-	"github.com/julez-dev/mjmlgo/node"
+	"github.com/julez-dev/mjmlgo/v2/component"
+	"github.com/julez-dev/mjmlgo/v2/node"
 )
 
 // BadgeTagName is the tag Badge registers.

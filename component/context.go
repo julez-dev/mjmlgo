@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"slices"
 	"strconv"
+	"strings"
 	"sync/atomic"
 
 	"github.com/ericchiang/css"
@@ -261,6 +262,44 @@ func (c RenderContext) orderedMJMLStyles() []string {
 	slices.Sort(classes)
 
 	return classes
+}
+
+// MediaQueryGroup is one rule inside the document's breakpoint media query,
+// together with every generated class that wants it. MJML 5 groups classes that
+// share a rule into one selector list - `.a, .b { ... }` - instead of repeating
+// the rule once per class, so a document with three columns of one width emits
+// one rule rather than three identical ones.
+type MediaQueryGroup struct {
+	// Classes are the generated class names, in first-registration order.
+	Classes []string
+	// Rules are the declarations, without the surrounding braces.
+	Rules []string
+}
+
+// MediaQueryGroups returns the generated class rules grouped by identical
+// declarations. Groups keep the position of the first class that wanted the
+// rule, which is the order MJML 5 emits them in.
+func (c RenderContext) MediaQueryGroups() []MediaQueryGroup {
+	var (
+		groups []MediaQueryGroup
+		index  = make(map[string]int, len(c.MJMLStylesheet))
+	)
+
+	for _, className := range c.orderedMJMLStyles() {
+		rules := c.MJMLStylesheet[className]
+		key := strings.Join(rules, "\n")
+
+		if at, seen := index[key]; seen {
+			groups[at].Classes = append(groups[at].Classes, className)
+
+			continue
+		}
+
+		index[key] = len(groups)
+		groups = append(groups, MediaQueryGroup{Classes: []string{className}, Rules: rules})
+	}
+
+	return groups
 }
 
 func (c RenderContext) makeLowerBreakpoint() string {

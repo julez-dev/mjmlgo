@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/julez-dev/mjmlgo/component"
+	"github.com/julez-dev/mjmlgo/v2/component"
 )
 
 // WithComponents registers custom components on the Renderer. A registered tag

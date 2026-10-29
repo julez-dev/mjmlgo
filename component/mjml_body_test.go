@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/julez-dev/mjmlgo/node"
+	"github.com/julez-dev/mjmlgo/v2/node"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -141,7 +141,8 @@ func TestMJMLBodySeedsTheContainerWidth(t *testing.T) {
 
 // TestMJMLBodyBackground asserts a background colour reaches both the page body
 // and the content column, and that a body without one emits no background
-// declaration at all.
+// declaration at all. Both elements always carry word-spacing, which MJML 5
+// moved onto them rather than into the skeleton.
 func TestMJMLBodyBackground(t *testing.T) {
 	t.Parallel()
 
@@ -154,7 +155,7 @@ func TestMJMLBodyBackground(t *testing.T) {
 		require.NoError(t, err)
 
 		assert.Contains(t, out, `<body style="word-spacing:normal;background-color:#ff0000;">`)
-		assert.Contains(t, out, `style="background-color:#ff0000;"`, "the content column repeats the colour")
+		assert.Contains(t, out, `style="word-spacing:normal;background-color:#ff0000;"`, "the content column repeats the colour")
 	})
 
 	t.Run("no colour leaves the page style alone", func(t *testing.T) {
