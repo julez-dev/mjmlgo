@@ -16,7 +16,7 @@ There is also a command line compiler, [covered below](#command-line).
 
 ## What it is
 
-- **Parity, not approximation.** Every fixture in `testdata/parity` (102 documents,
+- **Parity, not approximation.** Every fixture in `testdata/parity` (105 documents,
   including ones derived from the upstream MJML test suite) is rendered by this
   package and by the pinned `mjml` CLI, then compared element by element:
   attributes, inline styles, rule order, and comments (byte for byte). No
