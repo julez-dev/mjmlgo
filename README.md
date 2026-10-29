@@ -1,5 +1,10 @@
 # mjmlgo
 
+[![CI](https://github.com/julez-dev/mjmlgo/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/julez-dev/mjmlgo/actions/workflows/ci.yml)
+[![Go Reference](https://pkg.go.dev/badge/github.com/julez-dev/mjmlgo/v2.svg)](https://pkg.go.dev/github.com/julez-dev/mjmlgo/v2)
+[![Go 1.27+](https://img.shields.io/badge/go-1.27%2B-00ADD8)](go.mod)
+[![MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+
 A pure-Go renderer for [MJML](https://mjml.io), the email markup language. It
 targets **MJML 5** (currently 5.4.1): an `.mjml` document becomes the HTML an
 email client can display, the same document the reference JavaScript
