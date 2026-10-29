@@ -25,3 +25,12 @@ hero padding.
 To refresh after a MJML upgrade, re-run the extraction, re-apply the curation
 rule, update the commit above and run the parity test; every difference it reports
 must be reviewed.
+
+## License
+
+The documents here are extracted from MJML's test suite, which is MIT licensed:
+
+> Copyright (c) 2016 Mailjet SAS, https://mjml.io
+
+They remain under that license. Everything else in this repository is under the
+MIT license in [`../../../LICENSE`](../../../LICENSE).

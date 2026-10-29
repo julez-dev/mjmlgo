@@ -228,3 +228,11 @@ Reproduce the library numbers with
 pipeline over every parity fixture. The CLI figures are wall clock around the
 process and its peak RSS, so they include startup; a long-lived library caller
 sees only the rendering cost.
+
+## License
+
+MIT — see [LICENSE](LICENSE).
+
+The fixtures in [`testdata/parity/upstream`](testdata/parity/upstream) were
+extracted from MJML's test suite and remain under MJML's MIT license
+(Copyright (c) 2016 Mailjet SAS, https://mjml.io); see the manifest there.
