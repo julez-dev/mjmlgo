@@ -2,7 +2,6 @@ package component
 
 import (
 	"fmt"
-	"maps"
 	"math"
 	"regexp"
 	"slices"
@@ -87,9 +86,17 @@ func (ia inlineAttributes) InlineString() string {
 		return ""
 	}
 
-	// Collect keys and sort them for predictable order
-	keys := slices.Collect(maps.Keys(ia))
-	slices.Sort(keys)
+	// An element carries a handful of attributes, so the keys fit on the stack:
+	// sorting them in place gives the deterministic order the output needs
+	// without a heap allocation per element.
+	var stack [16]string
+
+	keys := stack[:0]
+	for key := range ia {
+		keys = append(keys, key)
+	}
+
+	sortStrings(keys)
 
 	var b strings.Builder
 	for _, key := range keys {
@@ -98,16 +105,34 @@ func (ia inlineAttributes) InlineString() string {
 			continue
 		}
 
-		switch key {
-		case "bgcolor", "color":
+		if key == "bgcolor" || key == "color" {
 			if expanded, err := expandHexShortcut(value); err == nil {
 				value = expanded
 			}
 		}
 
-		fmt.Fprintf(&b, "%s=\"%s\" ", key, value)
+		if b.Len() > 0 {
+			b.WriteByte(' ')
+		}
+
+		b.WriteString(key)
+		b.WriteString(`="`)
+		b.WriteString(value)
+		b.WriteByte('"')
 	}
-	return strings.TrimSpace(b.String())
+
+	return b.String()
+}
+
+// sortStrings sorts keys in place. It exists instead of slices.Sort so that the
+// caller's stack-allocated key buffer does not escape through a generic
+// call; the slices are a handful of strings long, so insertion sort wins.
+func sortStrings(keys []string) {
+	for i := 1; i < len(keys); i++ {
+		for j := i; j > 0 && keys[j] < keys[j-1]; j-- {
+			keys[j], keys[j-1] = keys[j-1], keys[j]
+		}
+	}
 }
 
 var isPercentageRegex = regexp.MustCompile(`^\d+(\.\d+)?%$`)
@@ -172,13 +197,27 @@ func addSuffixToClasses(classes string, suffix string) string {
 		return ""
 	}
 
-	classSlice := strings.Split(classes, " ")
+	// Classes are separated by single spaces, and the separator is preserved as
+	// it was: a doubled space keeps its empty class.
+	var b strings.Builder
+	b.Grow(len(classes) + 8)
 
-	for i, c := range classSlice {
-		classSlice[i] = c + "-" + suffix
+	for {
+		next := strings.IndexByte(classes, ' ')
+		if next < 0 {
+			b.WriteString(classes)
+			b.WriteByte('-')
+			b.WriteString(suffix)
+
+			return b.String()
+		}
+
+		b.WriteString(classes[:next])
+		b.WriteByte('-')
+		b.WriteString(suffix)
+		b.WriteByte(' ')
+		classes = classes[next+1:]
 	}
-
-	return strings.Join(classSlice, " ")
 }
 
 // valueAndUnitRegex is a compiled regular expression to extract the numeric
@@ -394,43 +433,106 @@ func getShorthandAttrValue(n *node.Node, attr string, direction string) (int, er
 	return p, nil
 }
 
-var whitespaceRegex = regexp.MustCompile(`\s+`)
-
 func shorthandParser(cssValue, direction string) (int, error) {
-	splitCSSValue := strings.SplitN(whitespaceRegex.ReplaceAllString(strings.TrimSpace(cssValue), " "), " ", 4)
+	// Whitespace runs separate the shorthands, and at most four are meaningful:
+	// anything past the fourth belongs to the last value, like SplitN did.
+	var parts [4]string
 
-	dirs := make(map[string]int)
+	count := splitWhitespace(cssValue, parts[:])
 
-	switch len(splitCSSValue) {
-	case 2:
-		dirs["top"] = 0
-		dirs["bottom"] = 0
-		dirs["left"] = 1
-		dirs["right"] = 1
-	case 3:
-		dirs["top"] = 0
-		dirs["left"] = 1
-		dirs["right"] = 1
-		dirs["bottom"] = 2
-	case 4:
-		dirs["top"] = 0
-		dirs["right"] = 1
-		dirs["bottom"] = 2
-		dirs["left"] = 3
-	case 1:
+	if count <= 1 {
 		p, err := strconv.Atoi(RemoveNonNumeric(cssValue))
 		if err != nil {
 			return 0, err
 		}
+
 		return p, nil
 	}
 
-	p, err := strconv.Atoi(RemoveNonNumeric(splitCSSValue[dirs[direction]]))
+	p, err := strconv.Atoi(RemoveNonNumeric(parts[shorthandIndex(direction, count)]))
 	if err != nil {
 		return 0, err
 	}
 
 	return p, nil
+}
+
+// shorthandIndex is the position the value of direction occupies in a CSS
+// shorthand with count values: one value applies to all sides, two split
+// vertical and horizontal, three and four follow the CSS order.
+func shorthandIndex(direction string, count int) int {
+	switch count {
+	case 2:
+		switch direction {
+		case "top", "bottom":
+			return 0
+		default:
+			return 1
+		}
+	case 3:
+		switch direction {
+		case "top":
+			return 0
+		case "bottom":
+			return 2
+		default:
+			return 1
+		}
+	default: // 4, or a longer value whose tail is part of the fourth
+		switch direction {
+		case "right":
+			return 1
+		case "bottom":
+			return 2
+		case "left":
+			return 3
+		default:
+			return 0
+		}
+	}
+}
+
+// splitWhitespace splits s on runs of whitespace, ignoring leading and trailing
+// whitespace. It fills at most len(dst) parts and returns how many it wrote; the
+// last part keeps any remainder, so a value with more parts than dst loses
+// nothing.
+func splitWhitespace(s string, dst []string) int {
+	n := 0
+	i := 0
+
+	for {
+		for i < len(s) && isSpaceByte(s[i]) {
+			i++
+		}
+
+		if i == len(s) {
+			return n
+		}
+
+		start := i
+		for i < len(s) && !isSpaceByte(s[i]) {
+			i++
+		}
+
+		if n == len(dst)-1 {
+			// Everything left, including the separators, belongs to the last
+			// part: a trailing space is trimmed, as before.
+			dst[n] = strings.TrimRight(s[start:], " \t\n\r\f\v")
+			return n + 1
+		}
+
+		dst[n] = s[start:i]
+		n++
+	}
+}
+
+func isSpaceByte(b byte) bool {
+	switch b {
+	case ' ', '\t', '\n', '\r', '\f', '\v':
+		return true
+	}
+
+	return false
 }
 
 var borderWidthRegex = regexp.MustCompile(`(?:(?:^| )(\d+))`)

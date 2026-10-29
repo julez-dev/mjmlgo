@@ -1,7 +1,6 @@
 package mjmlgo
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"io/fs"
@@ -25,7 +24,7 @@ func TestParse(t *testing.T) {
 		</mjml>
 		`
 
-		n, err := parse(strings.NewReader(input), true)
+		n, err := parse([]byte(input), true)
 		require.NoError(t, err)
 
 		var rawContent string
@@ -49,7 +48,7 @@ func TestParse(t *testing.T) {
 			</mj-body>
 		</mjml>`
 
-		n, err := parse(strings.NewReader(input), true)
+		n, err := parse([]byte(input), true)
 		require.NoError(t, err)
 
 		body := findChild(t, n, "mj-body")
@@ -74,7 +73,7 @@ func TestParse(t *testing.T) {
 			<mj-body></mj-body>
 		</mjml>`
 
-		n, err := parse(strings.NewReader(input), true)
+		n, err := parse([]byte(input), true)
 		require.NoError(t, err)
 
 		require.Equal(t, "<!-- first -->\n<!-- second -->", fileStartRawContent(n))
@@ -86,7 +85,7 @@ func TestParse(t *testing.T) {
 			`<mj-raw><div data-x="1">a &amp; b</div></mj-raw>` +
 			`</mj-column></mj-section></mj-body></mjml>`
 
-		n, err := parse(strings.NewReader(input), true)
+		n, err := parse([]byte(input), true)
 		require.NoError(t, err)
 
 		contents := map[string]string{}
@@ -103,7 +102,7 @@ func TestParse(t *testing.T) {
 	t.Run("mj-end-tags", func(t *testing.T) {
 		const input = `<mjml><mj-text><h1>Test</h1></mj-text></mjml>`
 
-		n, err := parse(strings.NewReader(input), true)
+		n, err := parse([]byte(input), true)
 		require.NoError(t, err)
 
 		var rawContent string
@@ -144,7 +143,7 @@ func BenchmarkParse(b *testing.B) {
 			b.SetBytes(int64(len(input)))
 
 			for b.Loop() {
-				if _, err := parse(bytes.NewReader(input), true); err != nil {
+				if _, err := parse(input, true); err != nil {
 					b.Skipf("fixture does not parse: %v", err)
 				}
 			}
@@ -165,7 +164,7 @@ func FuzzParse(f *testing.F) {
 	f.Fuzz(func(t *testing.T, source string) {
 		checkFuzzInput(t, source)
 
-		root, err := parse(bytes.NewReader([]byte(source)), true)
+		root, err := parse([]byte(source), true)
 		if err != nil {
 			return
 		}
@@ -201,7 +200,7 @@ func includeTestFS(files map[string]string) fstest.MapFS {
 func parseWithIncludes(t *testing.T, fsys fs.FS, name, document string) (*node.Node, error) {
 	t.Helper()
 
-	root, err := parse(strings.NewReader(document), true)
+	root, err := parse([]byte(document), true)
 	require.NoError(t, err)
 
 	return root, resolveIncludes(context.Background(), fsys, name, root, true)
@@ -696,7 +695,7 @@ func TestParseComments(t *testing.T) {
 	t.Run("becomes-an-mj-raw-node-at-its-position", func(t *testing.T) {
 		t.Parallel()
 
-		root, err := parse(strings.NewReader(document), true)
+		root, err := parse([]byte(document), true)
 		require.NoError(t, err)
 
 		head := findChild(t, root, "mj-head")
@@ -712,7 +711,7 @@ func TestParseComments(t *testing.T) {
 	t.Run("content-of-an-ending-tag-is-untouched", func(t *testing.T) {
 		t.Parallel()
 
-		root, err := parse(strings.NewReader(document), true)
+		root, err := parse([]byte(document), true)
 		require.NoError(t, err)
 
 		var text *node.Node
@@ -730,7 +729,7 @@ func TestParseComments(t *testing.T) {
 	t.Run("dropped-when-disabled", func(t *testing.T) {
 		t.Parallel()
 
-		root, err := parse(strings.NewReader(document), false)
+		root, err := parse([]byte(document), false)
 		require.NoError(t, err)
 
 		head := findChild(t, root, "mj-head")
@@ -753,7 +752,7 @@ func TestParseComments(t *testing.T) {
 	t.Run("outside-the-root-element-is-dropped", func(t *testing.T) {
 		t.Parallel()
 
-		root, err := parse(strings.NewReader(`<!-- before --><mjml><mj-body /></mjml><!-- after -->`), true)
+		root, err := parse([]byte(`<!-- before --><mjml><mj-body /></mjml><!-- after -->`), true)
 		require.NoError(t, err)
 
 		require.Equal(t, "mjml", root.Type)
@@ -769,14 +768,14 @@ func TestStripIncludes(t *testing.T) {
 	const document = `<mjml><mj-head><mj-include path="partials/title.mjml" /></mj-head>` +
 		`<mj-body><!-- between --><mj-include path="partials/body.mjml" /></mj-body></mjml>`
 
-	root, err := parse(strings.NewReader(document), true)
+	root, err := parse([]byte(document), true)
 	require.NoError(t, err)
 
 	// A filesystem that fails on any read proves the includes are not resolved.
 	fsys := includeTestFS(nil)
 	require.Error(t, resolveIncludes(context.Background(), fsys, "main.mjml", root, true))
 
-	root, err = parse(strings.NewReader(document), true)
+	root, err = parse([]byte(document), true)
 	require.NoError(t, err)
 
 	stripIncludes(root)

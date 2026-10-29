@@ -1,7 +1,6 @@
 package mjmlgo
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -219,7 +218,7 @@ func (r *Renderer) renderSource(ctx context.Context, w io.Writer, fsys fs.FS, na
 		return errNilWriter
 	}
 
-	rendered, err := r.renderDocument(ctx, fsys, name, bytes.NewReader(src))
+	rendered, err := r.renderDocument(ctx, fsys, name, src)
 	if err != nil {
 		return err
 	}

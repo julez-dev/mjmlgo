@@ -501,14 +501,13 @@ func BenchmarkInlineStage(b *testing.B) {
 	for _, fixture := range []string{"inline-cascade.mjml", "head.mjml"} {
 		path := filepath.Join(parityDir, fixture)
 
-		input, err := os.Open(path)
+		input, err := os.ReadFile(path)
 		if err != nil {
 			b.Fatal(err)
 		}
 
 		emitted, err := fixtureRenderer.renderMarkup(context.Background(), os.DirFS(filepath.Dir(path)), filepath.Base(path), input)
 		require.NoError(b, err)
-		require.NoError(b, input.Close())
 
 		b.Run(fixture, func(b *testing.B) {
 			b.SetBytes(int64(len(emitted.markup)))

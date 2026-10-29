@@ -39,13 +39,8 @@ var (
 // mj-raw nodes at their document position, which is exactly how MJML's parser
 // represents them; when it is false they are dropped here, at parse time, so
 // they never reach validation or rendering.
-func parse(input io.Reader, keepComments bool) (*node.Node, error) {
-	fullBytes, err := io.ReadAll(input)
-	if err != nil {
-		return nil, err
-	}
-
-	dec := xml.NewDecoder(strings.NewReader(protectRawContent(string(fullBytes))))
+func parse(src []byte, keepComments bool) (*node.Node, error) {
+	dec := xml.NewDecoder(strings.NewReader(protectRawContent(src)))
 	dec.Strict = true
 
 	var (
@@ -410,7 +405,7 @@ func (r *includeResolver) expandDocument(file string, head *node.Node, depth int
 		document = "<mjml><mj-body>" + document + "</mj-body></mjml>"
 	}
 
-	root, err := parse(strings.NewReader(document), r.keepComments)
+	root, err := parse([]byte(document), r.keepComments)
 	if err != nil {
 		// Attribute the failure to the include site, not only to where parsing
 		// stopped inside the included file: that is where the author can act.
@@ -616,47 +611,47 @@ var mjmlEndTags = map[string]struct{}{
 // CDATA sections. Their content is arbitrary markup - not necessarily
 // well-formed XML - and encoding/xml would otherwise reserialize it, inventing
 // closing tags for void HTML elements (`<br>` becoming `<br></br>`).
-func protectRawContent(input string) string {
+func protectRawContent(input []byte) string {
 	var b strings.Builder
 	b.Grow(len(input) + len(input)/8)
 
 	i := 0
 
 	for i < len(input) {
-		lt := strings.IndexByte(input[i:], '<')
+		lt := bytes.IndexByte(input[i:], '<')
 		if lt < 0 {
-			b.WriteString(input[i:])
+			b.Write(input[i:])
 
 			break
 		}
 
 		lt += i
-		b.WriteString(input[i:lt])
+		b.Write(input[i:lt])
 
 		switch {
-		case strings.HasPrefix(input[lt:], "<!--"):
-			end := strings.Index(input[lt+4:], "-->")
+		case bytes.HasPrefix(input[lt:], commentOpen):
+			end := bytes.Index(input[lt+len(commentOpen):], commentClose)
 			if end < 0 {
-				b.WriteString(input[lt:])
+				b.Write(input[lt:])
 
 				return b.String()
 			}
 
-			end += lt + 4 + len("-->")
-			b.WriteString(input[lt:end])
+			end += lt + len(commentOpen) + len(commentClose)
+			b.Write(input[lt:end])
 			i = end
 
 			continue
 
-		case strings.HasPrefix(input[lt:], "</"), strings.HasPrefix(input[lt:], "<!"):
+		case bytes.HasPrefix(input[lt:], endTagOpen), bytes.HasPrefix(input[lt:], bangTagOpen):
 			end := scanTagEnd(input, lt)
 			if end < 0 {
-				b.WriteString(input[lt:])
+				b.Write(input[lt:])
 
 				return b.String()
 			}
 
-			b.WriteString(input[lt:end])
+			b.Write(input[lt:end])
 			i = end
 
 			continue
@@ -668,7 +663,7 @@ func protectRawContent(input string) string {
 		}
 
 		name := input[lt+1 : nameEnd]
-		if name == "" {
+		if len(name) == 0 {
 			b.WriteByte('<')
 			i = lt + 1
 
@@ -677,41 +672,47 @@ func protectRawContent(input string) string {
 
 		tagEnd := scanTagEnd(input, lt)
 		if tagEnd < 0 {
-			b.WriteString(input[lt:])
+			b.Write(input[lt:])
 
 			break
 		}
 
-		b.WriteString(input[lt:tagEnd])
+		b.Write(input[lt:tagEnd])
 		i = tagEnd
 
-		if _, isRaw := mjmlEndTags[name]; !isRaw {
+		// A map lookup through string(name) does not allocate.
+		if _, isRaw := mjmlEndTags[string(name)]; !isRaw {
 			continue
 		}
 
-		if strings.HasSuffix(strings.TrimSpace(input[lt:tagEnd]), "/>") {
+		if bytes.HasSuffix(bytes.TrimSpace(input[lt:tagEnd]), selfClosing) {
 			continue
 		}
 
-		closeStart, closeEnd := findClosingTag(input, i, name)
+		closeStart, closeEnd := findClosingTag(input, i, string(name))
 		if closeStart < 0 {
-			b.WriteString(input[i:])
+			b.Write(input[i:])
 
 			return b.String()
 		}
 
 		b.WriteString(protectCDATA(input[i:closeStart]))
-		b.WriteString(input[closeStart:closeEnd])
+		b.Write(input[closeStart:closeEnd])
 		i = closeEnd
 	}
 
 	return b.String()
 }
 
-// scanTagEnd returns the index just after the '>' that closes the tag starting
-// at start, ignoring '>' inside quoted attribute values. It returns -1 when the
-// tag is unterminated.
-func scanTagEnd(input string, start int) int {
+var (
+	commentOpen  = []byte("<!--")
+	commentClose = []byte("-->")
+	endTagOpen   = []byte("</")
+	bangTagOpen  = []byte("<!")
+	selfClosing  = []byte("/>")
+)
+
+func scanTagEnd(input []byte, start int) int {
 	var quote byte
 
 	for i := start + 1; i < len(input); i++ {
@@ -733,12 +734,12 @@ func scanTagEnd(input string, start int) int {
 // findClosingTag returns the span of the end tag that closes the element named
 // name. The search is literal: raw content is arbitrary text, so a '<' inside it
 // ("{ if item < 5 }") must not be mistaken for markup.
-func findClosingTag(input string, from int, name string) (int, int) {
-	needle := "</" + name
+func findClosingTag(input []byte, from int, name string) (int, int) {
+	needle := []byte("</" + name)
 	i := from
 
 	for {
-		idx := strings.Index(input[i:], needle)
+		idx := bytes.Index(input[i:], needle)
 		if idx < 0 {
 			return -1, -1
 		}
@@ -774,10 +775,10 @@ func isXMLNameByte(char byte) bool {
 
 // protectCDATA wraps content in CDATA sections, splitting any literal "]]>"
 // so the result stays valid XML.
-func protectCDATA(content string) string {
-	if content == "" {
+func protectCDATA(content []byte) string {
+	if len(content) == 0 {
 		return ""
 	}
 
-	return "<![CDATA[" + strings.ReplaceAll(content, "]]>", "]]]]><![CDATA[>") + "]]>"
+	return "<![CDATA[" + strings.ReplaceAll(string(content), "]]>", "]]]]><![CDATA[>") + "]]>"
 }

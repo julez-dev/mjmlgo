@@ -34,7 +34,7 @@ func Render(w io.Writer, src []byte) error {
 // Cancellation is checked between stages: parsing, include expansion, rendering
 // and inlining all happen in memory, so a cancelled context cannot interrupt
 // them part-way, but a caller is not left waiting for the remaining stages.
-func (r *Renderer) renderDocument(callCtx context.Context, fsys fs.FS, name string, input io.Reader) (string, error) {
+func (r *Renderer) renderDocument(callCtx context.Context, fsys fs.FS, name string, src []byte) (string, error) {
 	if err := callCtx.Err(); err != nil {
 		return "", err
 	}
@@ -46,7 +46,7 @@ func (r *Renderer) renderDocument(callCtx context.Context, fsys fs.FS, name stri
 		return "", r.componentsErr
 	}
 
-	emitted, err := r.renderMarkup(callCtx, fsys, name, input)
+	emitted, err := r.renderMarkup(callCtx, fsys, name, src)
 	if err != nil {
 		return "", err
 	}
@@ -96,12 +96,12 @@ type emittedMarkup struct {
 
 // renderMarkup runs the front half of the pipeline: parse, include expansion and
 // the component render. Its result is what the inline stage works on.
-func (r *Renderer) renderMarkup(callCtx context.Context, fsys fs.FS, name string, input io.Reader) (emittedMarkup, error) {
+func (r *Renderer) renderMarkup(callCtx context.Context, fsys fs.FS, name string, src []byte) (emittedMarkup, error) {
 	if err := callCtx.Err(); err != nil {
 		return emittedMarkup{}, err
 	}
 
-	doc, err := parse(input, !r.dropComments)
+	doc, err := parse(src, !r.dropComments)
 	if err != nil {
 		return emittedMarkup{}, err
 	}
