@@ -14,6 +14,14 @@ if err := mjmlgo.Render(&out, src); err != nil {
 
 There is also a command line compiler, [covered below](#command-line).
 
+| Version | Implements | Import path |
+| --- | --- | --- |
+| v2 — this one | MJML 5.4.1 | `github.com/julez-dev/mjmlgo/v2` |
+| v1 | MJML 4.18.0 | `github.com/julez-dev/mjmlgo` |
+
+The two lines are independent: **v1 implements MJML 4**, and stays at its own tag
+for documents that must keep rendering exactly as MJML 4 rendered them.
+
 ## What it is
 
 - **Parity, not approximation.** Every fixture in `testdata/parity` (105 documents,
@@ -43,8 +51,8 @@ go get github.com/julez-dev/mjmlgo/v2
 go install github.com/julez-dev/mjmlgo/v2/cmd/mjmlgo@latest
 ```
 
-The module path carries the major version, so v2 and v1 can be used by the same
-program. v1 stays available at its own tag for anyone targeting MJML 4.
+The module path carries the major version, so v1 (MJML 4) and v2 (MJML 5) can be
+used by the same program, or even the same package.
 
 Requires Go 1.27 or newer.
 
