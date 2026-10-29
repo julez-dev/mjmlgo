@@ -19,11 +19,15 @@
 // NewRenderer configures a renderer first, for example to drop author
 // comments:
 //
-//	var out strings.Builder
+//	var out bytes.Buffer
 //	err := mjmlgo.Render(&out, src)
 //
 //	renderer := mjmlgo.NewRenderer(mjmlgo.WithComments(false))
 //	err = renderer.Render(ctx, &out, src)
+//
+// The output goes to the writer the caller supplies, so a bytes.Buffer that is
+// Reset between renders keeps its capacity and a server allocates the output
+// buffer once.
 //
 // A document that uses mj-include needs a filesystem: Renderer.RenderFS reads
 // the top-level document through an fs.FS and resolves includes against it, so

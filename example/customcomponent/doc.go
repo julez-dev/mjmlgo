@@ -10,7 +10,7 @@
 //		customcomponent.Badge{},
 //		customcomponent.Notice{},
 //	))
-//	var out strings.Builder
+//	var out bytes.Buffer
 //	err := renderer.RenderFS(ctx, &out, fsys, "newsletter.mjml")
 //
 //	<mjml>

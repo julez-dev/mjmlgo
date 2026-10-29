@@ -169,6 +169,10 @@ func NewRenderer(opts ...Option) *Renderer {
 // src is the whole document, so the renderer never touches the filesystem on
 // its own and documents with mj-include are rejected with ErrIncludeNoFS: use
 // RenderFS to resolve includes against a filesystem.
+//
+// A bytes.Buffer can be reused across renders: its Reset keeps the capacity, so
+// a server can grow the output buffer once and hand the same one to every call.
+// strings.Builder cannot be reused for that - its Reset drops the buffer.
 func (r *Renderer) Render(ctx context.Context, w io.Writer, src []byte) error {
 	return r.renderSource(ctx, w, nil, "", src)
 }
