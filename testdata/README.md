@@ -96,10 +96,13 @@ CLI saw, and `[]` as an array, so the registry stops being a name-to-URL map.
 cannot be mapped onto an option and fails the test; omit the flag for the default
 registry, and use `-c.fonts={}` to replace the defaults with nothing.
 
-The registry then reaches this package as a Go map, which has no order of its
-own; a custom registry is therefore emitted in ascending family-name order (see
-`WithFonts`). A fixture that uses several custom families must list them in the
-sidecar in alphabetical order so both sides agree.
+A registry is emitted in the order it was given, which is the order the
+reference implementation emits a JavaScript object. `WithFonts` takes that order
+as a slice, and the harness preserves the sidecar's JSON order, so a fixture that
+uses several custom families compares the same sequence on both sides;
+`parity/head-fonts-order.mjml` pins a deliberately non-alphabetical one.
+`FontsFromMap` is the bridge for callers holding a Go map: it sorts, because a
+map has no order of its own.
 
 `--config.<name>=<value>` is accepted as well. The value semantics follow the
 reference CLI, which is not uniform: `keepComments` is off only for the literal

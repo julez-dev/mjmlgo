@@ -5,7 +5,6 @@ import (
 	"errors"
 	"io"
 	"io/fs"
-	"maps"
 	"strings"
 
 	"github.com/julez-dev/mjmlgo/component"
@@ -127,9 +126,12 @@ func (r *Renderer) renderMarkup(callCtx context.Context, fsys fs.FS, name string
 	var buff strings.Builder
 	mjml := component.MJML{}
 
+	fonts, fontOrder := r.fontRegistry()
+
 	ctx := &component.RenderContext{
 		MJMLStylesheet: make(map[string][]string),
-		Fonts:          r.fontRegistry(),
+		Fonts:          fonts,
+		FontOrder:      fontOrder,
 		// A caller-provided registry replaces the built-in one instead of
 		// being extended with it.
 		FontsConfigured: r.fonts != nil,
@@ -154,16 +156,29 @@ func (r *Renderer) renderMarkup(callCtx context.Context, fsys fs.FS, name string
 	return emittedMarkup{markup: buff.String(), ctx: ctx, doc: doc}, nil
 }
 
-// fontRegistry returns the web-font registry to seed the render context with.
-// The renderer's map is copied because rendering registers <mj-font> families in
-// the context and a Renderer may be used concurrently.
-func (r *Renderer) fontRegistry() map[string]string {
-	if r.fonts == nil {
-		return make(map[string]string)
+// fontRegistry returns the web-font registry to seed the render context with,
+// and the order to emit it in. The registry is built per render because rendering
+// registers <mj-font> families in the context and a Renderer may be used
+// concurrently.
+//
+// A family listed more than once keeps its first position and its last URL, which
+// is what assigning to a JavaScript object property does in the reference
+// implementation. An entry without a family name is dropped: nothing can refer to
+// it.
+func (r *Renderer) fontRegistry() (registry map[string]string, order []string) {
+	registry = make(map[string]string, len(r.fonts))
+
+	for _, font := range r.fonts {
+		if font.Family == "" {
+			continue
+		}
+
+		if _, exists := registry[font.Family]; !exists {
+			order = append(order, font.Family)
+		}
+
+		registry[font.Family] = font.Href
 	}
 
-	registry := make(map[string]string, len(r.fonts))
-	maps.Copy(registry, r.fonts)
-
-	return registry
+	return registry, order
 }

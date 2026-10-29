@@ -1,0 +1,11 @@
+<mjml>
+  <mj-body>
+    <mj-section>
+      <mj-column>
+        <!-- the registry is not alphabetical: emission order must follow it -->
+        <mj-text font-family="Zeta, sans-serif">first in the registry</mj-text>
+        <mj-text font-family="Alpha, sans-serif">second in the registry</mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

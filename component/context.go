@@ -34,8 +34,10 @@ type RenderContext struct {
 	// registry; <mj-font> adds to it.
 	Fonts map[string]string
 	// FontOrder lists font families in emission order. Built-in and declared
-	// fonts keep their registration order; a caller-supplied registry is sorted by
-	// family name, because a Go map has no order of its own.
+	// fonts keep their registration order, and a caller-supplied registry keeps
+	// the order it was given in. A context that supplies Fonts without an order
+	// gets ascending family-name order instead, so it still renders
+	// deterministically.
 	FontOrder []string
 	// FontsConfigured reports that Fonts was supplied by the caller and must
 	// not be extended with the built-in web fonts. Fonts declared by the

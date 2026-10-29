@@ -6,9 +6,10 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
-	"maps"
 	"os"
 	"path/filepath"
+	"slices"
+	"strings"
 	"sync"
 
 	"github.com/julez-dev/mjmlgo/component"
@@ -24,7 +25,7 @@ var (
 type rendererConfig struct {
 	idGenerator    func() string
 	dropComments   bool
-	fonts          map[string]string
+	fonts          []Font
 	ignoreIncludes bool
 	printerSupport bool
 	components     []component.Component
@@ -61,21 +62,34 @@ func WithComments(keep bool) Option {
 	}
 }
 
+// Font is one entry of the web-font registry: the family a document names in a
+// font-family attribute, and the URL of the stylesheet that provides it.
+type Font struct {
+	// Family is the name documents refer to, e.g. "Inter". It is matched
+	// case-sensitively against the families a document mentions. An entry with
+	// an empty Family is ignored.
+	Family string
+	// Href is the stylesheet URL, imported the way MJML imports its defaults.
+	Href string
+}
+
 // WithFonts replaces the web-font registry MJML imports only for the families a
 // document actually uses. WithFonts(nil) keeps the five defaults (Open Sans,
-// Droid Sans, Lato, Roboto, Ubuntu); a non-nil map replaces them completely, so
-// a default family is no longer imported unless the map lists it. An <mj-font>
+// Droid Sans, Lato, Roboto, Ubuntu); a non-nil slice replaces them completely, so
+// a default family is no longer imported unless the slice lists it. An <mj-font>
 // element in the document still wins for its family, like it does in MJML.
 //
-// Fonts are emitted in ascending family-name order, because a Go map carries no
-// order of its own.
-func WithFonts(fonts map[string]string) Option {
-	registry := make(map[string]string, len(fonts))
-	maps.Copy(registry, fonts)
+// Fonts are emitted in the order given, which is the order the reference
+// implementation emits a registry it received as a JavaScript object. A family
+// listed twice keeps its first position and its last URL, like assigning to an
+// object property does. FontsFromMap builds the slice from a map for callers
+// whose registry has no order worth preserving.
+func WithFonts(fonts []Font) Option {
+	registry := slices.Clone(fonts)
 
 	return func(config *rendererConfig) {
-		// A nil map means the defaults; an explicit empty map replaces them
-		// with nothing.
+		// A nil slice means the defaults; an empty one replaces them with
+		// nothing.
 		if fonts == nil {
 			config.fonts = nil
 
@@ -84,6 +98,25 @@ func WithFonts(fonts map[string]string) Option {
 
 		config.fonts = registry
 	}
+}
+
+// FontsFromMap converts a family-to-URL map into a registry ordered by family
+// name. It is the bridge for callers holding a map: a Go map has no order of its
+// own, so this states the order instead of leaving it to chance. FontsFromMap(nil)
+// keeps the default registry, like WithFonts(nil).
+func FontsFromMap(fonts map[string]string) []Font {
+	if fonts == nil {
+		return nil
+	}
+
+	registry := make([]Font, 0, len(fonts))
+	for family, href := range fonts {
+		registry = append(registry, Font{Family: family, Href: href})
+	}
+
+	slices.SortFunc(registry, func(a, b Font) int { return strings.Compare(a.Family, b.Family) })
+
+	return registry
 }
 
 // WithIgnoreIncludes leaves mj-include elements unexpanded, like MJML's
@@ -115,8 +148,10 @@ type Renderer struct {
 
 	// dropComments is stored inverted so that the zero value keeps comments,
 	// like a Renderer created without options.
-	dropComments   bool
-	fonts          map[string]string
+	dropComments bool
+	// fonts is the caller's registry in emission order, or nil for the built-in
+	// one.
+	fonts          []Font
 	ignoreIncludes bool
 	printerSupport bool
 

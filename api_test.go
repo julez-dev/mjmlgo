@@ -262,8 +262,8 @@ func TestWithFonts(t *testing.T) {
 		`<mj-text font-family="Lato, sans-serif">default</mj-text>` +
 		`</mj-column></mj-section></mj-body></mjml>`
 
-	custom := renderSource(t, mjmlgo.NewRenderer(mjmlgo.WithFonts(map[string]string{
-		"Custom Sans": "https://example.com/custom-sans.css",
+	custom := renderSource(t, mjmlgo.NewRenderer(mjmlgo.WithFonts([]mjmlgo.Font{
+		{Family: "Custom Sans", Href: "https://example.com/custom-sans.css"},
 	})), document)
 
 	assert.Contains(t, custom, "https://example.com/custom-sans.css")
@@ -274,9 +274,61 @@ func TestWithFonts(t *testing.T) {
 	assert.Contains(t, defaults, "fonts.googleapis.com/css?family=Lato")
 	assert.NotContains(t, defaults, "https://example.com/custom-sans.css")
 
-	empty := renderSource(t, mjmlgo.NewRenderer(mjmlgo.WithFonts(map[string]string{})), document)
+	empty := renderSource(t, mjmlgo.NewRenderer(mjmlgo.WithFonts([]mjmlgo.Font{})), document)
 	assert.NotContains(t, empty, "fonts.googleapis.com", "an empty registry replaces the defaults with nothing")
 	assert.Contains(t, empty, "https://example.com/document.css")
+}
+
+// TestWithFontsKeepsOrder asserts that the registry is emitted in the order it
+// was given, which is the order the reference implementation emits a registry it
+// received as a JavaScript object, and that FontsFromMap states the sorted order
+// a Go map can offer.
+func TestWithFontsKeepsOrder(t *testing.T) {
+	t.Parallel()
+
+	const document = `<mjml><mj-body><mj-section><mj-column>` +
+		`<mj-text font-family="Zeta">z</mj-text>` +
+		`<mj-text font-family="Alpha">a</mj-text>` +
+		`</mj-column></mj-section></mj-body></mjml>`
+
+	regular := []mjmlgo.Font{
+		{Family: "Zeta", Href: "https://example.com/zeta.css"},
+		{Family: "Alpha", Href: "https://example.com/alpha.css"},
+	}
+
+	html := renderSource(t, mjmlgo.NewRenderer(mjmlgo.WithFonts(regular)), document)
+	assert.Less(t, strings.Index(html, "zeta.css"), strings.Index(html, "alpha.css"),
+		"registry order is emission order, not alphabetical order")
+
+	// A family listed twice keeps its first position and its last URL.
+	duplicated := renderSource(t, mjmlgo.NewRenderer(mjmlgo.WithFonts([]mjmlgo.Font{
+		{Family: "Zeta", Href: "https://example.com/first.css"},
+		{Family: "Zeta", Href: "https://example.com/second.css"},
+		{Family: "Alpha", Href: "https://example.com/alpha.css"},
+	})), document)
+
+	assert.Contains(t, duplicated, "https://example.com/second.css")
+	assert.NotContains(t, duplicated, "https://example.com/first.css")
+	assert.Equal(t, 2, strings.Count(duplicated, `href="https://example.com/`), "each family is emitted once")
+	assert.Less(t, strings.Index(duplicated, "second.css"), strings.Index(duplicated, "alpha.css"))
+
+	// An entry without a family name cannot be referred to, so it is dropped.
+	anonymous := renderSource(t, mjmlgo.NewRenderer(mjmlgo.WithFonts([]mjmlgo.Font{
+		{Family: "", Href: "https://example.com/anonymous.css"},
+	})), document)
+
+	assert.NotContains(t, anonymous, "anonymous.css")
+
+	sorted := renderSource(t, mjmlgo.NewRenderer(mjmlgo.WithFonts(mjmlgo.FontsFromMap(map[string]string{
+		"Zeta":  "https://example.com/zeta.css",
+		"Alpha": "https://example.com/alpha.css",
+	}))), document)
+
+	assert.Less(t, strings.Index(sorted, "alpha.css"), strings.Index(sorted, "zeta.css"),
+		"FontsFromMap sorts, and says so")
+
+	assert.Nil(t, mjmlgo.FontsFromMap(nil), "a nil map keeps the defaults")
+	assert.Empty(t, mjmlgo.FontsFromMap(map[string]string{}), "an empty map replaces them with nothing")
 }
 
 // TestWithIgnoreIncludes asserts that includes are left unexpanded: the element

@@ -80,7 +80,7 @@ func TestParseConfig(t *testing.T) {
 		config, err := ParseConfig("f.mjml", []string{`-c.fonts={"A":"https://example.com/a.css"}`})
 		require.NoError(t, err)
 		assert.True(t, config.FontsSet)
-		assert.Equal(t, map[string]string{"A": "https://example.com/a.css"}, config.Fonts)
+		assert.Equal(t, []Font{{Family: "A", Href: "https://example.com/a.css"}}, config.Fonts)
 
 		// An empty object replaces the defaults with nothing, which is not the
 		// same as leaving the flag out.
@@ -88,6 +88,14 @@ func TestParseConfig(t *testing.T) {
 		require.NoError(t, err)
 		assert.True(t, config.FontsSet)
 		assert.Empty(t, config.Fonts)
+
+		// The object's order is the comparison's order, so it is preserved.
+		config, err = ParseConfig("f.mjml", []string{`-c.fonts={"Zeta":"https://example.com/z.css","Alpha":"https://example.com/a.css"}`})
+		require.NoError(t, err)
+		assert.Equal(t, []Font{
+			{Family: "Zeta", Href: "https://example.com/z.css"},
+			{Family: "Alpha", Href: "https://example.com/a.css"},
+		}, config.Fonts)
 	})
 
 	t.Run("malformed", func(t *testing.T) {

@@ -92,7 +92,7 @@ func rendererFor(t testing.TB, fixture string) *Renderer {
 	}
 
 	if config.FontsSet {
-		opts = append(opts, WithFonts(config.Fonts))
+		opts = append(opts, WithFonts(sidecarFonts(config.Fonts)))
 	}
 
 	if config.IgnoreIncludes != nil {
@@ -108,6 +108,18 @@ func rendererFor(t testing.TB, fixture string) *Renderer {
 	}
 
 	return NewRenderer(opts...)
+}
+
+// sidecarFonts converts the registry a sidecar configured into renderer options,
+// keeping the sidecar's order.
+func sidecarFonts(fonts []mjmltest.Font) []Font {
+	registry := make([]Font, len(fonts))
+
+	for i, font := range fonts {
+		registry[i] = Font{Family: font.Family, Href: font.Href}
+	}
+
+	return registry
 }
 
 // renderFixture renders fixture the way a caller would: the fixture's directory

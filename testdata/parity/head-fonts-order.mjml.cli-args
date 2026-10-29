@@ -1,0 +1,2 @@
+# registry order is emission order; this one is deliberately not alphabetical
+-c.fonts={"Zeta":"https://example.com/zeta.css","Alpha":"https://example.com/alpha.css"}

@@ -20,8 +20,9 @@ var builtinFonts = []struct {
 
 // ensureFontRegistry seeds the default web fonts and records their order. A
 // caller-provided registry is kept as it is: it replaces the defaults rather
-// than extending them. A Go map has no order of its own, so a custom registry is
-// emitted in ascending family-name order to keep renders reproducible.
+// than extending them. Its emission order is the caller's, recorded in
+// FontOrder; only a context that supplies Fonts without one falls back to
+// ascending family-name order, which is the only order a bare Go map offers.
 func (c *RenderContext) ensureFontRegistry() {
 	if c.Fonts == nil {
 		c.Fonts = make(map[string]string)

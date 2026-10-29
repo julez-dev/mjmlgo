@@ -26,13 +26,22 @@ type RenderConfig struct {
 	IgnoreIncludes *bool
 	// PrinterSupport is MJML's printerSupport option (default false).
 	PrinterSupport *bool
-	// Fonts replaces the web-font registry. It is a JSON object from the
-	// sidecar, so it is never nil: an empty object replaces the defaults with
-	// nothing, and a fixture that wants the defaults omits the flag.
-	Fonts map[string]string
+	// Fonts replaces the web-font registry, in the order the sidecar's JSON
+	// object lists the families: the reference implementation emits a registry
+	// in insertion order, so the sidecar's order is part of what is compared. It
+	// is never nil: an empty object replaces the defaults with nothing, and a
+	// fixture that wants the defaults omits the flag.
+	Fonts []Font
 	// FontsSet reports that the sidecar configures fonts, so an empty registry
 	// is distinguishable from "not configured".
 	FontsSet bool
+}
+
+// Font is one entry of the web-font registry a sidecar configures, in the order
+// the JSON object lists it.
+type Font struct {
+	Family string
+	Href   string
 }
 
 // Args returns the raw reference CLI arguments recorded for fixture, or nil when
@@ -171,7 +180,9 @@ func truthy(value string) bool {
 	return value != ""
 }
 
-// parseFonts decodes the JSON font registry of -c.fonts.
+// parseFonts decodes the JSON font registry of -c.fonts, keeping the order the
+// object lists its families in. That order is what the reference implementation
+// emits, so it is part of the comparison.
 //
 // Only a JSON object is a usable registry. The CLI parses nothing else into an
 // object: null, "", false and friends reach mjml-core as the string the CLI saw,
@@ -181,16 +192,62 @@ func truthy(value string) bool {
 // A sidecar asking for that would compare the reference under a broken
 // configuration against one of our options, so it fails instead. Omit the flag
 // to keep the default registry and use {} to replace it with nothing.
-func parseFonts(value string) (map[string]string, error) {
-	var fonts map[string]string
-	if err := json.Unmarshal([]byte(value), &fonts); err != nil {
+func parseFonts(value string) ([]Font, error) {
+	decoder := json.NewDecoder(strings.NewReader(value))
+
+	fonts, err := decodeFontObject(decoder)
+	if err != nil {
 		return nil, fmt.Errorf("decode JSON font registry: %w", err)
 	}
 
-	if fonts == nil {
-		return nil, errors.New(
-			"-c.fonts needs a JSON object (`{...}`); the reference CLI passes null to mjml-core " +
-				"as the string \"null\", which breaks the font registry - omit the flag for the defaults")
+	return fonts, nil
+}
+
+// errNotFontObject is the diagnosis for every -c.fonts value that is not a JSON
+// object. The reference CLI hands such a value to mjml-core unchanged, where the
+// registry stops being a name-to-URL map: <mj-font> registration throws ("Cannot
+// create property 'Unused Font' on string 'null'") and emitted links are built
+// from the characters of the value.
+var errNotFontObject = errors.New(
+	"not a JSON object of family to URL: the reference CLI hands anything else to mjml-core, " +
+		"where the font registry is unusable - omit the flag for the default registry, use {} for none")
+
+// decodeFontObject reads one JSON object as an ordered font list. An empty object
+// is an empty registry, which is not the same as no registry.
+func decodeFontObject(decoder *json.Decoder) ([]Font, error) {
+	token, err := decoder.Token()
+	if err != nil {
+		return nil, err
+	}
+
+	if delimiter, ok := token.(json.Delim); !ok || delimiter != '{' {
+		return nil, errNotFontObject
+	}
+
+	fonts := []Font{}
+
+	for decoder.More() {
+		family, err := decoder.Token()
+		if err != nil {
+			return nil, err
+		}
+
+		name, ok := family.(string)
+		if !ok {
+			return nil, errors.New("object key is not a string")
+		}
+
+		var href string
+		if err := decoder.Decode(&href); err != nil {
+			return nil, fmt.Errorf("family %q: %w", name, err)
+		}
+
+		fonts = append(fonts, Font{Family: name, Href: href})
+	}
+
+	// Consume the closing brace.
+	if _, err := decoder.Token(); err != nil {
+		return nil, err
 	}
 
 	return fonts, nil

@@ -182,7 +182,6 @@ whatever displays or transports the HTML.
 | Custom components | JavaScript packages, `.mjmlconfig` | Go types registered per renderer |
 | Watch mode, MJML 3 migration | supported | not implemented |
 | Malformed XML (a comment containing `--`, say) | tolerated by the lenient parser | rejected |
-| Custom font registry order | insertion order | ascending family name (Go maps are unordered) |
 
 The `mjml` CLI's `--config.beautify`, `--config.minify` and unknown config keys
 are rejected with an explanation rather than silently ignored.
