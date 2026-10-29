@@ -113,7 +113,7 @@ func compileInputs(
 	output string,
 	stdout, stderr io.Writer,
 ) int {
-	inputs, err := readInputs(patterns, fromStdin, fl, toStdout, output)
+	inputs, err := readInputs(patterns, fromStdin, fl)
 	if err != nil {
 		return commandLineError(stderr, err)
 	}
@@ -236,7 +236,7 @@ type input struct {
 // readInputs turns the selected input option into the documents to render. The
 // file patterns are expanded here so that output paths are resolved against the
 // same list.
-func readInputs(patterns []string, fromStdin bool, fl *flags, toStdout bool, output string) ([]input, error) {
+func readInputs(patterns []string, fromStdin bool, fl *flags) ([]input, error) {
 	if fromStdin {
 		src, err := io.ReadAll(fl.input)
 		if err != nil {

@@ -72,8 +72,7 @@ type jsonError struct {
 func describeError(err error) *jsonError {
 	described := &jsonError{Kind: "error", Message: err.Error()}
 
-	var structured *mjmlgo.Error
-	if errors.As(err, &structured) {
+	if structured, ok := errors.AsType[*mjmlgo.Error](err); ok {
 		described.Kind = kindSlug(structured.Kind)
 		described.Path = structured.Path
 		described.Attribute = structured.Attribute
