@@ -498,7 +498,7 @@ func TestInlineCSSKeepsSelfClosingForm(t *testing.T) {
 // emitted, so its cost can be read next to the end-to-end numbers of
 // BenchmarkRenderMJML.
 func BenchmarkInlineStage(b *testing.B) {
-	for _, fixture := range []string{"input_big.mjml", "head.mjml"} {
+	for _, fixture := range []string{"inline-cascade.mjml", "head.mjml"} {
 		path := filepath.Join(parityDir, fixture)
 
 		input, err := os.Open(path)

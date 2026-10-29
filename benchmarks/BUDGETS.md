@@ -46,7 +46,6 @@ records, from memory; fixtures with `mj-include` are measured through
 | `inline-implied-end-tags.mjml` | 189,365 | 250,520 | 3,070 | 118,353 | 156,575 | 1,919 |
 | `inline-self-closed-html.mjml` | 131,438 | 179,685 | 2,155 | 82,149 | 112,303 | 1,347 |
 | `inline-stray-void-end-tag.mjml` | 95,661 | 143,013 | 1,467 | 59,788 | 89,383 | 917 |
-| `input_big.mjml` | 3,393,758 | 4,870,384 | 38,107 | 2,121,099 | 3,043,990 | 23,817 |
 | `layout.mjml` | 222,805 | 351,661 | 3,520 | 139,253 | 219,788 | 2,200 |
 | `navbar.mjml` | 75,512 | 130,347 | 1,133 | 47,195 | 81,467 | 708 |
 | `printer-support.mjml` | 70,818 | 112,096 | 1,163 | 44,261 | 70,060 | 727 |
@@ -105,20 +104,19 @@ this merged tree and on the pre-merge `main` in the same session):
 
 | Fixture | Before ns/op | After ns/op | Before allocs/op | After allocs/op |
 | --- | ---: | ---: | ---: | ---: |
-| `input_big.mjml` | 836,000 | 650,000 | 7,816 | 6,853 |
 | `head.mjml` | 25,700 | 20,300 | 298 | 257 |
 
-End to end, from the table above against the pre-merge numbers: `input_big.mjml`
-2.50 ms -> 2.12 ms (26,090 -> 23,817 allocs/op) and
-`head.mjml` 87.8 us -> 74.5 us (1,132 -> 1,062
-allocs/op). Allocations drop on every fixture in the corpus; the few fixtures whose
-time does not improve are the ones too small to measure the stage on (carousel,
-accordion), where noise dominates.
+End to end, from the table above against the pre-merge numbers: `head.mjml`
+87.8 us -> 74.5 us (1,132 -> 1,062 allocs/op) and the largest document then in
+the corpus 2.50 ms -> 2.12 ms (26,090 -> 23,817 allocs/op). Allocations drop on
+every fixture in the corpus; the few fixtures whose time does not improve are the
+ones too small to measure the stage on (carousel, accordion), where noise
+dominates.
 
-That is ~0.19 ms of the ~0.54 ms the round-trip used to cost on `input_big.mjml`:
-the rest of the round-trip's cost came back as the element tree the selector
-passes need, and removing that too means components emitting elements instead of
-markup (ADR-0005).
+That is ~0.19 ms of the ~0.54 ms the round-trip used to cost on that largest
+document: the rest of the round-trip's cost came back as the element tree the
+selector passes need, and removing that too means components emitting elements
+instead of markup (ADR-0005).
 
 What the stage costs now, from its CPU profile: about half is tokenizing the
 emitted markup and building the tree, a third is selector matching (one full tree

@@ -13,7 +13,7 @@ whole-document `html.Parse`/`html.Render` round-trip and no fallback path.
 This replaces the previous pipeline, which rendered HTML to a string, parsed the
 whole document, matched selectors against the parsed tree, applied
 `<mj-html-attributes>` to the body subtree, and re-serialized everything. That
-round-trip was ~65% of the inline stage on `input_big.mjml` and, because it
+round-trip was ~65% of the inline stage on the largest fixture and, because it
 normalized the document, it also rewrote bytes it was not asked to touch.
 
 ## The tree
@@ -82,7 +82,7 @@ once and written out once, and no rule-driven re-serialization of the document
 happens at any point.
 
 That leftover tokenizer pass is why the ticket's timing target is only partly
-met. On `input_big.mjml` the round-trip cost ~0.54 ms of a 0.82 ms inline stage;
+met. On the largest fixture the round-trip cost ~0.54 ms of a 0.82 ms inline stage;
 the stage is now ~0.61 ms, so ~0.21 ms is recovered and the rest came back as the
 tree build the selector passes need (about half of the new stage is tokenizing,
 a third is matching). Removing the tokenizer as well means having components emit
@@ -137,7 +137,7 @@ into `<meta .../>`, `&nbsp;` into a raw byte, `{ if item < 5 }` into
 into an open/close pair. Those were `html.Parse`/`html.Render` artifacts: on the
 fixtures that move, the reference output keeps the emitted form (lowercase
 doctype, four meta elements without `/>` in `head.mjml`, 247 `&nbsp;` entities and
-no raw non-breaking spaces in `input_big.mjml`), and only the reference's own
+no raw non-breaking spaces in that document), and only the reference's own
 `<o:AllowPNG/>` and author raw content still carry `/>`. Every fixture's document
 is unchanged; only this serialization detail moved.
 

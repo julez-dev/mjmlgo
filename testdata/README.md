@@ -188,10 +188,9 @@ testdata/invalid/invalid-color.mjml.error.txt   ->  chartreuseish not a valid co
 - Parity: drop a `.mjml` file under `parity/`. It must match the reference
   implementation immediately. Keep fixtures small and focused: one fixture per
   feature area makes a failure easy to interpret.
-- `parity/input_big.mjml` is the deliberate exception: a 24 KB multi-feature
-  document kept as the end-to-end performance fixture
-  (`BenchmarkRenderMJML/input_big.mjml`). Its baseline entry is coarse on purpose;
-  add focused fixtures instead of extending it.
+- A large, multi-feature fixture is useful as an end-to-end performance document,
+  but it must be synthetic: never commit a customer or production document. Add
+  focused fixtures instead of growing one.
 - Invalid: add the fixture, its `.error.txt`, and an entry in the
   `invalidFailures` table in `render_test.go`. The `.error.txt` is a stable
   substring of the message; the table is the structured contract the fixture must

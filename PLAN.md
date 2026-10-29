@@ -16,7 +16,7 @@ against the reference JavaScript implementation.
 
 ## Measured starting point (MJML 4.18.0, `HEAD` before the rewrite)
 
-`input_big.mjml` (23,930 B) end to end: **2.85 ms, 3.74 MB, 34,253 allocs**.
+The largest production document then available (23,930 B, since removed from the repository) end to end: **2.85 ms, 3.74 MB, 34,253 allocs**.
 
 | Stage | ns/op | B/op | allocs/op |
 | --- | ---: | ---: | ---: |
@@ -65,8 +65,8 @@ Known divergences at the start: 214 records / 15 root causes (see
   also removed a whole-output regexp). Divergences: 334 -> 288.
 - **Review follow-ups done** - baseline entries whose fixture disappeared now
   fail the test; downlevel-reveal (`<!--[if !mso]><!-->`) wrappers are compared;
-  `.gitignore` anchored so fixtures such as `testdata/parity/input_big.mjml` are
-  tracked; do-nothing `TestRender` removed; hero `inner-div` emits `float` where
+  `.gitignore` anchored so a fixture is tracked even when a root-level ignore
+  pattern matches a file of the same name; do-nothing `TestRender` removed; hero `inner-div` emits `float` where
   it used to emit a duplicate `background-color`.
 - **Delegated lanes merged** (each in its own git worktree, reviewed before
   merging):
@@ -147,7 +147,8 @@ Known divergences at the start: 214 records / 15 root causes (see
   change; see ADR-0004 for the added methods. Parity is still at zero divergences.
 - **M3 done**: inline stylesheet selectors are compiled once per stylesheet, style
   application is allocation-light, and inline output is byte-deterministic
-  (previously Go map iteration made repeated renders differ). `input_big.mjml`
+  (previously Go map iteration made repeated renders differ). The largest
+  fixture then in the corpus
   2.58 ms -> 2.45 ms, 3.83 MB -> 3.05 MB, 32.9k -> 30.4k allocs; the remaining
   inline cost is the `html.Parse`/`html.Render` round-trip, tracked as a
   follow-up with numbers.
@@ -158,7 +159,7 @@ Known divergences at the start: 214 records / 15 root causes (see
   instead of `strings.Split` plus a regexp, the type validators are shared values
   instead of a closure per table entry, and the element path is built only when a
   node is reported. Acceptance, error kinds and messages are unchanged.
-  `input_big.mjml` 37,259 -> 26,090 allocs and 3.70 MB -> 3.02 MB per render
+  That fixture 37,259 -> 26,090 allocs and 3.70 MB -> 3.02 MB per render
   (median of 3, `-benchmem`, Go 1.24), and the corpus budgets were re-measured.
 - **M2b includes done**: `mj-include` resolves through the caller's `fs.FS`.
   `type="mjml"` (the default) parses the included file, wraps a bare fragment in
@@ -203,7 +204,7 @@ limits are gone.
   source order) instead of "first declaration wins", mirrored
   `align`/`valign`/`bgcolor` attributes follow the winning declaration, and the
   new `inline-cascade.mjml` fixture proves it against the reference - the
-  pre-change build fails it in three places. Inline stage on `input_big.mjml`
+  pre-change build fails it in three places. Inline stage on the largest fixture
   817 us -> 621 us, end to end 2.59 ms -> 2.31 ms with ~1k fewer allocations;
   `head.mjml` 94.6 us -> 83.7 us. Output for a document that inlines CSS is now
   formatted like the emitted markup (lowercase doctype, no `/>` on void elements,
@@ -230,7 +231,7 @@ limits are gone.
   promoted embedded fields in literals, `maps.Copy`, `strings.SplitSeq`,
   `WaitGroup.Go`, `strings.Contains`, tagged switches, `fmt.Fprintf` - are applied
   too, and CI runs that check at hint severity, since `gopls check` hides hints by
-  default. `input_big.mjml` is 3.04 MB -> 3.00 MB per render from the iterator and
+  default. The largest fixture is 3.04 MB -> 3.00 MB per render from the iterator and
   copy changes.
 
 - **inliner hang fixed (issue #10)**: the stylesheet parser (douceur) loops forever
@@ -291,7 +292,7 @@ holds what each ticket actually shipped.
 | [#5](https://github.com/julez-dev/mjmlgo/issues/5) T4 | Custom components as containers, head-style contribution | T3 |
 | [#6](https://github.com/julez-dev/mjmlgo/issues/6) T5 | Structured `*Error` across every validation site | T2 |
 | [#7](https://github.com/julez-dev/mjmlgo/issues/7) T6 | Remove the post-render `html.Parse`/`html.Render` round-trip | T2 |
-| [#8](https://github.com/julez-dev/mjmlgo/issues/8) T7 | Validation allocations (~5k per `input_big` render) | T5 |
+| [#8](https://github.com/julez-dev/mjmlgo/issues/8) T7 | Validation allocations (~5k per large-document render) | T5 |
 | [#9](https://github.com/julez-dev/mjmlgo/issues/9) T8 | Unit-test backfill for parity-only sources | T2 |
 
 Topology as executed: spine T1 -> T2 -> T3 -> T4, tail T5 -> T7, with T6 and T8
