@@ -1,0 +1,12 @@
+<mjml>
+          <mj-body>
+            <mj-section full-width="full-width" background-color="#f2f2f2" gutter="4%" padding="4%" border="10px solid black" direction="rtl">
+              <mj-column>
+                <mj-text>S10-C1</mj-text>
+              </mj-column>
+              <mj-column>
+                <mj-text>S10-C2</mj-text>
+              </mj-column>
+            </mj-section>
+          </mj-body>
+        </mjml>

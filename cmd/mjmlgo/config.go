@@ -16,8 +16,11 @@ import (
 type renderConfig struct {
 	// root overrides the directory mj-include paths resolve against. Empty
 	// means the directory of the document itself.
-	root    string
-	options []mjmlgo.Option
+	root string
+	// allowIncludes is whether mj-include elements are expanded. MJML 5 ignores
+	// them unless the caller opts in, so this mirrors --config.allowIncludes.
+	allowIncludes bool
+	options       []mjmlgo.Option
 }
 
 // parseConfig turns --config assignments into renderer options. The reference
@@ -49,10 +52,30 @@ func parseConfig(pairs []configPair) (renderConfig, error) {
 			}
 
 			cfg.root = pair.value
+		case "allowIncludes":
+			allow, err := strconv.ParseBool(pair.value)
+			if err != nil {
+				return cfg, fmt.Errorf("config.allowIncludes: %q is not a boolean", pair.value)
+			}
+
+			cfg.allowIncludes = allow
+		case "ignoreIncludes":
+			// The name mjml-core has always had, and its truthiness rule: a
+			// non-empty string switches it on, so "false" means "ignore".
+			cfg.allowIncludes = pair.value == ""
+		case "includePath":
+			// Accepted and ignored: it narrows the directories mj-include may
+			// read from, and this command already resolves includes inside one
+			// filesystem root - the document's directory or -c filePath.
+		case "sanitizeStyles", "templateSyntax", "allowMixedSyntax":
+			// Accepted and ignored: they exist to keep template syntax intact
+			// through CSS minification, and this renderer does not minify.
 		case "beautify", "minify", "minifyOptions":
 			return cfg, fmt.Errorf("config.%s: output is always compact, so there is nothing to %s", pair.key, pair.key)
 		default:
-			return cfg, fmt.Errorf("config.%s: unknown option (supported: fonts, keepComments, filePath)", pair.key)
+			return cfg, fmt.Errorf(
+				"config.%s: unknown option (supported: fonts, keepComments, filePath, allowIncludes, ignoreIncludes, includePath)",
+				pair.key)
 		}
 	}
 
@@ -118,4 +141,15 @@ func decodeFontObject(decoder *json.Decoder) ([]mjmlgo.Font, error) {
 	}
 
 	return fonts, nil
+}
+
+// includeOption is the renderer option the include setting asks for.
+func (c renderConfig) includeOption() mjmlgo.Option {
+	if c.allowIncludes {
+		return nil
+	}
+
+	// MJML 5 ignores includes by default; WithoutIncludes is how the renderer
+	// says the same thing.
+	return mjmlgo.WithoutIncludes()
 }

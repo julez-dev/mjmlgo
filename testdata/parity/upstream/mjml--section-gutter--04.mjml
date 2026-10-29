@@ -1,0 +1,17 @@
+<mjml>
+          <mj-body>
+            <mj-section background-color="#f2f2f2" gutter="24px" padding="24px" direction="rtl">
+              <mj-group direction="ltr">
+                <mj-column>
+                  <mj-text>S13-G1-C1</mj-text>
+                </mj-column>
+                <mj-column>
+                  <mj-text>S13-G1-C2</mj-text>
+                </mj-column>
+                <mj-column>
+                  <mj-text>S13-G1-C3</mj-text>
+                </mj-column>
+              </mj-group>
+            </mj-section>
+          </mj-body>
+        </mjml>

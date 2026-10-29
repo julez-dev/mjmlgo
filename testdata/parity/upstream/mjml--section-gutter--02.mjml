@@ -1,0 +1,14 @@
+<mjml>
+        <mj-body>
+          <mj-section gutter="4%" padding="4%">
+            <mj-group>
+              <mj-column>
+                <mj-text>Group Left</mj-text>
+              </mj-column>
+              <mj-column>
+                <mj-text>Group Right</mj-text>
+              </mj-column>
+            </mj-group>
+          </mj-section>
+        </mj-body>
+      </mjml>
