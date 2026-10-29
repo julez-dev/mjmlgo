@@ -569,8 +569,6 @@ func TestRenderRawInColumnKeepsPosition(t *testing.T) {
 // BenchmarkRenderMJML measures the full pipeline (parse, render, inline CSS,
 // output post-processing) per fixture. The fixture set is the parity corpus, so
 // the numbers describe realistic documents rather than toy inputs.
-//
-// Budgets live in benchmarks/BUDGETS.md.
 func BenchmarkRenderMJML(b *testing.B) {
 	forEachParityFixture(b, func(name, fixture string) {
 		b.Run(name, func(b *testing.B) {

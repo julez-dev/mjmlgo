@@ -8,7 +8,7 @@ Two corpora, both driven by fixtures on disk:
 | `invalid/` | Documents that must be **rejected** with a specific error. | `TestMJMLInvalid` |
 
 The reference implementation is the real `mjml` CLI; its version is pinned
-project-wide in `../package.json`. See `../PLAN.md` for the overall roadmap.
+project-wide in `../package.json`.
 
 ## Parity corpus (`parity/`)
 
@@ -211,5 +211,11 @@ testdata/invalid/invalid-color.mjml.error.txt   ->  chartreuseish not a valid co
 
 ## Benchmarks
 
-`../benchmarks/BUDGETS.md` holds the end-to-end budget table
-(`BenchmarkRenderMJML`); CI reports benchmark results without gating on them.
+`BenchmarkRenderMJML` in `../render_test.go` measures the full pipeline per
+fixture, so the numbers describe realistic documents rather than toy inputs:
+
+```sh
+go test ./ -run XXX -bench BenchmarkRenderMJML -benchmem -count=5
+```
+
+Benchmarks are a local tool; CI does not run them.

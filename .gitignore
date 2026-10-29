@@ -6,7 +6,6 @@
 node_modules
 testdata/.failures
 coverage.out
-benchmarks.txt
 *.pprof
 
 # Local build/test artifacts and private MJML inputs must never be committed.

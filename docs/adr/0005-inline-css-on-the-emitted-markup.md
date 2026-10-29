@@ -87,7 +87,7 @@ the stage is now ~0.61 ms, so ~0.21 ms is recovered and the rest came back as th
 tree build the selector passes need (about half of the new stage is tokenizing,
 a third is matching). Removing the tokenizer as well means having components emit
 elements instead of text - a change to every component and template, out of scope
-here. The numbers live in `benchmarks/BUDGETS.md`.
+here. The numbers come from `BenchmarkInlineStage` and `BenchmarkRenderMJML`.
 
 ## Reproducing the cascade evidence
 
