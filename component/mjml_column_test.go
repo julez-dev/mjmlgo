@@ -222,3 +222,149 @@ func TestMJMLColumnGutterKeepsBackground(t *testing.T) {
 	require.Contains(t, b.String(), `background-color:#fafafa;`)
 	require.Contains(t, b.String(), `padding:10px;`)
 }
+
+func TestColumnClass(t *testing.T) {
+	t.Parallel()
+
+	t.Run("percentage", func(t *testing.T) {
+		n := &node.Node{
+			Attributes: []xml.Attr{},
+			Parent: &node.Node{
+				Children: []*node.Node{
+					{Type: ColumnTagName},
+					{Type: ColumnTagName},
+				},
+			},
+		}
+		ctx := &RenderContext{
+			MJMLStylesheet: make(map[string][]string),
+		}
+
+		v, err := MJMLColumn{}.columnClass(ctx, n)
+		require.NoError(t, err)
+		require.Equal(t, "mj-column-per-50", v)
+
+		m, exists := ctx.MJMLStylesheet["mj-column-per-50"]
+		require.True(t, exists, "key mj-column-per-50 should be in map")
+		require.Len(t, m, 2)
+		require.Equal(t, "width: 50% !important", m[0])
+		require.Equal(t, "max-width: 50%", m[1])
+	})
+
+	t.Run("px", func(t *testing.T) {
+		n := &node.Node{
+			Attributes: []xml.Attr{
+				{Name: xml.Name{Local: "width"}, Value: "200px"},
+			},
+			Parent: &node.Node{
+				Children: []*node.Node{
+					{Type: ColumnTagName},
+					{Type: ColumnTagName},
+				},
+			},
+		}
+		ctx := &RenderContext{
+			MJMLStylesheet: make(map[string][]string),
+		}
+
+		v, err := MJMLColumn{}.columnClass(ctx, n)
+		require.NoError(t, err)
+		require.Equal(t, "mj-column-px-200", v)
+
+		m, exists := ctx.MJMLStylesheet["mj-column-px-200"]
+		require.True(t, exists, "key mj-column-px-200 should be in map")
+		require.Len(t, m, 2)
+		require.Equal(t, "width: 200px !important", m[0])
+		require.Equal(t, "max-width: 200px", m[1])
+	})
+}
+
+func TestColumnMobileWidth(t *testing.T) {
+	t.Parallel()
+
+	t.Run(`mobileWidth != "mobileWidth"`, func(t *testing.T) {
+		n := &node.Node{
+			Attributes: []xml.Attr{
+				{Name: xml.Name{Local: "width"}, Value: "200px"},
+			},
+			Parent: &node.Node{
+				Children: []*node.Node{
+					{Type: ColumnTagName},
+					{Type: ColumnTagName},
+				},
+			},
+		}
+		ctx := &RenderContext{
+			ContainerWidth: "450px",
+		}
+
+		v, err := MJMLColumn{}.mobileWidth(ctx, n)
+		require.NoError(t, err)
+		require.Equal(t, "100%", v)
+	})
+
+	t.Run(`!hasWidth"`, func(t *testing.T) {
+		n := &node.Node{
+			Attributes: []xml.Attr{
+				{Name: xml.Name{Local: "mobileWidth"}, Value: "mobileWidth"},
+			},
+			Parent: &node.Node{
+				Children: []*node.Node{
+					{Type: ColumnTagName},
+					{Type: ColumnTagName},
+				},
+			},
+		}
+		ctx := &RenderContext{
+			ContainerWidth: "450px",
+		}
+
+		v, err := MJMLColumn{}.mobileWidth(ctx, n)
+		require.NoError(t, err)
+		require.Equal(t, "50%", v)
+	})
+
+	t.Run(`percent-width"`, func(t *testing.T) {
+		n := &node.Node{
+			Attributes: []xml.Attr{
+				{Name: xml.Name{Local: "width"}, Value: "20%"},
+				{Name: xml.Name{Local: "mobileWidth"}, Value: "mobileWidth"},
+			},
+			Parent: &node.Node{
+				Children: []*node.Node{
+					{Type: ColumnTagName},
+					{Type: ColumnTagName},
+				},
+			},
+		}
+		ctx := &RenderContext{
+			ContainerWidth: "450px",
+		}
+
+		v, err := MJMLColumn{}.mobileWidth(ctx, n)
+		require.NoError(t, err)
+		require.Equal(t, "20%", v)
+	})
+
+	t.Run(`px-width"`, func(t *testing.T) {
+		n := &node.Node{
+			Attributes: []xml.Attr{
+				{Name: xml.Name{Local: "width"}, Value: "130px"},
+				{Name: xml.Name{Local: "mobileWidth"}, Value: "mobileWidth"},
+			},
+			Parent: &node.Node{
+				Children: []*node.Node{
+					{Type: ColumnTagName},
+					{Type: ColumnTagName},
+				},
+			},
+		}
+		ctx := &RenderContext{
+			ContainerWidth: "450px",
+		}
+
+		v, err := MJMLColumn{}.mobileWidth(ctx, n)
+		require.NoError(t, err)
+		require.Equal(t, "28.888889%", v, "MJML 5 keeps six decimals instead of two")
+	})
+}

@@ -1,0 +1,9 @@
+<mjml>
+  <mj-body>
+    <!-- inner-padding now lands on the inner div, not only in the Outlook table -->
+    <mj-hero mode="fixed-height" height="200px" background-width="600px" background-height="200px"
+             inner-padding="20px 30px" width="400px">
+      <mj-text>hero</mj-text>
+    </mj-hero>
+  </mj-body>
+</mjml>

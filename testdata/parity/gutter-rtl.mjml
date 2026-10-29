@@ -1,0 +1,9 @@
+<mjml>
+  <mj-body>
+    <!-- rtl mirrors which side of a column its share of the gutter lands on -->
+    <mj-section gutter="24px" direction="rtl">
+      <mj-column><mj-text>one</mj-text></mj-column>
+      <mj-column><mj-text>two</mj-text></mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

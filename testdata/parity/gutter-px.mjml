@@ -1,0 +1,10 @@
+<mjml>
+  <mj-body>
+    <!-- a gutter takes the space out of the columns and puts it between them -->
+    <mj-section gutter="20px">
+      <mj-column><mj-text>one</mj-text></mj-column>
+      <mj-column><mj-text>two</mj-text></mj-column>
+      <mj-column><mj-text>three</mj-text></mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

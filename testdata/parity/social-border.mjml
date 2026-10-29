@@ -1,0 +1,12 @@
+<mjml>
+  <mj-body>
+    <mj-section>
+      <mj-column>
+        <mj-social border="2px solid #333333">
+          <mj-social-element name="facebook" href="https://example.com/">inherits</mj-social-element>
+          <mj-social-element name="github" border="4px solid #111111">overrides</mj-social-element>
+        </mj-social>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

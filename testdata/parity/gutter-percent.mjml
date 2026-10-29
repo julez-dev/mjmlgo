@@ -1,0 +1,13 @@
+<mjml>
+  <mj-body>
+    <mj-section gutter="4%">
+      <mj-column><mj-text>a</mj-text></mj-column>
+      <mj-column><mj-text>b</mj-text></mj-column>
+    </mj-section>
+    <!-- a fixed-width column takes the gutter in pixels -->
+    <mj-section gutter="3%">
+      <mj-column width="200px"><mj-text>c</mj-text></mj-column>
+      <mj-column width="200px"><mj-text>d</mj-text></mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

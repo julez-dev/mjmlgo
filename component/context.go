@@ -84,6 +84,17 @@ type RenderContext struct {
 	// CSS embeds the carousel id and the number of images). MJML keeps these in
 	// an array without deduplication and emits them before ComponentHeadStyles.
 	InstanceComponentHeadStyles []ComponentHeadStyle
+	// Gutter is the mj-section gutter that applies to the columns below it:
+	// the space a section's columns keep between themselves. Empty when the
+	// section has none, which is MJML's own test for "no gutter".
+	Gutter string
+	// ContainerDirection is the direction of the section or group rendering the
+	// columns. Column gutter padding mirrors for rtl, so it needs the
+	// container's direction rather than the document's.
+	ContainerDirection string
+	// InGroup reports that the column being rendered sits inside an mj-group,
+	// which does not stack on mobile and therefore keeps desktop padding.
+	InGroup bool
 	// IDGenerator produces the opaque ids MJML assigns to components that need
 	// them (navbar hamburger labels, carousels). It is set once per render by
 	// the renderer, so a nil generator falls back to DefaultIDGenerator.

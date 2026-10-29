@@ -28,7 +28,7 @@ func (c MJMLCarousel) Name() string {
 
 var carouselAllowedAttributes = map[string]AttributeValidator{
 	"align":                      validateEnum([]string{"left", "center", "right"}),
-	"border-radius":              validateUnit([]string{"px", "%"}, true),
+	"border-radius":              validateType("string"),
 	"container-background-color": validateColor(),
 	"icon-width":                 validateUnit([]string{"px", "%"}, false),
 	"left-icon":                  validateType("string"),
@@ -39,7 +39,7 @@ var carouselAllowedAttributes = map[string]AttributeValidator{
 	"padding-top":                validateUnit([]string{"px", "%"}, false),
 	"right-icon":                 validateType("string"),
 	"tb-border":                  validateType("string"),
-	"tb-border-radius":           validateUnit([]string{"px", "%"}, false),
+	"tb-border-radius":           validateType("string"),
 	"tb-hover-border-color":      validateColor(),
 	"tb-selected-border-color":   validateColor(),
 	"tb-width":                   validateUnit([]string{"px", "%"}, false),
