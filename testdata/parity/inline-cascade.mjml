@@ -1,0 +1,44 @@
+<mjml>
+  <mj-head>
+    <mj-style inline="inline">
+      /* specificity: the more specific selector wins even when declared first */
+      .frame .target { color: #0000ff; }
+      .target { color: #ff0000; }
+
+      /* source order: equal specificity, so the later declaration wins */
+      .first { margin: 0; }
+      .second { margin: 8px; }
+
+      /* two classes on one element, both important, conflicting shorthand and
+         longhand: both declarations survive, in either class order */
+      .shorthand { padding: 10px !important; border: 1px solid #333333; }
+      .longhand { padding-top: 20px !important; border-color: #666666; }
+
+      /* importance outranks specificity, whatever the source order */
+      .frame .important { background-color: #eeeeee; }
+      .important { background-color: #dddddd !important; }
+
+      /* component style versus stylesheet: the component's own style attribute
+         is an inline style, so a plain rule loses and an important one wins */
+      .own { padding: 99px; }
+      .own-important { font-size: 21px !important; }
+
+      /* a selector list keeps the specificity of the selector that matched */
+      .list, .frame .listed { text-align: right; }
+      .listed { color: #00aa00; }
+    </mj-style>
+  </mj-head>
+  <mj-body>
+    <mj-section css-class="frame">
+      <mj-column>
+        <mj-text css-class="target">specificity first</mj-text>
+        <mj-text css-class="first second">source order</mj-text>
+        <mj-text css-class="shorthand longhand">A both important</mj-text>
+        <mj-text css-class="longhand shorthand">B reversed order</mj-text>
+        <mj-text css-class="important">important beats specific</mj-text>
+        <mj-text css-class="own own-important">own style</mj-text>
+        <mj-text css-class="listed">selector list</mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

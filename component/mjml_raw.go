@@ -10,9 +10,9 @@ import (
 
 type MJMLRaw struct{}
 
-// RawBlockStartMarker and RawBlockEndMarker wrap raw column content so the CSS
-// inliner can protect it from HTML table foster-parenting. They are removed from
-// the final output by StripRawBlockMarkers.
+// RawBlockStartMarker and RawBlockEndMarker wrap raw content that a container
+// renders directly inside a <tbody>, so its position stays explicit in the
+// markup. They are removed from the final output by StripRawBlockMarkers.
 const (
 	RawBlockStartMarker = "<!--mjmlgo-raw-start-->"
 	RawBlockEndMarker   = "<!--mjmlgo-raw-end-->"
@@ -43,10 +43,12 @@ func (r MJMLRaw) Render(_ *RenderContext, w io.Writer, n *node.Node) error {
 // comment, which the parser represents as one - at its document position.
 //
 // It is the single place that renders raw children, so the per-container child
-// loops cannot drift apart. Containers whose raw content sits directly inside a
-// <table> body use renderRawChildInTableBody instead. A custom component chooses
-// between the two through RenderChildren and RenderChildrenInTableBody, which
-// call this function and renderRawChildInTableBody respectively.
+// loops cannot drift apart. Raw content is emitted verbatim, wherever it sits:
+// the inline stage matches selectors against the emitted markup itself, so no
+// parser can move a block out of a table and nothing needs re-serializing.
+//
+// A custom component chooses between this and renderRawChildInTableBody through
+// RenderChildren and RenderChildrenInTableBody.
 func renderRawChild(ctx *RenderContext, w io.Writer, n *node.Node) error {
 	var raw MJMLRaw
 	if err := InitComponent(ctx, raw, n); err != nil {
@@ -60,20 +62,16 @@ func renderRawChild(ctx *RenderContext, w io.Writer, n *node.Node) error {
 	return nil
 }
 
-// renderRawChildInTableBody is renderRawChild for raw content that sits
-// directly inside a <tbody>. The block is wrapped in the raw-block markers
-// because the CSS inliner parses the document with html.Parse, whose table
-// rules would otherwise foster-parent the content out of the table and
-// re-serialize it. The markers are stripped again after inlining (and by
-// StripRawBlockMarkers for documents that skip the inliner).
+// renderRawChildInTableBody is renderRawChild for raw content that sits directly
+// inside a <tbody>: it wraps the block in the raw-block comments, so the position
+// the author wrote the content in is explicit in the markup.
 //
-// Containers that emit raw content outside a table body - the body div, the
-// head, the navbar, the horizontal social layout, the section, group and
-// wrapper cell content, the accordion element content - must use renderRawChild:
-// marking them would keep the inliner from applying inline styles to content it
-// can safely re-serialize. A custom container makes the same choice through
-// RenderChildren (no marker, any markup) or RenderChildrenInTableBody (marked,
-// children directly inside a <tbody>).
+// The markers no longer protect anything - the inline stage builds its tree from
+// the emitted markup and styles a raw block in place, exactly where it stands -
+// but they still name the container's position contract, and the renderer strips
+// them from the finished document before the caller sees it. A custom container
+// makes the same choice through RenderChildren (no marker, any position) or
+// RenderChildrenInTableBody (marked, children directly inside a <tbody>).
 func renderRawChildInTableBody(ctx *RenderContext, w io.Writer, n *node.Node) error {
 	if _, err := io.WriteString(w, RawBlockStartMarker); err != nil {
 		return err
@@ -88,9 +86,8 @@ func renderRawChildInTableBody(ctx *RenderContext, w io.Writer, n *node.Node) er
 	return err
 }
 
-// StripRawBlockMarkers removes the raw-block markers from rendered HTML. The
-// inliner already restores protected blocks, but documents that skip the
-// inlining pass (no inline styles, no <mj-html-attributes>) still carry them.
+// StripRawBlockMarkers removes the raw-block markers from rendered HTML. They are
+// internal transport for RenderChildrenInTableBody and are not output.
 func StripRawBlockMarkers(html string) string {
 	if !strings.Contains(html, RawBlockStartMarker) && !strings.Contains(html, RawBlockEndMarker) {
 		return html

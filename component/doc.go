@@ -103,16 +103,19 @@
 // whenever matching the reference implementation requires it.
 //
 // ErrValidation is still exported as the sentinel the element, attribute,
-// value, child and mj-class kinds match with errors.Is; ErrMJMLBadlyFormatted, MergeOutlookConditionals,
-// RemoveNonNumeric, RawBlockStartMarker, RawBlockEndMarker and
-// StripRawBlockMarkers are exported to wire the packages together. They are not
+// value, child and mj-class kinds match with errors.Is; ErrMJMLBadlyFormatted,
+// MergeOutlookConditionals, RemoveNonNumeric, RawBlockStartMarker,
+// RawBlockEndMarker and StripRawBlockMarkers are exported to wire the packages
+// together. The markers are what RenderChildrenInTableBody writes and the
+// renderer strips; no parser needs them any more, they are all that is left of
+// the mechanism that kept raw content in place. They are not
 // meant to be called from outside, and may be changed or unexported.
 //
 // # What user code must not touch
 //
-// Rendering keeps private markers on nodes and in the HTML it emits. They are
-// internal conveniences, not part of the MJML language, and user code must not
-// set, read or depend on them:
+// Rendering keeps private markers on nodes. They are internal conveniences, not
+// part of the MJML language, and user code must not set, read or depend on
+// them:
 //
 //   - The parser protects the content of raw-content elements (mj-text,
 //     mj-button, mj-raw, ...) with CDATA sections so arbitrary markup survives
@@ -122,10 +125,6 @@
 //     mobileWidth="mobileWidth" so the column renderer knows it is inside a
 //     group. Document validation rejects that attribute on input; only the
 //     group renderer may set it.
-//   - Raw content emitted directly inside a table body is wrapped in
-//     RawBlockStartMarker / RawBlockEndMarker so the CSS inliner can keep it
-//     out of the HTML round-trip. The renderer strips the markers from the
-//     final document; they are not output.
 //   - node.Node.Parent is parser bookkeeping. Components receive the node to
 //     render and must walk Children instead of ascending Parent; see package
 //     node.

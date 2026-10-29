@@ -44,7 +44,4 @@
 //     parsed, so arbitrary markup survives encoding/xml unchanged. That
 //     protection is a parser detail: it never appears in Content, and nothing
 //     outside the parser may introduce or inspect it.
-//   - Rendered HTML may be wrapped in the raw-block comment markers from
-//     package component before it is assembled; they are removed again before
-//     the caller sees output.
 package node

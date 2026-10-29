@@ -1,0 +1,23 @@
+<mjml>
+  <mj-head>
+    <mj-style inline="inline">
+      /* an HTML element is not self-closed by "/>": the span stays inside it */
+      .wrap .inner { color: #ff0000; }
+      div.wrap > span { text-decoration: underline; }
+
+      /* the self-closing flag is only honoured in foreign content: the shapes
+         stay siblings, so a shape never contains another shape */
+      svg .shape { color: #00aa00; }
+      .shape { fill: #0000ff; }
+      .shape .shape { stroke: #000000; }
+    </mj-style>
+  </mj-head>
+  <mj-body>
+    <mj-section>
+      <mj-column>
+        <mj-text><div class="wrap" /><span class="inner">inside the wrap</span></mj-text>
+        <mj-text><svg><rect class="shape" /><circle class="shape" /></svg></mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

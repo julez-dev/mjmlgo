@@ -21,7 +21,8 @@ Single-context repo (this repo):
 │   ├── 0001-reference-implementation-is-the-npm-cli.md
 │   ├── 0002-hard-validation-is-an-intentional-divergence.md
 │   ├── 0003-compact-output-only.md
-│   └── 0004-exported-internals-freeze.md
+│   ├── 0004-exported-internals-freeze.md
+│   └── 0005-inline-css-on-the-emitted-markup.md
 ├── api.go, render.go, parser.go    ← public package mjmlgo
 ├── custom.go                       ← per-renderer custom-component registry
 ├── node/                           ← public element tree (frozen fields)

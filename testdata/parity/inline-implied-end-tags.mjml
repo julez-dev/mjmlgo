@@ -1,0 +1,30 @@
+<mjml>
+  <mj-head>
+    <mj-style inline="inline">
+      /* a block start closes an open <p>: the div is not inside the paragraph */
+      p div { color: #ff0000; }
+      p > .inner { text-decoration: underline; }
+
+      /* an <li> closes a preceding <li>: the items are siblings, not nested */
+      li li { color: #0000ff; }
+      ul > li > .tag { font-weight: bold; }
+
+      /* a <tr> closes a preceding <tr>, a <td> a preceding <td> */
+      tr tr td { background-color: #eeeeee; }
+      table > tr > td > .cell { font-style: italic; }
+
+      /* the div after an explicitly closed paragraph is its sibling */
+      .after { border-top: 1px solid #000000; }
+    </mj-style>
+  </mj-head>
+  <mj-body>
+    <mj-section>
+      <mj-column>
+        <mj-text><p>paragraph text<div class="inner">nested block</div></mj-text>
+        <mj-text><p>closed paragraph</p><div class="after">after</div></mj-text>
+        <mj-text><ul><li>first<li class="tag">second</ul></mj-text>
+        <mj-table><tr><td class="cell">one<td class="cell">two<tr><td class="cell">three</mj-table>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

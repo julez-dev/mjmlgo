@@ -102,9 +102,8 @@ fields too: `AttributeMap` (`map[string]string`), `Stylesheet` (`Rules`,
 - New exported fields may be added to `RenderContext` when they are additive and
   documented here; user code constructs it with keyed literals, so adding a field
   does not break compilation.
-- The concrete components (`MJML`, `MJMLSection`, ...), the raw-block markers,
-  the error sentinels and package `node`'s `Parent` semantics are not frozen by
-  this ADR.
+- The concrete components (`MJML`, `MJMLSection`, ...), the error sentinels and
+  package `node`'s `Parent` semantics are not frozen by this ADR.
 - `InitComponent` and `ValidateDocument` are API to call, but their signatures
   are not frozen: validation became custom-component aware in T3 (issue #4) and
   returns the structured failure of T5 (issue #6), and the package documentation

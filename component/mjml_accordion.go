@@ -209,8 +209,6 @@ func (e MJMLAccordionElement) Render(ctx *RenderContext, w io.Writer, n *node.No
 				return err
 			}
 		case RawTagName:
-			// Raw content here is emitted inside the accordion element's
-			// content <div>, not in a table body, so it needs no markers.
 			if err := renderRawChild(ctx, w, child); err != nil {
 				return err
 			}
