@@ -183,20 +183,12 @@ Known divergences at the start: 214 records / 15 root causes (see
   cover head, raw, hero (also behind the inliner), container and
   between-component comments plus one per option; raw children are rendered by
   one shared helper, marked when they sit in a table body.
-- **raw content and the inliner**: protected raw blocks are parsed as fragments
-  and receive the inline declarations and `<mj-html-attributes>` injections,
-  then are restored in place. The fragment context is chosen from the block's
-  own first element - a bare row or cell parses in a table body (so it stays a
-  row), a table section, caption or column group in a table (so it is not
-  dropped), and everything else as flow content (so a nested layout table keeps
-  its `<table>` element). Before this, the markers kept raw content out of the
-  whole-document parse so it was never styled, which diverged from the
-  reference for a raw element matching an inline selector in any marked
-  container (column included, pre-existing). Two limits remain, both from the
-  fragment scope: a selector that depends on an ancestor outside the block
-  cannot match inside it, and a block that mixes table shapes (a bare row before
-  a nested table, or a bare table child followed by rows) cannot round-trip
-  through any single context.
+- **raw content and the inliner** (superseded by T6): while the round-trip
+existed, protected raw blocks were parsed as fragments and styled separately,
+which left two limits - a selector needing an ancestor outside the block could
+not match, and a block mixing table shapes could not round-trip. T6 removed the
+round-trip, so raw content is styled in place in the emitted tree and both
+limits are gone.
 
 - **T6 done**: the inline stage runs on the emitted markup (ADR-0005). The
   document is tokenized once into an element tree, the `<mj-html-attributes>`
@@ -227,14 +219,24 @@ Known divergences at the start: 214 records / 15 root causes (see
   `component.RenderContext`; ADR-0001..0003 record the reference-CLI oracle,
   hard validation and compact output. `internal/` holds only the parity harness,
   and no public package imports it.
+- **T8 done**: the five areas that were covered only end to end - `node`,
+  `mjml_body`, `mjml_button`, `mjml_raw`, `mjml_social` - have unit tests in
+  their canonical per-source files, asserting behaviour rather than snapshots:
+  node attribute presence/precedence and parent links, body background and width
+  propagation, button padding plus its validation interactions, raw content
+  preservation (CDATA-ish input, markers, verbatim bytes) and social icon sizing
+  and alignment. Validation failures in those paths assert the structured
+  `*Error` kind, path and attribute value.
 
 Current state: full MJML 4.18 component and head coverage, zero divergences,
 `TestMJMLInvalid` covering fail-fast validation, custom components as leaves and
 containers with head styles, structured `*Error` values across the validation
 sites, the validation tables hoisted out of the per-instance path, an inline
 stage that runs on the emitted markup, and benchmarks and fuzz targets in place.
-Remaining roadmap: the rest of the validation surface, which rejects MJML's
-attribute types less strictly than planned.
+Phase 2 is complete: the authoring surface, the exported `node`/`component`
+packages, the custom-component contract (leaves and containers), structured
+errors, the in-tree inliner and the allocation work have all landed, and the
+parity corpus is comment-sensitive with zero divergences.
 
 ## Working with lanes
 
@@ -250,10 +252,12 @@ conflict-free. Rules that keep this safe:
 
 ## Phase 2: authoring surface and embedding API
 
-Planned work lives in GitHub: epic [#1](https://github.com/julez-dev/mjmlgo/issues/1)
-with the eight tickets below as sub-issues and native blocking edges. The settled
-decisions and per-ticket acceptance criteria are in the issue bodies; this section
-records the shape only.
+**Complete.** Epic [#1](https://github.com/julez-dev/mjmlgo/issues/1) and all eight
+sub-issues are closed. Each ticket landed as a reviewed lane (implementer plus two
+independent reviewers, standards and spec axes, on the same worktree); the table
+below keeps the dependency shape for the record. The settled decisions and the
+per-ticket acceptance criteria live in the issue bodies; the Status section above
+holds what each ticket actually shipped.
 
 | Ticket | Content | Blocked by |
 | --- | --- | --- |
@@ -266,8 +270,8 @@ records the shape only.
 | [#8](https://github.com/julez-dev/mjmlgo/issues/8) T7 | Validation allocations (~5k per `input_big` render) | T5 |
 | [#9](https://github.com/julez-dev/mjmlgo/issues/9) T8 | Unit-test backfill for parity-only sources | T2 |
 
-Topology: spine T1 -> T2 -> T3 -> T4, tail T5 -> T7 with T6 and T8 parallel to either.
-No version tag in this phase. `skeleton`, `preprocessors` and presets stay deferred
+Topology as executed: spine T1 -> T2 -> T3 -> T4, tail T5 -> T7, with T6 and T8
+parallel to either. No version tag in this phase. `skeleton`, `preprocessors` and presets stay deferred
 until custom components lands; `beautify`, `minify` and `juiceOptions` are permanently
 out of scope (compact output only).
 
