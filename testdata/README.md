@@ -34,6 +34,26 @@ package and by the reference MJML CLI, then compared structurally:
 `parity/upstream/` holds fixtures extracted from the upstream MJML test suite;
 see `parity/upstream/MANIFEST.md` for provenance and the curation rule.
 
+### Malformed inline CSS
+
+Only `<mj-style inline="inline">` bodies are parsed (for the inliner). The
+stylesheet parser loops forever on a rule-level `;` that never reaches a block,
+so a recovery pass normalises the input first: a statement with no block and a
+block with an empty prelude are dropped, a stray top-level `}` is dropped, an
+unterminated block is closed at the end of the input, and an unterminated comment
+drops the rest. Well-formed CSS is passed through byte for byte, so
+`parity/style-malformed-comment.mjml` and every well-formed fixture match the
+reference.
+
+Recovery is **best effort and deliberately divergent**: the reference inliner
+(postcss) sometimes swallows a *well-formed* rule that follows invalid syntax,
+as in `.broken color: red; .ok { color: #ff0000 }`, where it drops `.ok` too.
+This implementation keeps `.ok`, because dropping valid rules silently is worse
+than keeping them. No fixture asserts the reference's recovery for mixed
+invalid/valid input; `component/csssanitize_test.go` pins ours. What is not
+negotiable is that a document renders, or fails with a `*component.Error`, and
+never hangs.
+
 ### Per-fixture reference flags (`<fixture>.cli-args`)
 
 Some features only show up under a non-default reference configuration

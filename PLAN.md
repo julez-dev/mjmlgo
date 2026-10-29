@@ -219,6 +219,16 @@ limits are gone.
   `component.RenderContext`; ADR-0001..0003 record the reference-CLI oracle,
   hard validation and compact output. `internal/` holds only the parity harness,
   and no public package imports it.
+- **inliner hang fixed (issue #10)**: the stylesheet parser (douceur) loops forever
+  on a rule-level `;` that never reaches a block, so a malformed `<mj-style
+  inline>` body hung the renderer where the reference renders. `sanitizeInlineCSS`
+  now normalises the inline stylesheet first (drop block-less statements and
+  empty-prelude blocks, drop a stray top-level `}`, close an unterminated block at
+  end of input, drop an unterminated trailing comment); well-formed CSS passes
+  through byte for byte, and recovery from mixed invalid/valid CSS is documented
+  as a deliberate divergence in `testdata/README.md`. The CI fuzz seed is
+  committed under `testdata/fuzz/`.
+
 - **T8 done**: the five areas that were covered only end to end - `node`,
   `mjml_body`, `mjml_button`, `mjml_raw`, `mjml_social` - have unit tests in
   their canonical per-source files, asserting behaviour rather than snapshots:

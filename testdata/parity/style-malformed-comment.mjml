@@ -1,0 +1,15 @@
+<mjml>
+  <mj-head>
+    <!-- An unterminated comment ends the stylesheet, as it does in the reference. -->
+    <mj-style inline="inline">
+      .commented { color: #008000 } /* unterminated
+    </mj-style>
+  </mj-head>
+  <mj-body>
+    <mj-section>
+      <mj-column>
+        <mj-text css-class="commented">styled before the comment</mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

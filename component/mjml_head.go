@@ -86,7 +86,9 @@ func (h MJMLHead) Render(ctx *RenderContext, w io.Writer, n *node.Node) error {
 // ParseCSS takes a raw CSS string and parses it into a slice of Style structs.
 // It handles multiple CSS rules within the input string.
 func (h MJMLHead) parseCSS(cssText string) (Stylesheet, error) {
-	sheet, err := parser.Parse(cssText)
+	// The parser loops forever on some malformed stylesheets, so the recoverable
+	// subset is normalised first; see sanitizeInlineCSS.
+	sheet, err := parser.Parse(sanitizeInlineCSS(cssText))
 	if err != nil {
 		return Stylesheet{}, fmt.Errorf("error parsing CSS: %w", err)
 	}
