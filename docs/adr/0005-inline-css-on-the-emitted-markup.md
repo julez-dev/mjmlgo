@@ -50,8 +50,14 @@ leaves `xmlMode` off), so this tree reproduces htmlparser2 8.0.2's rules:
 A raw block inside a table body is therefore styled in place, in the same tree as
 everything else: an author's `<div>` in a `<tbody>` is an ancestor of its own
 children, so both the block's own selectors and selectors that depend on the
-elements around it match. The raw-block markers, the placeholder machinery and
-the per-block fragment parse that existed only to survive `html.Parse` are gone.
+elements around it match. The placeholder machinery and the per-block fragment
+parse that existed only to survive `html.Parse` are gone.
+
+The raw-block markers survive as container transport, and only as that:
+`component.RenderChildrenInTableBody` wraps raw children in them so a container
+states where its children sit, and the renderer strips them before the caller
+sees the document. No parser needs protecting any more, so they are comments the
+inline stage ignores rather than something it has to restore.
 
 ## Residual limits
 

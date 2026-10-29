@@ -693,3 +693,20 @@ func FuzzRenderMJML(f *testing.F) {
 		}
 	})
 }
+
+// TestRenderStripsRawBlockMarkers asserts the markers a table-body container uses
+// to state where its raw children sit never reach the output, including on the
+// fast path that skips the CSS inlining pass.
+func TestRenderStripsRawBlockMarkers(t *testing.T) {
+	t.Parallel()
+
+	for _, fixture := range []string{"raw-in-column.mjml", "raw.mjml", "raw-in-section.mjml", "simple.mjml"} {
+		input, err := os.ReadFile(filepath.Join(parityDir, fixture))
+		require.NoError(t, err)
+
+		rendered, err := RenderMJML(bytes.NewReader(input))
+		require.NoError(t, err)
+
+		assert.NotContains(t, rendered, "mjmlgo-raw", "%s leaked an internal marker", fixture)
+	}
+}
